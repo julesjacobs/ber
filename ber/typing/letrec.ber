@@ -8,8 +8,13 @@ let rec fact = fun n ->
 > val fact : int -> int
 
 
+
+
 let rec bad_rec = 1
 
 > val bad_rec : int
+
+
+
 
 

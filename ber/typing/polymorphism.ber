@@ -5,9 +5,13 @@ type 'a option = None | Some of 'a
 > type declaration
 
 
+
+
 type ('a, 'b) pair = Pair of 'a * 'b
 
 > type declaration
+
+
 
 
 let flip = fun f x y -> f y x
@@ -15,14 +19,20 @@ let flip = fun f x y -> f y x
 > val flip : ('b -> 'c -> 'a) -> 'c -> 'b -> 'a
 
 
+
+
 let compose = fun f g x -> f (g x)
 
 > val compose : ('c -> 'a) -> ('b -> 'c) -> 'b -> 'a
 
 
+
+
 let pair_id = fun x -> Pair (x, x)
 
 > val pair_id : 'a -> pair 'a 'a
+
+
 
 
 let use_poly =
@@ -32,5 +42,8 @@ let use_poly =
   Pair (a, b)
 
 > val use_poly : pair int bool
+
+
+
 
 

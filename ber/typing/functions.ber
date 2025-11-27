@@ -7,9 +7,13 @@ let id = fun x -> x
 
 
 
+
+
 let const = fun x y -> x
 
 > val const : 'a -> 'b -> 'a
+
+
 
 
 
@@ -21,6 +25,8 @@ let apply_twice = fun f x -> f (f x)
 
 
 
+
+
 let annotated = fun (x : int) -> x
 
 > val annotated : int -> int
@@ -28,9 +34,14 @@ let annotated = fun (x : int) -> x
 
 
 
+
+
 let bad_annot = (fun (x : int) -> x) : bool
 
-> Type error at /Users/julesjacobs/git/ber/ber/typing/functions.ber:22:0-22:43: type mismatch
+> Type error at /Users/julesjacobs/git/ber/ber/typing/functions.ber:30:0-30:43: type mismatch
+
+
+
 
 
 

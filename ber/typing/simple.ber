@@ -7,9 +7,13 @@ let lit_int = 42
 
 
 
+
+
 let lit_bool = true
 
 > val lit_bool : bool
+
+
 
 
 
@@ -21,6 +25,8 @@ let lit_str = "hi"
 
 
 
+
+
 let shadow = let x = lit_int in let x = x in x
 
 > val shadow : int
@@ -28,9 +34,14 @@ let shadow = let x = lit_int in let x = x in x
 
 
 
+
+
 let unbound = y
 
-> Type error at /Users/julesjacobs/git/ber/ber/typing/simple.ber:22:0-22:15: unbound variable y
+> Type error at /Users/julesjacobs/git/ber/ber/typing/simple.ber:30:0-30:15: unbound variable y
+
+
+
 
 
 

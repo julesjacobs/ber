@@ -12,6 +12,7 @@ type 'a option = None | Some of 'a
 
 
 
+
 let map_option = fun f opt ->
   match opt with
   | None -> None
@@ -28,9 +29,12 @@ let map_option = fun f opt ->
 
 
 
+
 let id = fun x -> x
 
 > let id = fun x -> x
+
+
 
 
 
