@@ -31,18 +31,23 @@ let parse lines =
     | rest -> List.rev acc, rest
   in
   let pragmas, remaining = take_pragmas [] lines in
+  let add_block line_no current start_line acc =
+    match current with
+    | [] -> acc
+    | code ->
+      let start = match start_line with Some s -> s | None -> line_no in
+      { code_lines = List.rev code; start_line = start } :: acc
+  in
   let rec loop line_no current start_line acc = function
     | [] ->
-      let acc =
-        match current, start_line with
-        | [], _ -> acc
-        | code, Some start -> { code_lines = List.rev code; start_line = start } :: acc
-        | _ -> acc
-      in
-      List.rev acc
+      add_block line_no current start_line acc |> List.rev
     | line :: rest ->
+      let trimmed = String.trim line in
       if is_output_line line then
         loop (line_no + 1) current start_line acc rest
+      else if trimmed = "" then
+        let acc = add_block line_no current start_line acc in
+        loop (line_no + 1) [] None acc rest
       else
         let start_line = match start_line with None -> Some line_no | Some s -> Some s in
         loop (line_no + 1) (line :: current) start_line acc rest

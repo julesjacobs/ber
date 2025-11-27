@@ -1,18 +1,19 @@
 #type
 type 'a option = None | Some of 'a
 > type declaration
-let option_default = fun def opt ->
-  match opt with
-  | None -> def
-  | Some x -> x
+
+let option_default = fun def opt -> match opt with | None -> def
+| Some x -> x
 > val option_default : 'a -> option 'a -> 'a
-let guard_non_bool = match None with | None when 1 -> true | Some _ -> false
-let tuple_match = fun t ->
-  match t with
-  | (a, b) -> a
-> val tuple_match : 'a * 'b -> 'a
-let arity_mismatch = fun p ->
-  match p with
-  | (x, y, z) -> x
-> val arity_mismatch : 'a * 'b * 'c -> 'a
+
+let guard_non_bool = match None with | None when 1 -> true
+| Some _ -> false
 > Type error at /Users/julesjacobs/git/ber/ber/typing/match.ber:6:0-6:76: type mismatch
+
+let tuple_match = fun t -> match t with
+| a, b -> a
+> val tuple_match : 'a * 'b -> 'a
+
+let arity_mismatch = fun p -> match p with
+| x, y, z -> x
+> val arity_mismatch : 'a * 'b * 'c -> 'a

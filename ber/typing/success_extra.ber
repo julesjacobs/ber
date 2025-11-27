@@ -1,12 +1,13 @@
 #type
 type ('a, 'b) either = Left of 'a | Right of 'b
 > type declaration
-let map_either = fun f g e ->
-  match e with
-  | Left x -> Left (f x)
-  | Right y -> Right (g y)
+
+let map_either = fun f g e -> match e with | Left x -> Left (f x)
+| Right y -> Right (g y)
 > val map_either : ('c -> 'a) -> ('d -> 'b) -> either 'c 'd -> either 'a 'b
+
 let compose3 = fun f g h x -> f (g (h x))
 > val compose3 : ('d -> 'a) -> ('c -> 'd) -> ('b -> 'c) -> 'b -> 'a
-let tuple_fun = fun (x, y) (z, w) -> (x, z, w)
+
+let tuple_fun = fun x, y z, w -> x, z, w
 > val tuple_fun : 'a * 'd -> 'b * 'c -> 'a * 'b * 'c

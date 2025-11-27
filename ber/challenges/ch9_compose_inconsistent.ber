@@ -1,9 +1,10 @@
 #type
 let compose f g x = f (g x)
+> Error at /Users/julesjacobs/git/ber/ber/challenges/ch9_compose_inconsistent.ber:1:12-1:13: syntax error
 
 let h (x : int) = x
 let g : bool -> bool = fun b -> b
+> Error at /Users/julesjacobs/git/ber/ber/challenges/ch9_compose_inconsistent.ber:4:6-4:7: syntax error
 
-let _ =
-  compose h g 0
-> Error at /Users/julesjacobs/git/ber/ber/challenges/ch9_compose_inconsistent.ber:1:12-1:13: syntax error
+let _ = compose h g 0
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch9_compose_inconsistent.ber:8:0-9:15: unbound variable compose

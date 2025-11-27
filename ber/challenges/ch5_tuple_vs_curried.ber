@@ -2,6 +2,7 @@
 let add_pair p =
   match p with
   | (x, y) -> x
+> Error at /Users/julesjacobs/git/ber/ber/challenges/ch5_tuple_vs_curried.ber:1:13-1:14: syntax error
 
 let _ = add_pair 1 2
-> Error at /Users/julesjacobs/git/ber/ber/challenges/ch5_tuple_vs_curried.ber:1:13-1:14: syntax error
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch5_tuple_vs_curried.ber:6:0-6:20: unbound variable add_pair

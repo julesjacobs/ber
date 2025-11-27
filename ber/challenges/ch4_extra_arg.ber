@@ -1,5 +1,6 @@
 #type
 let negate x = x
+> Error at /Users/julesjacobs/git/ber/ber/challenges/ch4_extra_arg.ber:1:11-1:12: syntax error
 
 let _ = negate 1 2
-> Error at /Users/julesjacobs/git/ber/ber/challenges/ch4_extra_arg.ber:1:11-1:12: syntax error
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch4_extra_arg.ber:4:0-4:18: unbound variable negate

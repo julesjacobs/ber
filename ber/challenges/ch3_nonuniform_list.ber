@@ -2,6 +2,5 @@
 type 'a list = Nil | Cons of 'a * 'a list
 > type declaration
 
-let mixed_list =
-  Cons (1, Cons (2, Cons (true, Nil)))
-> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch3_nonuniform_list.ber:3:0-4:38: type mismatch
+let mixed_list = Cons (1, Cons (2, Cons (true, Nil)))
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch3_nonuniform_list.ber:4:0-5:38: type mismatch
