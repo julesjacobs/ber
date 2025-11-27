@@ -9,9 +9,13 @@ type tree = Leaf | Node of tree * tree
 
 
 
+
+
 let make_node = Node
 
-> Type error at /Users/julesjacobs/git/ber/ber/typing/adt.ber:9:0-9:20: constructor arity mismatch
+> Type error at /Users/julesjacobs/git/ber/ber/typing/adt.ber:11:0-11:20: constructor arity mismatch
+
+
 
 
 (* CR codex: constructor arity mismatch flagged, but Node should be usable partially as a function *)
@@ -21,7 +25,9 @@ let make_node = Node
 
 let wrong_ctor_arity = Node 1
 
-> Type error at /Users/julesjacobs/git/ber/ber/typing/adt.ber:16:0-16:29: type mismatch
+> Type error at /Users/julesjacobs/git/ber/ber/typing/adt.ber:21:0-21:29: type mismatch
+
+
 
 
 
@@ -30,7 +36,9 @@ let wrong_ctor_arity = Node 1
 
 let unknown_ctor = Foo 1
 
-> Type error at /Users/julesjacobs/git/ber/ber/typing/adt.ber:23:0-23:24: unknown constructor Foo
+> Type error at /Users/julesjacobs/git/ber/ber/typing/adt.ber:30:0-30:24: unknown constructor Foo
+
+
 
 
 
