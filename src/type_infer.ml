@@ -508,13 +508,15 @@ let register_type_decl env (decl : type_decl) =
   let param_env = ref [] in
   List.iter2 (fun name tv -> param_env := (name, tv) :: !param_env) params param_vars;
   let type_body = TCon (decl.node.tname.node, List.map (fun tv -> TVar tv) param_vars) in
+  let pre_type_info = { params; ctors = [] } in
+  let env_with_type = { env with types = SMap.add decl.node.tname.node pre_type_info env.types } in
   let ctor_schemes =
     List.map
       (fun ctor ->
          let args =
            List.map
              (fun a ->
-               match ty_of_type_expr env param_env a with
+               match ty_of_type_expr env_with_type param_env a with
                | Ok t -> t
                | Error msg -> raise (TypeError msg))
              ctor.node.args
@@ -530,13 +532,13 @@ let register_type_decl env (decl : type_decl) =
       decl.node.constructors
   in
   let type_info = { params; ctors = ctor_schemes } in
-  let types = SMap.add decl.node.tname.node type_info env.types in
+  let types = SMap.add decl.node.tname.node type_info env_with_type.types in
   let vars =
     List.fold_left
       (fun v (name, sch) -> SMap.add name sch v)
-      env.vars ctor_schemes
+      env_with_type.vars ctor_schemes
   in
-  { env with types; vars }
+  { env_with_type with types; vars }
 
 let infer_toplevel env (tl : toplevel) =
   match tl.node with

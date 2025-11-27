@@ -5,3 +5,14 @@
 - [x] Expression and pattern inference (let/letrec, match, functions, constructors) with ADT environment
 - [x] Integrate #type pragma in CLI to output inferred types or type errors per toplevel
 - [x] Refresh .ber outputs (especially #type cases) and sanity-check examples
+- [ ] Typing tests to add in ber/typing:
+  - [ ] Simple values/vars: int/bool/string literals; shadowing; unbound var error
+  - [ ] Functions: single/multi-arg lambdas; annotations on params; polymorphic id/const; higher-order (apply_twice)
+  - [ ] Let vs let rec: nonrecursive bindings; recursive function; recursive value (should error on non-function); mutual recursion?
+  - [ ] Pattern matching: tuples; constructor patterns; as-pattern; wildcard; guard checks; match result type consistency; arity mismatches
+  - [ ] Constructors/ADTs: arity mismatch errors; unknown constructor; custom types with params; constructors used in patterns/expressions
+  - [ ] Type annotations/ascriptions: correct/incorrect annotation errors; annotated let-binding; annotated expression; nested annotations
+  - [ ] Type applications: tuple types; arrow associativity; type parameter arity mismatch errors
+  - [ ] Type generalization: polymorphic let; using polymorphic values multiple times; value restriction gaps (ensure current behavior)
+  - [ ] Error cases: recursive types (occurs check); type mismatch in app; guard not bool; pattern tuple arity mismatch; match with missing constructors is allowed but type errors surfaced
+  - [ ] #type output formatting: type declarations, let bindings, expressions; multiple errors reported in one file

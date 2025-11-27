@@ -1,0 +1,18 @@
+#type
+
+let rec fact = fun n ->
+  match n with
+  | 0 -> 1
+  | _ -> n * fact (n - 1)
+
+> Error at /Users/julesjacobs/git/ber/ber/typing/letrec.ber:5:11-5:12: syntax error
+
+
+
+
+let rec bad_rec = 1
+
+> val bad_rec : int
+
+
+

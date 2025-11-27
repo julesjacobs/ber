@@ -1,0 +1,14 @@
+#type
+
+type ('a, 'b) pair = Pair of 'a * 'b
+
+type wrong_arity = Pair
+
+type bad_param = foo 'a 'b 'c
+
+> Error at /Users/julesjacobs/git/ber/ber/typing/types.ber:6:17-6:20: syntax error
+
+
+
+
+

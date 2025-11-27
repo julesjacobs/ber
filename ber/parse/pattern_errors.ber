@@ -7,16 +7,32 @@ let bad_ctor = Some x y
 
 
 
+
+
+
+
 let bad_as = fun x -> match x with | y as -> y
 
-> Error at /Users/julesjacobs/git/ber/ber/parse/pattern_errors.ber:8:42-8:44: syntax error
+> Error at /Users/julesjacobs/git/ber/ber/parse/pattern_errors.ber:12:42-12:44: syntax error
+
+
+
+
 
 
 
 
 let bad_guard = match None with | None when -> true
 
-> Error at /Users/julesjacobs/git/ber/ber/parse/pattern_errors.ber:14:44-14:46: syntax error
+> Error at /Users/julesjacobs/git/ber/ber/parse/pattern_errors.ber:22:44-22:46: syntax error
+
+
+
+
+
+
+
+
 
 
 
