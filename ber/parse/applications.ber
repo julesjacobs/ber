@@ -1,86 +1,11 @@
 #parse
-
 type t = A | B of int | C of int * int
 > type t = A | B of int | C of int * int
-
-
-
-
-
-
-
-
-
-
-
-
 let a_val = A
 > let a_val = A
-
-
-
-
-
-
-
-
-
-
-
-
 let b_val = B 10
 > let b_val = B 10
-
-
-
-
-
-
-
-
-
-
-
-
 let c_val = C 1 2
 > let c_val = C 1 2
-
-
-
-
-
-
-
-
-
-
-
-
 let apply_twice = fun f x -> f (f x)
 > let apply_twice = fun f x -> f (f x)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

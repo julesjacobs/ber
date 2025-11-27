@@ -11,6 +11,28 @@ let render_output_lines content =
   | [] -> [">"]
   | _ -> List.map (fun line -> "> " ^ line) lines
 
+let is_blank_line line = String.trim line = ""
+
+let trim_surrounding_blank_lines lines =
+  let rec drop_leading = function
+    | l :: rest when is_blank_line l -> drop_leading rest
+    | rest -> rest
+  in
+  let rec drop_trailing = function
+    | [] -> []
+    | l :: rest ->
+      let rest' = drop_trailing rest in
+      if rest' = [] && is_blank_line l then [] else l :: rest'
+  in
+  let rec collapse acc prev_blank = function
+    | [] -> List.rev acc
+    | l :: rest ->
+      let blank = is_blank_line l in
+      if blank && prev_blank then collapse acc true rest
+      else collapse (l :: acc) blank rest
+  in
+  drop_trailing (collapse [] false (drop_leading lines))
+
 let format_location (loc : Location.t) =
   let start_line = loc.start.Lexing.pos_lnum in
   let start_col = loc.start.Lexing.pos_cnum - loc.start.Lexing.pos_bol in
@@ -51,7 +73,7 @@ let emit_outputs lines outputs =
 
 let process_block_type filename (env : Type_infer.env) (block : File_format.block) =
   let has_content = List.exists (fun l -> String.trim l <> "") block.code_lines in
-  if not has_content then env, block.code_lines
+  if not has_content then env, trim_surrounding_blank_lines block.code_lines
   else
     let lines = Array.of_list block.code_lines in
     let src = String.concat "\n" block.code_lines in
@@ -93,12 +115,12 @@ let process_block_type filename (env : Type_infer.env) (block : File_format.bloc
     in
     let outputs, env' = outputs in
     let combined = emit_outputs lines (List.map (fun (ln, outs) -> ln, outs) outputs) in
-    env', combined
+    env', trim_surrounding_blank_lines combined
 
 let process_block filename pragmas (block : File_format.block) =
   let _ = pragmas in
   let has_content = List.exists (fun l -> String.trim l <> "") block.code_lines in
-  if not has_content then block.code_lines
+  if not has_content then trim_surrounding_blank_lines block.code_lines
   else
     let lines = Array.of_list block.code_lines in
     let lexbuf = Lexing.from_string (String.concat "\n" block.code_lines) in
@@ -117,7 +139,7 @@ let process_block filename pragmas (block : File_format.block) =
         let rel = err.loc.start.Lexing.pos_lnum - block.start_line in
         [ (rel, [ format_error err ]) ]
     in
-    emit_outputs lines outputs
+    emit_outputs lines outputs |> trim_surrounding_blank_lines
 
 let rewrite_file filename =
   let input =

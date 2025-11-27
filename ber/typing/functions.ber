@@ -1,65 +1,11 @@
 #type
-
 let id = fun x -> x
 > val id : 'a -> 'a
-
-
-
-
-
-
-
-
-
 let const = fun x y -> x
 > val const : 'a -> 'b -> 'a
-
-
-
-
-
-
-
-
-
 let apply_twice = fun f x -> f (f x)
 > val apply_twice : ('a -> 'a) -> 'a -> 'a
-
-
-
-
-
-
-
-
-
 let annotated = fun (x : int) -> x
 > val annotated : int -> int
-
-
-
-
-
-
-
-
-
 let bad_annot = (fun (x : int) -> x) : bool
-> Type error at /Users/julesjacobs/git/ber/ber/typing/functions.ber:46:0-46:43: type mismatch
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+> Type error at /Users/julesjacobs/git/ber/ber/typing/functions.ber:9:0-9:43: type mismatch

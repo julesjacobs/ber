@@ -1,48 +1,7 @@
 #type
-
 let good_annot = (fun x -> x) : int -> int
 > val good_annot : int -> int
-
-
-
-
-
-
-
-
-
-
-
 let bad_annot = (fun x -> x) : int -> bool
-> Type error at /Users/julesjacobs/git/ber/ber/typing/annot.ber:15:0-15:42: type mismatch
-
-
-
-
-
-
-
-
-
-
-
+> Type error at /Users/julesjacobs/git/ber/ber/typing/annot.ber:3:0-3:42: type mismatch
 let let_annot : int = 3
 > val let_annot : int
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

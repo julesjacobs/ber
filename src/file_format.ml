@@ -10,6 +10,11 @@ type document =
   ; blocks : block list
   }
 
+let drop_trailing_empty_line lines =
+  match List.rev lines with
+  | "" :: rest -> List.rev rest
+  | _ -> lines
+
 let is_pragma_line line =
   String.length line > 0 && line.[0] = '#'
 
@@ -20,6 +25,7 @@ let trim_pragma line =
   String.sub line 1 (String.length line - 1) |> String.trim
 
 let parse lines =
+  let lines = drop_trailing_empty_line lines in
   let rec take_pragmas acc = function
     | line :: rest when is_pragma_line line -> take_pragmas (trim_pragma line :: acc) rest
     | rest -> List.rev acc, rest
