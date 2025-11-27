@@ -1,0 +1,16 @@
+#type
+type 'a list = Nil | Cons of 'a * 'a list
+
+> type declaration
+
+let bool_not b =
+  match b with
+  | true -> false
+  | false -> true
+
+> val bool_not : bool -> bool
+
+let bad_fs =
+  Cons ((fun (x : int) -> x), Cons (bool_not, Nil))
+
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch19_function_list.ber:9:0-10:51: type mismatch

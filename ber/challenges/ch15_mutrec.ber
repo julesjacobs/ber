@@ -1,0 +1,11 @@
+#type
+let rec even n =
+  match n with
+  | 0 -> true
+  | _ -> odd n
+and odd n =
+  match n with
+  | 0 -> 0
+  | _ -> even n
+
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch15_mutrec.ber:2:0-9:15: type mismatch

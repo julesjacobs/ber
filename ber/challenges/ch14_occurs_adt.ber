@@ -1,0 +1,9 @@
+#type
+type 'a tree = Leaf of 'a | Node of 'a tree * 'a tree
+
+> type declaration
+
+let rec bad t =
+  Node (t, bad)
+
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch14_occurs_adt.ber:6:0-7:15: type mismatch

@@ -1,0 +1,15 @@
+#type
+type 'a tree = Leaf of 'a | Node of 'a tree * 'a tree
+
+> type declaration
+
+let add_size (x : int) (y : int) = x
+
+> val add_size : int -> int -> int
+
+let rec size t =
+  match t with
+  | Leaf -> 1
+  | Node (l, r) -> add_size (size l) (size r)
+
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch17_ctor_pattern.ber:10:0-13:45: constructor arity mismatch

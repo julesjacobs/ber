@@ -1,0 +1,13 @@
+#type
+type 'a tree = Leaf of 'a | Node of 'a tree * 'a tree
+
+> type declaration
+
+type 'a list = Nil | Cons of 'a * 'a list
+
+> type declaration
+
+let trees =
+  Cons (Leaf 1, Cons (Leaf (Cons (2, Nil)), Nil))
+
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch22_tree_params.ber:10:0-11:49: type mismatch

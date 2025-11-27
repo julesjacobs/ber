@@ -1,0 +1,11 @@
+#type
+type 'a list = Nil | Cons of 'a * 'a list
+
+> type declaration
+
+let rec g x =
+  match x with
+  | 0 -> Nil
+  | _ -> g (Cons (x, Nil))
+
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch21_polyrec.ber:4:0-7:26: type mismatch

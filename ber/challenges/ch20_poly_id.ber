@@ -1,0 +1,11 @@
+#type
+let id x = x
+
+> val id : 'a -> 'a
+
+let f b =
+  match b with
+  | true -> id 0
+  | false -> id true
+
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch20_poly_id.ber:6:0-9:20: type mismatch

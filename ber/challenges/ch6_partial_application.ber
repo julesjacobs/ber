@@ -1,0 +1,20 @@
+#type
+type 'a list = Nil | Cons of 'a * 'a list
+
+> type declaration
+
+let rec length xs =
+  match xs with
+  | Nil -> 0
+  | Cons (_, xs') -> length xs'
+
+> val length : list 'a -> int
+
+let add (x : int) (y : int) = x
+
+> val add : int -> int -> int
+
+let add1_to_length xs =
+  add 1 length
+
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch6_partial_application.ber:17:0-18:14: type mismatch

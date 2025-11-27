@@ -1,0 +1,24 @@
+#type
+type expr = Int of int | Add of expr * expr | Bool of bool | And of expr * expr
+
+> type declaration
+
+let add (x : int) (y : int) = x
+
+> val add : int -> int -> int
+
+let bool_and b1 b2 =
+  match b1 with
+  | true -> b2
+  | false -> false
+
+> val bool_and : bool -> bool -> bool
+
+let rec eval e =
+  match e with
+  | Int n -> n
+  | Bool b -> b
+  | Add (e1, e2) -> add (eval e1) (eval e2)
+  | And (e1, e2) -> bool_and (eval e1) (eval e2)
+
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch16_eval_mixed.ber:17:0-22:48: type mismatch
