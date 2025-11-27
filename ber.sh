@@ -22,4 +22,7 @@ fi
 for file in "${files[@]}"; do
   echo "Processing $file"
   dune exec ber-cli -- "$file"
+  echo "----- $file -----"
+  cat "$file"
+  echo
 done

@@ -11,6 +11,7 @@ type 'a pair = Pair of 'a * 'a
 
 
 
+
 let swap : 'a pair -> 'a pair = fun (Pair (x, y)) -> Pair (y, x)
 
 > let swap : 'a pair -> 'a pair = fun (Pair (x, y)) -> Pair (y, x)
@@ -22,9 +23,12 @@ let swap : 'a pair -> 'a pair = fun (Pair (x, y)) -> Pair (y, x)
 
 
 
+
 let id_int : int -> int = fun (x : int) -> (x : int)
 
 > let id_int : int -> int = fun (x : int) -> x : int
+
+
 
 
 

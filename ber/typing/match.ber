@@ -7,6 +7,8 @@ type 'a option = None | Some of 'a
 
 
 
+
+
 let option_default = fun def opt ->
   match opt with
   | None -> def
@@ -17,9 +19,13 @@ let option_default = fun def opt ->
 
 
 
+
+
 let guard_non_bool = match None with | None when 1 -> true | Some _ -> false
 
-> Type error at /Users/julesjacobs/git/ber/ber/typing/match.ber:15:0-15:76: type mismatch
+> Type error at /Users/julesjacobs/git/ber/ber/typing/match.ber:19:0-19:76: type mismatch
+
+
 
 
 
@@ -33,11 +39,16 @@ let tuple_match = fun t ->
 
 
 
+
+
 let arity_mismatch = fun p ->
   match p with
   | (x, y, z) -> x
 
 > val arity_mismatch : 'a * 'b * 'c -> 'a
+
+
+
 
 
 

@@ -11,6 +11,7 @@ type tree = Leaf | Node of tree * tree
 
 
 
+
 let size = fun t ->
   match t with
   | Leaf -> 1
@@ -26,6 +27,7 @@ let size = fun t ->
 
 
 
+
 let depth = fun t ->
   match t with
   | Leaf -> 1
@@ -33,6 +35,8 @@ let depth = fun t ->
 
 > let depth = fun t -> match t with | Leaf -> 1
 > | Node (_l, _r) -> 1
+
+
 
 
 

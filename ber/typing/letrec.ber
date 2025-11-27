@@ -3,16 +3,13 @@
 let rec fact = fun n ->
   match n with
   | 0 -> 1
-  | _ -> n * fact (n - 1)
+  | _ -> fact 0
 
-> Error at /Users/julesjacobs/git/ber/ber/typing/letrec.ber:5:11-5:12: syntax error
-
-
+> val fact : int -> int
 
 
 let rec bad_rec = 1
 
 > val bad_rec : int
-
 
 

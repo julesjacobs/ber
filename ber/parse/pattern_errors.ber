@@ -11,9 +11,11 @@ let bad_ctor = Some x y
 
 
 
+
 let bad_as = fun x -> match x with | y as -> y
 
-> Error at /Users/julesjacobs/git/ber/ber/parse/pattern_errors.ber:12:42-12:44: syntax error
+> Error at /Users/julesjacobs/git/ber/ber/parse/pattern_errors.ber:13:42-13:44: syntax error
+
 
 
 
@@ -24,7 +26,9 @@ let bad_as = fun x -> match x with | y as -> y
 
 let bad_guard = match None with | None when -> true
 
-> Error at /Users/julesjacobs/git/ber/ber/parse/pattern_errors.ber:22:44-22:46: syntax error
+> Error at /Users/julesjacobs/git/ber/ber/parse/pattern_errors.ber:24:44-24:46: syntax error
+
+
 
 
 
