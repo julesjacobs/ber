@@ -1,0 +1,7 @@
+#type
+
+let add_pair p =
+  match p with
+  | (x, y) -> x
+
+let _ = add_pair 1 2

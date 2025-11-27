@@ -1,0 +1,5 @@
+#type
+
+let (x, y, z) = (1, 2)
+
+let _ = x

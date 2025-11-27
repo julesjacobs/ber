@@ -1,0 +1,8 @@
+#type
+
+type 'a list = Nil | Cons of 'a * 'a list
+
+let choose b x =
+  match b with
+  | true -> Cons (x, Nil)
+  | false -> x

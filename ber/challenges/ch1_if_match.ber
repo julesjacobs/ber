@@ -1,0 +1,10 @@
+#type
+
+(* If-branch mismatch inside a let (simulated with match) *)
+let f b =
+  let x =
+    match b with
+    | true -> 0
+    | false -> false
+  in
+  x

@@ -1,0 +1,8 @@
+#type
+
+type 'a list = Nil | Cons of 'a * 'a list
+
+let rec length_or_and xs =
+  match xs with
+  | Nil -> 0
+  | Cons (x, xs') -> x && length_or_and xs'

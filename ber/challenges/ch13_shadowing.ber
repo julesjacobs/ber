@@ -1,0 +1,7 @@
+#type
+
+let x = 1
+
+let x = true
+
+let _ = x 1

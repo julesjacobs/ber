@@ -1,0 +1,16 @@
+#type
+
+type 'a list = Nil | Cons of 'a * 'a list
+
+let rec fold_left f acc xs =
+  match xs with
+  | Nil -> acc
+  | Cons (x, xs') -> fold_left f (f acc x) xs'
+
+let sum_bool_list xs =
+  fold_left (fun a b -> a) 0 xs
+
+let xs = Cons (true, Cons (false, Cons (true, Nil)))
+
+let _ =
+  sum_bool_list xs

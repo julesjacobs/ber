@@ -5,7 +5,12 @@ let rec broken = fun x ->
   | Some y -> y
   | None ->
 
-> Error at /Users/julesjacobs/git/ber/ber/parse/error_example.ber:5:11-5:11: syntax error
+> Error at /Users/julesjacobs/git/ber/ber/parse/error_example.ber:6:0-6:0: syntax error
+
+
+
+
+
 
 
 

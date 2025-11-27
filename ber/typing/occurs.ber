@@ -1,8 +1,14 @@
 #type
 
 let rec occurs = fun x -> x x
-
 > Type error at /Users/julesjacobs/git/ber/ber/typing/occurs.ber:2:0-2:29: recursive types
+
+
+
+
+
+
+
 
 
 

@@ -12,7 +12,7 @@ fi
 files=()
 while IFS= read -r file; do
   files+=("$file")
-done < <(find "$BER_DIR" -type f -name '*.ber' | sort)
+done < <(find "$BER_DIR" -type f -name '*.ber' ! -path "*/challenges/*" | sort)
 
 if [[ ${#files[@]} -eq 0 ]]; then
   echo "No .ber files found in $BER_DIR"
