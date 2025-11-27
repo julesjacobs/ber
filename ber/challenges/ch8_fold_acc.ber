@@ -1,8 +1,8 @@
 #type
-
 type 'a list = Nil | Cons of 'a * 'a list
 
 let rec fold_left f acc xs =
+> Error at /Users/julesjacobs/git/ber/ber/challenges/ch8_fold_acc.ber:4:18-4:19: syntax error
   match xs with
   | Nil -> acc
   | Cons (x, xs') -> fold_left f (f acc x) xs'

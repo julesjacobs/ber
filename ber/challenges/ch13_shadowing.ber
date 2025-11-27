@@ -1,7 +1,9 @@
 #type
-
 let x = 1
+> val x : int
 
 let x = true
+> val x : bool
 
 let _ = x 1
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch13_shadowing.ber:6:0-6:11: type mismatch

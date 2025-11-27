@@ -1,6 +1,6 @@
 #type
-
 let add_pair p =
+> Error at /Users/julesjacobs/git/ber/ber/challenges/ch5_tuple_vs_curried.ber:2:13-2:14: syntax error
   match p with
   | (x, y) -> x
 

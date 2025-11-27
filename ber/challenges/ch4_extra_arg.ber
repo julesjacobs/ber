@@ -1,5 +1,5 @@
 #type
-
 let negate x = x
+> Error at /Users/julesjacobs/git/ber/ber/challenges/ch4_extra_arg.ber:2:11-2:12: syntax error
 
 let _ = negate 1 2

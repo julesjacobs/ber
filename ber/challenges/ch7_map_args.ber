@@ -1,8 +1,8 @@
 #type
-
 type 'a list = Nil | Cons of 'a * 'a list
 
 let rec map f xs =
+> Error at /Users/julesjacobs/git/ber/ber/challenges/ch7_map_args.ber:4:12-4:13: syntax error
   match xs with
   | Nil -> Nil
   | Cons (x, xs') -> Cons (f x, map f xs')

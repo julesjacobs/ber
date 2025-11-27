@@ -1,7 +1,7 @@
 #type
-
 (* If-branch mismatch inside a let (simulated with match) *)
 let f b =
+> Error at /Users/julesjacobs/git/ber/ber/challenges/ch1_if_match.ber:3:6-3:7: syntax error
   let x =
     match b with
     | true -> 0
