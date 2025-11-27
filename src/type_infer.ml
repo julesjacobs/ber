@@ -416,34 +416,36 @@ let rec infer_expr env expr =
     let env_rec_level = push_level env in
     (match rec_flag with
      | Nonrecursive ->
-       let env_after =
-         List.fold_left
-           (fun e b ->
-              match infer_expr env_rec_level b.node.rhs with
-              | Error msg -> raise (TypeError msg)
-              | Ok (t_rhs, _) ->
-                (match infer_pattern env_rec_level b.node.lhs t_rhs with
-                 | Error msg -> raise (TypeError msg)
-                 | Ok (binds, _) ->
-                   List.fold_left
-                     (fun acc (name, ty) ->
-                        let sch = generalize env ty in
-                        { acc with vars = SMap.add name sch acc.vars })
-                     e
-                     binds))
-           env
-           bindings
+       let* env_after =
+         let rec loop env_acc = function
+           | [] -> Ok env_acc
+           | b :: rest ->
+             let* t_rhs, _ = infer_expr env_rec_level b.node.rhs in
+             let* binds, _ = infer_pattern env_rec_level b.node.lhs t_rhs in
+             let env_acc =
+               List.fold_left
+                 (fun acc (name, ty) ->
+                    let sch = generalize env ty in
+                    { acc with vars = SMap.add name sch acc.vars })
+                 env_acc
+                 binds
+             in
+             loop env_acc rest
+         in
+         loop env bindings
        in
        let* body_ty, _ = infer_expr env_after in_expr in
        Ok (body_ty, env_after)
      | Recursive ->
-       let names =
-         List.map
-           (fun b ->
-              match b.node.lhs.node with
-              | PVar id -> id.node
-              | _ -> raise (TypeError "let rec requires variable patterns"))
-           bindings
+       let* names =
+         let rec collect acc = function
+           | [] -> Ok (List.rev acc)
+           | b :: rest ->
+             (match b.node.lhs.node with
+              | PVar id -> collect (id.node :: acc) rest
+              | _ -> Error "let rec requires variable patterns")
+         in
+         collect [] bindings
        in
        let provisional =
          List.map (fun name -> name, fresh_ty env_rec_level.gen_level) names
@@ -454,18 +456,23 @@ let rec infer_expr env expr =
            env_rec_level
            provisional
        in
-       let env_vars = ref env_with_prov.vars in
-       List.iter2
-         (fun b (_, ty) ->
-            match infer_expr env_with_prov b.node.rhs with
-            | Error msg -> raise (TypeError msg)
-            | Ok (rhs_ty, _) ->
-              (try unify ty rhs_ty with TypeError msg -> raise (TypeError msg));
-              let sch = generalize env rhs_ty in
-              let name = match b.node.lhs.node with PVar id -> id.node | _ -> assert false in
-              env_vars := SMap.add name sch !env_vars)
-         bindings provisional;
-       let env_after = { env with vars = !env_vars } in
+       let* env_vars =
+         let rec loop env_vars = function
+           | [] -> Ok env_vars
+           | (b, (_, ty)) :: rest ->
+             let* rhs_ty, _ = infer_expr env_with_prov b.node.rhs in
+             let* () = unify_res ty rhs_ty in
+             let sch = generalize env rhs_ty in
+             let name =
+               match b.node.lhs.node with
+               | PVar id -> id.node
+               | _ -> assert false
+             in
+             loop (SMap.add name sch env_vars) rest
+         in
+         loop env_with_prov.vars (List.combine bindings provisional)
+       in
+       let env_after = { env with vars = env_vars } in
        let* body_ty, _ = infer_expr env_after in_expr in
        Ok (body_ty, env_after))
   | EMatch (scrut, cases) ->
@@ -510,26 +517,29 @@ let register_type_decl env (decl : type_decl) =
   let type_body = TCon (decl.node.tname.node, List.map (fun tv -> TVar tv) param_vars) in
   let pre_type_info = { params; ctors = [] } in
   let env_with_type = { env with types = SMap.add decl.node.tname.node pre_type_info env.types } in
-  let ctor_schemes =
-    List.map
-      (fun ctor ->
-         let args =
-           List.map
-             (fun a ->
-               match ty_of_type_expr env_with_type param_env a with
-               | Ok t -> t
-               | Error msg -> raise (TypeError msg))
-             ctor.node.args
-         in
-         let ty =
-           List.fold_right
-             (fun arg acc -> t_arrow arg acc)
-             args
-             type_body
-         in
-         let sch = generalize env ty in
-         ctor.node.cname.node, sch)
-      decl.node.constructors
+  let* ctor_schemes =
+    let rec loop acc = function
+      | [] -> Ok (List.rev acc)
+      | ctor :: rest ->
+        let* args =
+          let rec collect acc = function
+            | [] -> Ok (List.rev acc)
+            | a :: tail ->
+              let* t = ty_of_type_expr env_with_type param_env a in
+              collect (t :: acc) tail
+          in
+          collect [] ctor.node.args
+        in
+        let ty =
+          List.fold_right
+            (fun arg acc -> t_arrow arg acc)
+            args
+            type_body
+        in
+        let sch = generalize env ty in
+        loop ((ctor.node.cname.node, sch) :: acc) rest
+    in
+    loop [] decl.node.constructors
   in
   let type_info = { params; ctors = ctor_schemes } in
   let types = SMap.add decl.node.tname.node type_info env_with_type.types in
@@ -538,13 +548,14 @@ let register_type_decl env (decl : type_decl) =
       (fun v (name, sch) -> SMap.add name sch v)
       env_with_type.vars ctor_schemes
   in
-  { env_with_type with types; vars }
+  Ok { env_with_type with types; vars }
 
 let infer_toplevel env (tl : toplevel) =
   match tl.node with
   | TType decl ->
-    let env' = register_type_decl env decl in
-    Ok (env', InfoType tl.loc)
+    (match register_type_decl env decl with
+     | Ok env' -> Ok (env', InfoType tl.loc)
+     | Error msg -> Error { loc = tl.loc; message = msg })
   | TExpr e ->
     (match infer_expr env e with
      | Ok (ty, _) ->

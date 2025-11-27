@@ -11,12 +11,14 @@ let rec fold_left f acc xs =
 > val fold_left : ('a -> 'b -> 'a) -> 'a -> list 'b -> 'a
 
 let sum_bool_list xs =
-  fold_left (fun a b -> a) 0 xs
+  fold_left (fun (a : int) (b : int) -> a) 0 xs
 
-> val sum_bool_list : list 'a -> int
+> val sum_bool_list : list int -> int
 
 let xs = Cons (true, Cons (false, Cons (true, Nil)))
 
 > val xs : list bool
 
 let _ = sum_bool_list xs
+
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch8_fold_acc.ber:22:0-22:24: type mismatch

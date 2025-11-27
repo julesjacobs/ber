@@ -7,6 +7,10 @@ let x = true
 
 > val x : bool
 
-let _ = x 1
+let use_int (n : int) = n
 
-> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch13_shadowing.ber:10:0-10:11: type mismatch
+> val use_int : int -> int
+
+let _ = use_int x
+
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch13_shadowing.ber:14:0-14:17: type mismatch

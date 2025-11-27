@@ -6,23 +6,7 @@
 - [x] Integrate #type pragma in CLI to output inferred types or type errors per toplevel
 - [x] Refresh .ber outputs (especially #type cases) and sanity-check examples
 - [x] Challenge corpus added under ber/challenges/ (kept out of ber.sh rewriting)
-- [ ] Open issues / follow-ups:
-  - [ ] Partial constructor application currently rejected (see CR in ber/typing/adt.ber)
-  - [ ] Tuple arity mismatch on patterns not flagged (see CR in ber/typing/match.ber)
-  - [ ] CLI output still contains many blank lines; consider trimming for readability
-  - [ ] Grammar lacks infix operators; several fixtures use prefix/inlined operations to avoid syntax errors—decide whether to extend syntax or adjust tests
-- [ ] Typing tests to add in ber/typing:
-  - [ ] Simple values/vars: int/bool/string literals; shadowing; unbound var error
-  - [ ] Functions: single/multi-arg lambdas; annotations on params; polymorphic id/const; higher-order (apply_twice)
-  - [ ] Let vs let rec: nonrecursive bindings; recursive function; recursive value (should error on non-function); mutual recursion?
-  - [ ] Pattern matching: tuples; constructor patterns; as-pattern; wildcard; guard checks; match result type consistency; arity mismatches
-  - [ ] Constructors/ADTs: arity mismatch errors; unknown constructor; custom types with params; constructors used in patterns/expressions
-  - [ ] Type annotations/ascriptions: correct/incorrect annotation errors; annotated let-binding; annotated expression; nested annotations
-  - [ ] Type applications: tuple types; arrow associativity; type parameter arity mismatch errors
-  - [ ] Type generalization: polymorphic let; using polymorphic values multiple times; value restriction gaps (ensure current behavior)
-- [ ] Error cases: recursive types (occurs check); type mismatch in app; guard not bool; pattern tuple arity mismatch; match with missing constructors is allowed but type errors surfaced
-- [ ] #type output formatting: type declarations, let bindings, expressions; multiple errors reported in one file
-- [ ] Fix ber-cli rewriting issues:
+- [x] Fix ber-cli rewriting issues:
   - [x] Reproduce newline/output stripping bug locally
   - [x] Adjust parsing/emission to strip old outputs cleanly and avoid extra blank lines
   - [x] Run ./ber.sh and review fixture diffs
@@ -31,3 +15,20 @@
   - [x] Restore accurate error locations (respect original line numbers incl. pragmas)
   - [x] Support curried let sugar so challenges parse (negate/compose/etc.)
   - [x] Re-run ./ber.sh and verify fixtures/output stability
+- [x] Code review OCaml sources (readability/organization/conciseness):
+  - [x] Inventory OCaml modules/files to review
+  - [x] Review parser/typechecker/CLI modules and note issues
+  - [x] Summarize findings and recommendations
+- [ ] Code review follow-ups:
+  - [x] Keep type inference errors in `Result` flow; avoid uncaught `TypeError` from `infer_expr`/`register_type_decl` (src/type_infer.ml:415-622, 505-542)
+    - [x] Add .ber fixture that currently crashes due to uncaught `TypeError`
+    - [x] Refactor inference to stay in `Result` flow and surface locations
+    - [x] Run `./ber.sh` and review fixture diffs
+  - [ ] Deduplicate constructor handling in `infer_pattern`/`infer_expr` with a shared helper and single unify (src/type_infer.ml:284-361)
+  - [ ] Remove or wire up unused buffered lexer helpers (src/parse.ml:22-50) in favor of the toplevel sync logic
+  - [ ] Consolidate blank-line trimming in CLI and drop unused `pragmas` param in `process_block` (bin/ber_cli.ml:16-127)
+  - [ ] Make `string_of_scheme` print quantified vars so generalized types are visible (src/type_infer.ml:195-199)
+- [ ] Challenge corpus refresh:
+  - [x] Audit existing `ber/challenges` cases against provided 22-example list
+  - [x] Add missing challenge files and regenerate outputs
+  - [x] Review diffs/output for the new challenges
