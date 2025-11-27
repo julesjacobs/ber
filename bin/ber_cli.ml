@@ -33,6 +33,10 @@ let trim_surrounding_blank_lines lines =
   in
   drop_trailing (collapse [] false (drop_leading lines))
 
+let is_challenge_file filename =
+  let parts = String.split_on_char '/' filename in
+  List.exists (( = ) "challenges") parts
+
 let format_location (loc : Location.t) =
   let start_line = loc.start.Lexing.pos_lnum in
   let start_col = loc.start.Lexing.pos_cnum - loc.start.Lexing.pos_bol in
@@ -142,42 +146,45 @@ let process_block filename pragmas (block : File_format.block) =
     emit_outputs lines outputs |> trim_surrounding_blank_lines
 
 let rewrite_file filename =
-  let input =
-    let ic = open_in_bin filename in
-    let len = in_channel_length ic in
-    let data = really_input_string ic len in
-    close_in ic;
-    data
-  in
-  let lines = String.split_on_char '\n' input in
-  let doc = File_format.parse lines in
-  let type_mode = File_format.has_pragma doc "type" in
-  let processed_blocks =
-    if type_mode then
-      let _, blocks =
-        List.fold_left
-          (fun (env, acc) block ->
-             let env', lines = process_block_type filename env block in
-             env', lines :: acc)
-          (Type_infer.initial_env, [])
-          doc.blocks
-      in
-      List.rev blocks
-    else
-      List.map (process_block filename doc.pragmas) doc.blocks
-  in
-  let buf = Buffer.create (String.length input + 128) in
-  List.iter (fun p -> Buffer.add_string buf ("#" ^ p ^ "\n")) doc.pragmas;
-  let rec emit = function
-    | [] -> ()
-    | lines :: rest ->
-      List.iter (fun line -> Buffer.add_string buf line; Buffer.add_char buf '\n') lines;
-      emit rest
-  in
-  emit processed_blocks;
-  let oc = open_out_bin filename in
-  output_string oc (Buffer.contents buf);
-  close_out oc
+  if is_challenge_file filename then
+    prerr_endline ("Skipping challenge file (unchanged): " ^ filename)
+  else
+    let input =
+      let ic = open_in_bin filename in
+      let len = in_channel_length ic in
+      let data = really_input_string ic len in
+      close_in ic;
+      data
+    in
+    let lines = String.split_on_char '\n' input in
+    let doc = File_format.parse lines in
+    let type_mode = File_format.has_pragma doc "type" in
+    let processed_blocks =
+      if type_mode then
+        let _, blocks =
+          List.fold_left
+            (fun (env, acc) block ->
+               let env', lines = process_block_type filename env block in
+               env', lines :: acc)
+            (Type_infer.initial_env, [])
+            doc.blocks
+        in
+        List.rev blocks
+      else
+        List.map (process_block filename doc.pragmas) doc.blocks
+    in
+    let buf = Buffer.create (String.length input + 128) in
+    List.iter (fun p -> Buffer.add_string buf ("#" ^ p ^ "\n")) doc.pragmas;
+    let rec emit = function
+      | [] -> ()
+      | lines :: rest ->
+        List.iter (fun line -> Buffer.add_string buf line; Buffer.add_char buf '\n') lines;
+        emit rest
+    in
+    emit processed_blocks;
+    let oc = open_out_bin filename in
+    output_string oc (Buffer.contents buf);
+    close_out oc
 
 let () =
   match Sys.argv with
