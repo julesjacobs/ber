@@ -1,0 +1,7 @@
+- [x] Initial OCaml parser/CLI setup and .ber examples committed
+- [x] Read AGENTS.md
+- [x] HM inference plan and types: define core type representations, schemes, env and error reporting
+- [x] AST type conversion and unification utilities (occurs check, substitution, generalize/instantiate)
+- [x] Expression and pattern inference (let/letrec, match, functions, constructors) with ADT environment
+- [x] Integrate #type pragma in CLI to output inferred types or type errors per toplevel
+- [x] Refresh .ber outputs (especially #type cases) and sanity-check examples

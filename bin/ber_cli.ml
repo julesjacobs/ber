@@ -21,6 +21,81 @@ let format_location (loc : Location.t) =
 let format_error (err : Parse.parse_error) =
   Format.asprintf "Error at %s: %s" (format_location err.loc) err.message
 
+let format_type_error (err : Type_infer.type_error) =
+  Format.asprintf "Type error at %s: %s" (format_location err.loc) err.message
+
+let process_block_type filename (env : Type_infer.env) (block : File_format.block) =
+  let has_content = List.exists (fun l -> String.trim l <> "") block.code_lines in
+  if not has_content then env, block.code_lines
+  else
+    let lines = Array.of_list block.code_lines in
+    let len = Array.length lines in
+    let buf = Buffer.create (String.length (String.concat "\n" block.code_lines) + 64) in
+    let append_line s = Buffer.add_string buf s; Buffer.add_char buf '\n' in
+    let src = String.concat "\n" block.code_lines in
+    let lexbuf = Lexing.from_string src in
+    Parse.set_initial_pos ~filename ~line:block.start_line lexbuf;
+    let outputs =
+      match Parse.parse_program_lexbuf lexbuf with
+      | Error err ->
+        let rel = err.loc.start.Lexing.pos_lnum - block.start_line in
+        [ (rel, [ format_error err ]) ], env
+      | Ok prog ->
+        let env', infos, errs = Type_infer.infer_program env prog in
+        let info_outputs =
+          List.map
+            (fun info ->
+               match info with
+               | Type_infer.InfoType loc ->
+                 let line_no = loc.stop.Lexing.pos_lnum - block.start_line in
+                 (line_no, [ "type declaration" ])
+               | Type_infer.InfoExpr (sch, loc) ->
+                 let line_no = loc.stop.Lexing.pos_lnum - block.start_line in
+                 (line_no, [ "val it : " ^ Type_infer.string_of_scheme sch ])
+               | Type_infer.InfoLet (binds, loc) ->
+                 let line_no = loc.stop.Lexing.pos_lnum - block.start_line in
+                 let lines =
+                   List.map (fun (b : Type_infer.binding_info) -> "val " ^ b.name ^ " : " ^ Type_infer.string_of_scheme b.scheme) binds
+                 in
+                 (line_no, lines))
+            infos
+        in
+        let err_outputs =
+          List.map
+            (fun (err : Type_infer.type_error) ->
+               let line_no = err.loc.start.Lexing.pos_lnum - block.start_line in
+               (line_no, [ format_type_error err ]))
+            errs
+        in
+        info_outputs @ err_outputs, env'
+    in
+    let outputs, env' = outputs in
+    let outputs = List.sort (fun (a, _) (b, _) -> compare a b) outputs in
+    let rec loop curr = function
+      | [] ->
+        if curr < len then
+          for i = curr to len - 1 do
+            append_line lines.(i)
+          done
+      | (line_no, outs) :: rest ->
+        let line_no = min (len - 1) (max 0 line_no) in
+        for i = curr to line_no do
+          append_line lines.(i)
+        done;
+        if outs <> [] then append_line "";
+        List.iter (fun line -> List.iter append_line (render_output_lines line)) outs;
+        if outs <> [] then append_line "";
+        loop (line_no + 1) rest
+    in
+    loop 0 outputs;
+    let combined = Buffer.contents buf |> String.split_on_char '\n' in
+    let combined =
+      match List.rev combined with
+      | "" :: rest -> List.rev rest
+      | _ -> combined
+    in
+    env', combined
+
 let process_block filename pragmas (block : File_format.block) =
   let _ = pragmas in
   let has_content = List.exists (fun l -> String.trim l <> "") block.code_lines in
@@ -112,7 +187,21 @@ let rewrite_file filename =
   in
   let lines = String.split_on_char '\n' input in
   let doc = File_format.parse lines in
-  let processed_blocks = List.map (process_block filename doc.pragmas) doc.blocks in
+  let type_mode = File_format.has_pragma doc "type" in
+  let processed_blocks =
+    if type_mode then
+      let _, blocks =
+        List.fold_left
+          (fun (env, acc) block ->
+             let env', lines = process_block_type filename env block in
+             env', lines :: acc)
+          (Type_infer.initial_env, [])
+          doc.blocks
+      in
+      List.rev blocks
+    else
+      List.map (process_block filename doc.pragmas) doc.blocks
+  in
   let buf = Buffer.create (String.length input + 128) in
   List.iter (fun p -> Buffer.add_string buf ("#" ^ p ^ "\n")) doc.pragmas;
   let rec emit = function
