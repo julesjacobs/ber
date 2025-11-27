@@ -1,9 +1,9 @@
 #type
 let compose f g x = f (g x)
-> Error at /Users/julesjacobs/git/ber/ber/challenges/ch9_compose_inconsistent.ber:2:12-2:13: syntax error
 
 let h (x : int) = x
 let g : bool -> bool = fun b -> b
 
 let _ =
   compose h g 0
+> Error at /Users/julesjacobs/git/ber/ber/challenges/ch9_compose_inconsistent.ber:1:12-1:13: syntax error

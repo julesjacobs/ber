@@ -42,13 +42,7 @@ let parse lines =
       List.rev acc
     | line :: rest ->
       if is_output_line line then
-        let acc =
-          match current, start_line with
-          | [], _ -> acc
-          | code, Some start -> { code_lines = List.rev code; start_line = start } :: acc
-          | _ -> acc
-        in
-        loop (line_no + 1) [] None acc rest
+        loop (line_no + 1) current start_line acc rest
       else
         let start_line = match start_line with None -> Some line_no | Some s -> Some s in
         loop (line_no + 1) (line :: current) start_line acc rest

@@ -8,4 +8,4 @@ let apply_twice = fun f x -> f (f x)
 let annotated = fun (x : int) -> x
 > val annotated : int -> int
 let bad_annot = (fun (x : int) -> x) : bool
-> Type error at /Users/julesjacobs/git/ber/ber/typing/functions.ber:9:0-9:43: type mismatch
+> Type error at /Users/julesjacobs/git/ber/ber/typing/functions.ber:5:0-5:43: type mismatch

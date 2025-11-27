@@ -2,7 +2,7 @@
 type 'a list = Nil | Cons of 'a * 'a list
 
 let choose b x =
-> Error at /Users/julesjacobs/git/ber/ber/challenges/ch11_occurs_if.ber:4:11-4:12: syntax error
   match b with
   | true -> Cons (x, Nil)
   | false -> x
+> Error at /Users/julesjacobs/git/ber/ber/challenges/ch11_occurs_if.ber:3:11-3:12: syntax error

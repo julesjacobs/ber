@@ -2,7 +2,7 @@
 type 'a list = Nil | Cons of 'a * 'a list
 
 let rec length_or_and xs =
-> Error at /Users/julesjacobs/git/ber/ber/challenges/ch2_match_branches.ber:4:22-4:24: syntax error
   match xs with
   | Nil -> 0
   | Cons (x, xs') -> x && length_or_and xs'
+> Error at /Users/julesjacobs/git/ber/ber/challenges/ch2_match_branches.ber:3:22-3:24: syntax error

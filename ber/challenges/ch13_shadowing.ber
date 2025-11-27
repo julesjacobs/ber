@@ -6,4 +6,4 @@ let x = true
 > val x : bool
 
 let _ = x 1
-> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch13_shadowing.ber:6:0-6:11: type mismatch
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch13_shadowing.ber:5:0-5:11: type mismatch

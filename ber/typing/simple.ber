@@ -8,4 +8,4 @@ let lit_str = "hi"
 let shadow = let x = lit_int in let x = x in x
 > val shadow : int
 let unbound = y
-> Type error at /Users/julesjacobs/git/ber/ber/typing/simple.ber:9:0-9:15: unbound variable y
+> Type error at /Users/julesjacobs/git/ber/ber/typing/simple.ber:5:0-5:15: unbound variable y

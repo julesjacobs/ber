@@ -82,7 +82,7 @@ let process_block_type filename (env : Type_infer.env) (block : File_format.bloc
     let outputs =
       match Parse.parse_program_lexbuf lexbuf with
       | Error err ->
-        let rel = err.loc.start.Lexing.pos_lnum - block.start_line in
+        let rel = max 0 (Array.length lines - 1) in
         [ (rel, [ format_error err ]) ], env
       | Ok prog ->
         let env', infos, errs = Type_infer.infer_program env prog in
@@ -107,7 +107,7 @@ let process_block_type filename (env : Type_infer.env) (block : File_format.bloc
         let err_outputs =
           List.map
             (fun (err : Type_infer.type_error) ->
-               let line_no = err.loc.start.Lexing.pos_lnum - block.start_line in
+               let line_no = max 0 (Array.length lines - 1) in
                (line_no, [ format_type_error err ]))
             errs
         in
@@ -136,7 +136,7 @@ let process_block filename pragmas (block : File_format.block) =
              (line_no, [ rendered ]))
           prog
       | Error err ->
-        let rel = err.loc.start.Lexing.pos_lnum - block.start_line in
+        let rel = max 0 (Array.length lines - 1) in
         [ (rel, [ format_error err ]) ]
     in
     emit_outputs lines outputs |> trim_surrounding_blank_lines
