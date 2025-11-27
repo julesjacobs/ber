@@ -1,21 +1,27 @@
 #type
 type 'a option = None | Some of 'a
+
 > type declaration
 
 let bad_app = 3 4
-> Type error at /Users/julesjacobs/git/ber/ber/typing/error_extra.ber:2:0-2:17: type mismatch
+
+> Type error at /Users/julesjacobs/git/ber/ber/typing/error_extra.ber:6:0-6:17: type mismatch
 
 let ascr_mismatch = 1 : bool
-> Type error at /Users/julesjacobs/git/ber/ber/typing/error_extra.ber:3:0-3:30: type mismatch
+
+> Type error at /Users/julesjacobs/git/ber/ber/typing/error_extra.ber:10:0-10:28: type mismatch
 
 let match_mismatch = match Some 1 with | Some x -> x
 | None -> true
-> Type error at /Users/julesjacobs/git/ber/ber/typing/error_extra.ber:4:0-7:16: type mismatch
+
+> Type error at /Users/julesjacobs/git/ber/ber/typing/error_extra.ber:14:0-15:14: type mismatch
 
 let guard_non_bool2 = match Some 1 with | Some x when x -> x
 | None -> 0
-> Type error at /Users/julesjacobs/git/ber/ber/typing/error_extra.ber:8:0-8:72: type mismatch
+
+> Type error at /Users/julesjacobs/git/ber/ber/typing/error_extra.ber:19:0-20:11: type mismatch
 
 let ctor_unknown_pat = match None with | Foo x -> x
 | _ -> 0
-> Type error at /Users/julesjacobs/git/ber/ber/typing/error_extra.ber:15:0-18:10: unknown constructor Foo
+
+> Type error at /Users/julesjacobs/git/ber/ber/typing/error_extra.ber:24:0-25:8: unknown constructor Foo

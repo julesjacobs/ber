@@ -1,3 +1,4 @@
 #type
 let self_apply f = f f
-> Error at /Users/julesjacobs/git/ber/ber/challenges/ch12_self_apply.ber:1:15-1:16: syntax error
+
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch12_self_apply.ber:2:0-2:22: recursive types

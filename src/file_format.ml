@@ -26,11 +26,12 @@ let trim_pragma line =
 
 let parse lines =
   let lines = drop_trailing_empty_line lines in
-  let rec take_pragmas acc = function
-    | line :: rest when is_pragma_line line -> take_pragmas (trim_pragma line :: acc) rest
-    | rest -> List.rev acc, rest
+  let rec take_pragmas acc count = function
+    | line :: rest when is_pragma_line line -> take_pragmas (trim_pragma line :: acc) (count + 1) rest
+    | rest -> List.rev acc, count, rest
   in
-  let pragmas, remaining = take_pragmas [] lines in
+  let pragmas, pragma_count, remaining = take_pragmas [] 0 lines in
+  let base_line = pragma_count + 1 in
   let add_block line_no current start_line acc =
     match current with
     | [] -> acc
@@ -52,7 +53,7 @@ let parse lines =
         let start_line = match start_line with None -> Some line_no | Some s -> Some s in
         loop (line_no + 1) (line :: current) start_line acc rest
   in
-  let blocks = loop 1 [] None [] remaining in
+  let blocks = loop base_line [] None [] remaining in
   { pragmas; blocks }
 
 let has_pragma doc name = List.exists (( = ) name) doc.pragmas

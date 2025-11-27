@@ -33,13 +33,13 @@ let trim_surrounding_blank_lines lines =
   in
   drop_trailing (collapse [] false (drop_leading lines))
 
-let flatten_blocks blocks =
+let drop_trailing_blank_lines lines =
   let rec aux = function
     | [] -> []
-    | [ b ] -> b
-    | b :: rest -> b @ [ "" ] @ aux rest
+    | [ l ] when is_blank_line l -> []
+    | l :: rest -> l :: aux rest
   in
-  aux blocks
+  aux (List.rev lines) |> List.rev
 
 let format_location (loc : Location.t) =
   let start_line = loc.start.Lexing.pos_lnum in
@@ -58,59 +58,73 @@ let process_block_type filename (env : Type_infer.env) (block : File_format.bloc
   let has_content = List.exists (fun l -> String.trim l <> "") block.code_lines in
   if not has_content then env, trim_surrounding_blank_lines block.code_lines
   else
-    let src = String.concat "\n" block.code_lines in
+    let code_lines = drop_trailing_blank_lines block.code_lines in
+    let src = String.concat "\n" code_lines in
     let lexbuf = Lexing.from_string src in
     Parse.set_initial_pos ~filename ~line:block.start_line lexbuf;
     let outputs =
       match Parse.parse_program_lexbuf lexbuf with
       | Error err ->
-        [ trim_surrounding_blank_lines (block.code_lines @ render_output_lines (format_error err)) ], env
+        [ render_output_lines (format_error err) ], env
       | Ok prog ->
         let rec loop env acc = function
           | [] -> List.rev acc, env
           | tl :: rest ->
-            let rendered_code = Format.asprintf "%a" Pp.pp_toplevel tl |> String.split_on_char '\n' in
-            let outputs =
+            let env', outs =
               match Type_infer.infer_toplevel env tl with
               | Ok (env', info) ->
-                let output_lines =
+                let lines =
                   match info with
                   | Type_infer.InfoType _ -> [ "type declaration" ]
                   | Type_infer.InfoExpr (sch, _) -> [ "val it : " ^ Type_infer.string_of_scheme sch ]
                   | Type_infer.InfoLet (binds, _) ->
                     List.map (fun (b : Type_infer.binding_info) -> "val " ^ b.name ^ " : " ^ Type_infer.string_of_scheme b.scheme) binds
                 in
-                env', output_lines
-              | Error err -> env, [ format_type_error err ]
+                env', List.concat_map render_output_lines lines
+              | Error err -> env, render_output_lines (format_type_error err)
             in
-            let env', outs = outputs in
-            let block_lines = trim_surrounding_blank_lines (rendered_code @ List.concat_map render_output_lines outs) in
-            loop env' (block_lines :: acc) rest
+            loop env' (outs :: acc) rest
         in
         loop env [] prog
     in
-    let blocks, env' = outputs in
-    env', flatten_blocks blocks
+    let outputs, env' = outputs in
+    let outputs = List.concat outputs in
+    let combined =
+      match outputs with
+      | [] -> code_lines
+      | _ ->
+        let code_lines = drop_trailing_blank_lines code_lines in
+        let sep = if code_lines = [] then [] else [ "" ] in
+        trim_surrounding_blank_lines (code_lines @ sep @ outputs)
+    in
+    env', combined
 
 let process_block filename pragmas (block : File_format.block) =
   let _ = pragmas in
   let has_content = List.exists (fun l -> String.trim l <> "") block.code_lines in
   if not has_content then trim_surrounding_blank_lines block.code_lines
   else
-    let lexbuf = Lexing.from_string (String.concat "\n" block.code_lines) in
+    let code_lines = drop_trailing_blank_lines block.code_lines in
+    let lexbuf = Lexing.from_string (String.concat "\n" code_lines) in
     Parse.set_initial_pos ~filename ~line:block.start_line lexbuf;
     let outputs =
       match Parse.parse_program_lexbuf lexbuf with
       | Ok prog ->
-        List.map
+        List.concat_map
           (fun tl ->
              let rendered = Format.asprintf "%a" Pp.pp_toplevel tl in
-             let code_lines = String.split_on_char '\n' rendered in
-             trim_surrounding_blank_lines (code_lines @ render_output_lines rendered))
+             render_output_lines rendered)
           prog
-      | Error err -> [ trim_surrounding_blank_lines (block.code_lines @ render_output_lines (format_error err)) ]
+      | Error err -> render_output_lines (format_error err)
     in
-    flatten_blocks outputs
+    let combined =
+      match outputs with
+      | [] -> code_lines
+      | _ ->
+        let sep = if code_lines = [] then [] else [ "" ] in
+        trim_surrounding_blank_lines (code_lines @ sep @ outputs)
+    in
+    combined
 
 let rewrite_file filename =
   let input =

@@ -1,9 +1,14 @@
 #type
 type 'a list = Nil | Cons of 'a * 'a list
+
 > type declaration
 
 let rec length_or_and xs =
   match xs with
   | Nil -> 0
-  | Cons (x, xs') -> x && length_or_and xs'
-> Error at /Users/julesjacobs/git/ber/ber/challenges/ch2_match_branches.ber:4:22-4:24: syntax error
+  | Cons (x, xs') ->
+    match x with
+    | true -> length_or_and xs'
+    | false -> x
+
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch2_match_branches.ber:6:0-12:16: type mismatch

@@ -3,4 +3,5 @@ let rec broken = fun x ->
   match x with
   | Some y -> y
   | None ->
-> Error at /Users/julesjacobs/git/ber/ber/parse/error_example.ber:4:11-4:11: syntax error
+
+> Error at /Users/julesjacobs/git/ber/ber/parse/error_example.ber:5:11-5:11: syntax error

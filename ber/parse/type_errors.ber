@@ -1,7 +1,9 @@
 #parse
 type bad_type = foo bar
 type missing_ctor =
-> Error at /Users/julesjacobs/git/ber/ber/parse/type_errors.ber:1:16-1:19: syntax error
+
+> Error at /Users/julesjacobs/git/ber/ber/parse/type_errors.ber:2:16-2:19: syntax error
 
 type bad_ctor_args = X of int *
-> Error at /Users/julesjacobs/git/ber/ber/parse/type_errors.ber:5:31-5:31: syntax error
+
+> Error at /Users/julesjacobs/git/ber/ber/parse/type_errors.ber:7:31-7:31: syntax error

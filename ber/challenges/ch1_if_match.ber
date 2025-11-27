@@ -7,4 +7,5 @@ let f b =
     | false -> false
   in
   x
-> Error at /Users/julesjacobs/git/ber/ber/challenges/ch1_if_match.ber:2:6-2:7: syntax error
+
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch1_if_match.ber:3:0-9:3: type mismatch

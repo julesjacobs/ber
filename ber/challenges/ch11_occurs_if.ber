@@ -1,9 +1,11 @@
 #type
 type 'a list = Nil | Cons of 'a * 'a list
+
 > type declaration
 
 let choose b x =
   match b with
   | true -> Cons (x, Nil)
   | false -> x
-> Error at /Users/julesjacobs/git/ber/ber/challenges/ch11_occurs_if.ber:4:11-4:12: syntax error
+
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch11_occurs_if.ber:6:0-9:14: recursive types

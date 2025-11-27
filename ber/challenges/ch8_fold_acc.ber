@@ -1,19 +1,22 @@
 #type
 type 'a list = Nil | Cons of 'a * 'a list
+
 > type declaration
 
 let rec fold_left f acc xs =
   match xs with
   | Nil -> acc
   | Cons (x, xs') -> fold_left f (f acc x) xs'
-> Error at /Users/julesjacobs/git/ber/ber/challenges/ch8_fold_acc.ber:4:18-4:19: syntax error
+
+> val fold_left : ('a -> 'b -> 'a) -> 'a -> list 'b -> 'a
 
 let sum_bool_list xs =
   fold_left (fun a b -> a) 0 xs
-> Error at /Users/julesjacobs/git/ber/ber/challenges/ch8_fold_acc.ber:10:18-10:20: syntax error
+
+> val sum_bool_list : list 'a -> int
 
 let xs = Cons (true, Cons (false, Cons (true, Nil)))
+
 > val xs : list bool
 
 let _ = sum_bool_list xs
-> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch8_fold_acc.ber:17:0-18:18: unbound variable sum_bool_list

@@ -1,13 +1,16 @@
 #type
 type 'a list = Nil | Cons of 'a * 'a list
+
 > type declaration
 
 let rec map f xs =
   match xs with
   | Nil -> Nil
   | Cons (x, xs') -> Cons (f x, map f xs')
-> Error at /Users/julesjacobs/git/ber/ber/challenges/ch7_map_args.ber:4:12-4:13: syntax error
+
+> val map : ('b -> 'a) -> list 'b -> list 'a
 
 let apply_all fs x =
   map x fs
-> Error at /Users/julesjacobs/git/ber/ber/challenges/ch7_map_args.ber:10:14-10:16: syntax error
+
+> val apply_all : list 'b -> ('b -> 'a) -> list 'a

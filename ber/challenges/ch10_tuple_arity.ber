@@ -1,6 +1,8 @@
 #type
 let x, y, z = 1, 2
-> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch10_tuple_arity.ber:1:0-1:22: type mismatch
+
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch10_tuple_arity.ber:2:0-2:18: type mismatch
 
 let _ = x
-> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch10_tuple_arity.ber:4:0-4:9: unbound variable x
+
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch10_tuple_arity.ber:6:0-6:9: unbound variable x

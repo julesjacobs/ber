@@ -1,13 +1,17 @@
 #type
 type 'a option = None | Some of 'a
+
 > type declaration
 
 let id = fun x -> x
+
 > val id : 'a -> 'a
 
 let const = fun x y -> x
+
 > val const : 'a -> 'b -> 'a
 
 let map_option = fun f opt -> match opt with | None -> None
 | Some x -> Some (f x)
+
 > val map_option : ('b -> 'a) -> option 'b -> option 'a

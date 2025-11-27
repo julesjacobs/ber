@@ -1,9 +1,12 @@
 #type
 type ('a, 'b) pair = Pair of 'a * 'b
+
 > type declaration
 
 type wrong_arity = Pair
+
 > type declaration
 
 type bad_param = foo 'a 'b 'c
-> Error at /Users/julesjacobs/git/ber/ber/typing/types.ber:7:17-7:20: syntax error
+
+> Error at /Users/julesjacobs/git/ber/ber/typing/types.ber:10:17-10:20: syntax error

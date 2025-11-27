@@ -20,9 +20,14 @@
   - [ ] Type annotations/ascriptions: correct/incorrect annotation errors; annotated let-binding; annotated expression; nested annotations
   - [ ] Type applications: tuple types; arrow associativity; type parameter arity mismatch errors
   - [ ] Type generalization: polymorphic let; using polymorphic values multiple times; value restriction gaps (ensure current behavior)
-  - [ ] Error cases: recursive types (occurs check); type mismatch in app; guard not bool; pattern tuple arity mismatch; match with missing constructors is allowed but type errors surfaced
+- [ ] Error cases: recursive types (occurs check); type mismatch in app; guard not bool; pattern tuple arity mismatch; match with missing constructors is allowed but type errors surfaced
 - [ ] #type output formatting: type declarations, let bindings, expressions; multiple errors reported in one file
 - [ ] Fix ber-cli rewriting issues:
   - [x] Reproduce newline/output stripping bug locally
   - [x] Adjust parsing/emission to strip old outputs cleanly and avoid extra blank lines
   - [x] Run ./ber.sh and review fixture diffs
+- [ ] Current CLI regressions to fix:
+  - [x] Preserve original source formatting (avoid re-PPing code)
+  - [x] Restore accurate error locations (respect original line numbers incl. pragmas)
+  - [x] Support curried let sugar so challenges parse (negate/compose/etc.)
+  - [x] Re-run ./ber.sh and verify fixtures/output stability

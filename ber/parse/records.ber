@@ -1,14 +1,18 @@
 #parse
 type point = Point of int * int
+
 > type point = Point of int * int
 
 let origin = Point (0, 0)
+
 > let origin = Point (0, 0)
 
 let translate = fun (Point (x, y)) dx dy -> Point (x, y)
+
 > let translate = fun (Point (x, y)) dx dy -> Point (x, y)
 
 let project = fun p -> match p with
 | Point (x, y) -> x
+
 > let project = fun p -> match p with
 > | Point (x, y) -> x

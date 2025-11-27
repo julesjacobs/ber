@@ -119,6 +119,12 @@ let_binding_tail:
   | /* empty */ { [] }
 
 let_binding:
+  | fn=pattern params=fun_params EQUAL body=expr {
+      let start = fn.loc.start in
+      let stop = body.loc.stop in
+      let lam = L.with_loc (L.span start stop) (ELambda { params; fn_body = body }) in
+      build_binding fn lam
+    }
   | pat=pattern EQUAL expr=expr { build_binding pat expr }
 
 expr:
