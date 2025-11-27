@@ -1,0 +1,4 @@
+(executable
+ (name ber_cli)
+ (public_name ber-cli)
+ (libraries ber))

@@ -1,0 +1,416 @@
+
+** Conflict (shift/reduce) in state 111.
+** Token involved: BAR
+** This state is reached from expression after reading:
+
+MATCH expression WITH maybe_bar pattern guard_opt ARROW MATCH expression WITH maybe_bar match_case BAR match_case
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+expression 
+MATCH expression WITH match_cases 
+                      (?)
+
+** In state 111, looking ahead at BAR, shifting is permitted
+** because of the following sub-derivation:
+
+maybe_bar match_case match_case_tail 
+          pattern guard_opt ARROW expression 
+                                  MATCH expression WITH match_cases 
+                                                        maybe_bar match_case match_case_tail 
+                                                                             BAR match_case match_case_tail 
+                                                                                            . BAR match_case match_case_tail 
+
+** In state 111, looking ahead at BAR, reducing production
+** match_case_tail ->
+** is permitted because of the following sub-derivation:
+
+maybe_bar match_case match_case_tail // lookahead token appears because match_case_tail can begin with BAR
+          pattern guard_opt ARROW expression // lookahead token is inherited
+                                  MATCH expression WITH match_cases // lookahead token is inherited
+                                                        maybe_bar match_case match_case_tail // lookahead token is inherited
+                                                                             BAR match_case match_case_tail // lookahead token is inherited
+                                                                                            . 
+
+** Conflict (shift/reduce) in state 109.
+** Token involved: BAR
+** This state is reached from expression after reading:
+
+MATCH expression WITH maybe_bar pattern guard_opt ARROW MATCH expression WITH maybe_bar match_case
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+expression 
+MATCH expression WITH match_cases 
+                      (?)
+
+** In state 109, looking ahead at BAR, shifting is permitted
+** because of the following sub-derivation:
+
+maybe_bar match_case match_case_tail 
+          pattern guard_opt ARROW expression 
+                                  MATCH expression WITH match_cases 
+                                                        maybe_bar match_case match_case_tail 
+                                                                             . BAR match_case match_case_tail 
+
+** In state 109, looking ahead at BAR, reducing production
+** match_case_tail ->
+** is permitted because of the following sub-derivation:
+
+maybe_bar match_case match_case_tail // lookahead token appears because match_case_tail can begin with BAR
+          pattern guard_opt ARROW expression // lookahead token is inherited
+                                  MATCH expression WITH match_cases // lookahead token is inherited
+                                                        maybe_bar match_case match_case_tail // lookahead token is inherited
+                                                                             . 
+
+** Conflict (shift/reduce) in state 78.
+** Tokens involved: UIDENT TRUE STRING LPAREN LIDENT INT FALSE
+** The following explanations concentrate on token UIDENT.
+** This state is reached from program after reading:
+
+atom_expr atom_expr
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+program 
+program_items EOF 
+(?)
+
+** In state 78, looking ahead at UIDENT, reducing production
+** app_args ->
+** is permitted because of the following sub-derivation:
+
+toplevel program_items // lookahead token appears because program_items can begin with UIDENT
+expression // lookahead token is inherited
+ascribed_expr // lookahead token is inherited
+tuple_expr // lookahead token is inherited
+app_expr // lookahead token is inherited
+atom_expr app_args // lookahead token is inherited
+          atom_expr app_args // lookahead token is inherited
+                    . 
+
+** In state 78, looking ahead at UIDENT, shifting is permitted
+** because of the following sub-derivation:
+
+toplevel program_items 
+expression 
+ascribed_expr 
+tuple_expr COLON type_expr 
+app_expr COMMA app_expr tuple_expr_more 
+atom_expr app_args 
+          atom_expr app_args 
+                    atom_expr app_args 
+                    uident 
+                    . UIDENT 
+
+** Conflict (shift/reduce) in state 77.
+** Tokens involved: UIDENT TRUE STRING LPAREN LIDENT INT FALSE
+** The following explanations concentrate on token UIDENT.
+** This state is reached from program after reading:
+
+atom_expr
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+program 
+program_items EOF 
+(?)
+
+** In state 77, looking ahead at UIDENT, reducing production
+** app_args ->
+** is permitted because of the following sub-derivation:
+
+toplevel program_items // lookahead token appears because program_items can begin with UIDENT
+expression // lookahead token is inherited
+ascribed_expr // lookahead token is inherited
+tuple_expr // lookahead token is inherited
+app_expr // lookahead token is inherited
+atom_expr app_args // lookahead token is inherited
+          . 
+
+** In state 77, looking ahead at UIDENT, shifting is permitted
+** because of the following sub-derivation:
+
+toplevel program_items 
+expression 
+ascribed_expr 
+tuple_expr COLON type_expr 
+app_expr COMMA app_expr tuple_expr_more 
+atom_expr app_args 
+          atom_expr app_args 
+          uident 
+          . UIDENT 
+
+** Conflict (shift/reduce) in state 46.
+** Token involved: STAR
+** This state is reached from program after reading:
+
+TYPE type_params lident EQUAL uident OF type_app STAR type_app STAR type_app
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+program 
+program_items EOF 
+toplevel program_items 
+type_def 
+TYPE type_params lident EQUAL constructor_list 
+                              constructor_decl constructor_decl_tail 
+                              uident constructor_args 
+                                     OF constructor_arg_list 
+                                        (?)
+
+** In state 46, looking ahead at STAR, shifting is permitted
+** because of the following sub-derivation:
+
+type_expr STAR constructor_arg_list 
+type_arrow 
+type_tuple ARROW type_arrow 
+type_app STAR type_app type_tuple_more 
+                       STAR type_app type_tuple_more 
+                                     . STAR type_app type_tuple_more 
+
+** In state 46, looking ahead at STAR, reducing production
+** type_tuple_more ->
+** is permitted because of the following sub-derivation:
+
+type_expr STAR constructor_arg_list // lookahead token appears
+type_arrow // lookahead token is inherited
+type_tuple // lookahead token is inherited
+type_app STAR type_app type_tuple_more // lookahead token is inherited
+                       STAR type_app type_tuple_more // lookahead token is inherited
+                                     . 
+
+** Conflict (shift/reduce) in state 44.
+** Token involved: STAR
+** This state is reached from program after reading:
+
+TYPE type_params lident EQUAL uident OF type_app STAR type_app
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+program 
+program_items EOF 
+toplevel program_items 
+type_def 
+TYPE type_params lident EQUAL constructor_list 
+                              constructor_decl constructor_decl_tail 
+                              uident constructor_args 
+                                     OF constructor_arg_list 
+                                        (?)
+
+** In state 44, looking ahead at STAR, shifting is permitted
+** because of the following sub-derivation:
+
+type_expr STAR constructor_arg_list 
+type_arrow 
+type_tuple ARROW type_arrow 
+type_app STAR type_app type_tuple_more 
+                       . STAR type_app type_tuple_more 
+
+** In state 44, looking ahead at STAR, reducing production
+** type_tuple_more ->
+** is permitted because of the following sub-derivation:
+
+type_expr STAR constructor_arg_list // lookahead token appears
+type_arrow // lookahead token is inherited
+type_tuple // lookahead token is inherited
+type_app STAR type_app type_tuple_more // lookahead token is inherited
+                       . 
+
+** Conflict (shift/reduce) in state 42.
+** Token involved: STAR
+** This state is reached from program after reading:
+
+TYPE type_params lident EQUAL uident OF type_app
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+program 
+program_items EOF 
+toplevel program_items 
+type_def 
+TYPE type_params lident EQUAL constructor_list 
+                              constructor_decl constructor_decl_tail 
+                              uident constructor_args 
+                                     OF constructor_arg_list 
+                                        (?)
+
+** In state 42, looking ahead at STAR, shifting is permitted
+** because of the following sub-derivation:
+
+type_expr STAR constructor_arg_list 
+type_arrow 
+type_tuple ARROW type_arrow 
+type_app . STAR type_app type_tuple_more 
+
+** In state 42, looking ahead at STAR, reducing production
+** type_tuple -> type_app
+** is permitted because of the following sub-derivation:
+
+type_expr STAR constructor_arg_list // lookahead token appears
+type_arrow // lookahead token is inherited
+type_tuple // lookahead token is inherited
+type_app . 
+
+** Conflict (shift/reduce) in state 37.
+** Tokens involved: UIDENT LPAREN LIDENT
+** The following explanations concentrate on token UIDENT.
+** This state is reached from program after reading:
+
+tuple_expr COLON type_atom
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+program 
+program_items EOF 
+(?)
+
+** In state 37, looking ahead at UIDENT, reducing production
+** type_app_parts -> type_atom
+** is permitted because of the following sub-derivation:
+
+toplevel program_items // lookahead token appears because program_items can begin with UIDENT
+expression // lookahead token is inherited
+ascribed_expr // lookahead token is inherited
+tuple_expr COLON type_expr // lookahead token is inherited
+                 type_arrow // lookahead token is inherited
+                 type_tuple // lookahead token is inherited
+                 type_app // lookahead token is inherited
+                 type_app_parts // lookahead token is inherited
+                 type_atom . 
+
+** In state 37, looking ahead at UIDENT, shifting is permitted
+** because of the following sub-derivation:
+
+toplevel program_items 
+expression 
+ascribed_expr 
+tuple_expr COLON type_expr 
+                 type_arrow 
+                 type_tuple ARROW type_arrow 
+                 type_app STAR type_app type_tuple_more 
+                 type_app_parts 
+                 type_atom type_app_parts 
+                           type_atom type_app_parts 
+                           type_ctor 
+                           uident 
+                           . UIDENT 
+
+** Conflict (shift/reduce) in state 34.
+** Token involved: ARROW
+** This state is reached from expression after reading:
+
+FUN pattern_as COLON type_tuple
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+expression 
+(?)
+
+** In state 34, looking ahead at ARROW, shifting is permitted
+** because of the following sub-derivation:
+
+FUN fun_params ARROW expression 
+    pattern fun_params 
+    pattern_ascribed 
+    pattern_as COLON type_expr 
+                     type_arrow 
+                     type_tuple . ARROW type_arrow 
+
+** In state 34, looking ahead at ARROW, reducing production
+** type_arrow -> type_tuple
+** is permitted because of the following sub-derivation:
+
+FUN fun_params ARROW expression // lookahead token appears
+    pattern // lookahead token is inherited
+    pattern_ascribed // lookahead token is inherited
+    pattern_as COLON type_expr // lookahead token is inherited
+                     type_arrow // lookahead token is inherited
+                     type_tuple . 
+
+** Conflict (shift/reduce) in state 23.
+** Tokens involved: UNDERSCORE UIDENT TRUE STRING LPAREN LIDENT INT FALSE
+** The following explanations concentrate on token UNDERSCORE.
+** This state is reached from expression after reading:
+
+FUN pattern_atom pattern_atom
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+expression 
+FUN fun_params ARROW expression 
+    (?)
+
+** In state 23, looking ahead at UNDERSCORE, reducing production
+** pattern_app_args ->
+** is permitted because of the following sub-derivation:
+
+pattern fun_params // lookahead token appears because fun_params can begin with UNDERSCORE
+pattern_ascribed // lookahead token is inherited
+pattern_as // lookahead token is inherited
+pattern_tuple // lookahead token is inherited
+pattern_app // lookahead token is inherited
+pattern_atom pattern_app_args // lookahead token is inherited
+             pattern_atom pattern_app_args // lookahead token is inherited
+                          . 
+
+** In state 23, looking ahead at UNDERSCORE, shifting is permitted
+** because of the following sub-derivation:
+
+pattern fun_params 
+pattern_ascribed 
+pattern_as COLON type_expr 
+pattern_tuple AS lident 
+pattern_app COMMA pattern_app pattern_tuple_more 
+pattern_atom pattern_app_args 
+             pattern_atom pattern_app_args 
+                          pattern_atom pattern_app_args 
+                          . UNDERSCORE 
+
+** Conflict (shift/reduce) in state 22.
+** Tokens involved: UNDERSCORE UIDENT TRUE STRING LPAREN LIDENT INT FALSE
+** The following explanations concentrate on token UNDERSCORE.
+** This state is reached from expression after reading:
+
+FUN pattern_atom
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+expression 
+FUN fun_params ARROW expression 
+    (?)
+
+** In state 22, looking ahead at UNDERSCORE, reducing production
+** pattern_app_args ->
+** is permitted because of the following sub-derivation:
+
+pattern fun_params // lookahead token appears because fun_params can begin with UNDERSCORE
+pattern_ascribed // lookahead token is inherited
+pattern_as // lookahead token is inherited
+pattern_tuple // lookahead token is inherited
+pattern_app // lookahead token is inherited
+pattern_atom pattern_app_args // lookahead token is inherited
+             . 
+
+** In state 22, looking ahead at UNDERSCORE, shifting is permitted
+** because of the following sub-derivation:
+
+pattern fun_params 
+pattern_ascribed 
+pattern_as COLON type_expr 
+pattern_tuple AS lident 
+pattern_app COMMA pattern_app pattern_tuple_more 
+pattern_atom pattern_app_args 
+             pattern_atom pattern_app_args 
+             . UNDERSCORE 

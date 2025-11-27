@@ -1,0 +1,8 @@
+_build/
+*.install
+.merlin
+.vscode/
+.idea/
+.ocamlformat-ignore
+.ocamlformat-enable
+.ocamlformat
