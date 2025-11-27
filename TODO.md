@@ -5,6 +5,12 @@
 - [x] Expression and pattern inference (let/letrec, match, functions, constructors) with ADT environment
 - [x] Integrate #type pragma in CLI to output inferred types or type errors per toplevel
 - [x] Refresh .ber outputs (especially #type cases) and sanity-check examples
+- [x] Challenge corpus added under ber/challenges/ (kept out of ber.sh rewriting)
+- [ ] Open issues / follow-ups:
+  - [ ] Partial constructor application currently rejected (see CR in ber/typing/adt.ber)
+  - [ ] Tuple arity mismatch on patterns not flagged (see CR in ber/typing/match.ber)
+  - [ ] CLI output still contains many blank lines; consider trimming for readability
+  - [ ] Grammar lacks infix operators; several fixtures use prefix/inlined operations to avoid syntax errors—decide whether to extend syntax or adjust tests
 - [ ] Typing tests to add in ber/typing:
   - [ ] Simple values/vars: int/bool/string literals; shadowing; unbound var error
   - [ ] Functions: single/multi-arg lambdas; annotations on params; polymorphic id/const; higher-order (apply_twice)
