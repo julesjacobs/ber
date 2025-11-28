@@ -1,0 +1,38 @@
+#type
+let rec id x = x
+and const x y = x
+
+> val id : 'a -> 'a
+> val const : 'a -> 'b -> 'a
+
+let use = (id 1, id true, const 1 true)
+
+> val use : int * bool * int
+
+let rec loop1 (x : 'a) : 'b = loop2 x
+and loop2 (x : 'a) : 'b = loop1 x
+
+> val loop1 : '_weak2 -> '_weak1
+> val loop2 : 'b -> 'a
+
+let loop_use_int : int = loop1 0
+
+> val loop_use_int : int
+
+let loop_use_bool : bool = loop1 true
+
+> Type error at /Users/julesjacobs/git/ber/ber/typing/letrec_mutual.ber:22:0-22:37: type mismatch
+
+let rec loop1_plain x = loop2_plain x
+and loop2_plain x = loop1_plain x
+
+> val loop1_plain : '_weak2 -> '_weak1
+> val loop2_plain : 'b -> 'a
+
+let loop_plain_int : int = loop1_plain 0
+
+> val loop_plain_int : int
+
+let loop_plain_bool : bool = loop1_plain true
+
+> Type error at /Users/julesjacobs/git/ber/ber/typing/letrec_mutual.ber:36:0-36:45: type mismatch
