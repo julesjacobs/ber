@@ -471,23 +471,31 @@ let rec infer_expr env expr =
            env_rec_level
            provisional
        in
-       let* env_vars =
-         let rec loop env_vars = function
-           | [] -> Ok env_vars
-           | (b, (_, ty)) :: rest ->
+       let* inferred =
+         let rec loop acc bs provs =
+           match bs, provs with
+           | [], [] -> Ok (List.rev acc)
+           | b :: bs', (_, ty) :: provs' ->
              let* rhs_ty, _ = infer_expr env_with_prov b.node.rhs in
              let* () = unify_res ty rhs_ty in
-             let sch = generalize env rhs_ty in
              let name =
                match b.node.lhs.node with
                | PVar id -> id.node
                | _ -> assert false
              in
-             loop (SMap.add name sch env_vars) rest
+             loop ((name, rhs_ty) :: acc) bs' provs'
+           | _ -> Error "arity mismatch in let rec bindings"
          in
-         loop env_with_prov.vars (List.combine bindings provisional)
+         loop [] bindings provisional
        in
-       let env_after = { env with vars = env_vars } in
+       let env_after =
+         List.fold_left
+           (fun e (name, ty) ->
+              let sch = generalize env ty in
+              { e with vars = SMap.add name sch e.vars })
+           env
+           inferred
+       in
        let* body_ty, _ = infer_expr env_after in_expr in
        Ok (body_ty, env_after))
   | EMatch (scrut, cases) ->
@@ -626,23 +634,31 @@ let infer_toplevel env (tl : toplevel) =
                env_rec
                provisional
            in
-           let infos = ref [] in
-           List.iter2
-             (fun b (_, ty) ->
-                match infer_expr env_with_prov b.node.rhs with
-                | Error msg -> raise (TypeError msg)
-                | Ok (rhs_ty, _) ->
-                  (try unify rhs_ty ty with TypeError msg -> raise (TypeError msg));
-                  let sch = generalize env rhs_ty in
-                  infos := { name = (match b.node.lhs.node with PVar id -> id.node | _ -> assert false); scheme = sch } :: !infos)
-             bindings provisional;
+           let inferred =
+             List.map2
+               (fun b (_, ty) ->
+                  match infer_expr env_with_prov b.node.rhs with
+                  | Error msg -> raise (TypeError msg)
+                  | Ok (rhs_ty, _) ->
+                    (try unify rhs_ty ty with TypeError msg -> raise (TypeError msg));
+                    let name = match b.node.lhs.node with PVar id -> id.node | _ -> assert false in
+                    name, rhs_ty)
+               bindings provisional
+           in
+           let infos =
+             List.map
+               (fun (name, ty) ->
+                  let sch = generalize env ty in
+                  { name; scheme = sch })
+               inferred
+           in
            let env' =
              List.fold_left
                (fun e info -> { e with vars = SMap.add info.name info.scheme e.vars })
                env
-               !infos
+               infos
            in
-           env', InfoLet (List.rev !infos, tl.loc)
+           env', InfoLet (infos, tl.loc)
        in
        Ok (env', info)
      with
