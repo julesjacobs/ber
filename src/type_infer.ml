@@ -14,6 +14,13 @@ let ( >>= ) r f =
   | Ok v -> f v
   | Error msg -> Error msg
 
+let rec map_result f = function
+  | [] -> Ok []
+  | x :: xs ->
+    let* y = f x in
+    let* ys = map_result f xs in
+    Ok (y :: ys)
+
 type tvar =
   { id : int
   ; mutable instance : ty option
@@ -239,30 +246,14 @@ let rec ty_of_type_expr env (tyvars : (string * tvar) list ref) (te : type_expr)
     if List.length args <> List.length type_info.params then
       Error ("type " ^ name.node ^ " expects " ^ string_of_int (List.length type_info.params) ^ " arguments")
     else
-      let* args' =
-        let rec fold acc = function
-          | [] -> Ok (List.rev acc)
-          | a :: rest ->
-            let* ta = ty_of_type_expr env tyvars a in
-            fold (ta :: acc) rest
-        in
-        fold [] args
-      in
+      let* args' = map_result (ty_of_type_expr env tyvars) args in
       Ok (TCon (name.node, args'))
   | TyArrow (a, b) ->
     let* ta = ty_of_type_expr env tyvars a in
     let* tb = ty_of_type_expr env tyvars b in
     Ok (t_arrow ta tb)
   | TyTuple elems ->
-    let* elems' =
-      let rec fold acc = function
-        | [] -> Ok (List.rev acc)
-        | e :: rest ->
-          let* te = ty_of_type_expr env tyvars e in
-          fold (te :: acc) rest
-      in
-      fold [] elems
-    in
+    let* elems' = map_result (ty_of_type_expr env tyvars) elems in
     Ok (t_tuple elems')
 
 let rec infer_pattern env pat expected =
@@ -376,13 +367,11 @@ let rec infer_expr env expr =
          Ok (res_ty, env))
   | ETuple elems ->
     let* ts =
-      let rec loop acc = function
-        | [] -> Ok (List.rev acc)
-        | e :: rest ->
-          let* t, _ = infer_expr env e in
-          loop (t :: acc) rest
-      in
-      loop [] elems
+      map_result
+        (fun e ->
+           let* t, _ = infer_expr env e in
+           Ok t)
+        elems
     in
     Ok (t_tuple ts, env)
   | ELambda { params; fn_body } ->
@@ -413,13 +402,11 @@ let rec infer_expr env expr =
   | EApp (fn, args) ->
     let* fn_ty, _ = infer_expr env fn in
     let* arg_tys =
-      let rec loop acc = function
-        | [] -> Ok (List.rev acc)
-        | e :: rest ->
-          let* t, _ = infer_expr env e in
-          loop (t :: acc) rest
-      in
-      loop [] args
+      map_result
+        (fun e ->
+           let* t, _ = infer_expr env e in
+           Ok t)
+        args
     in
     let result_ty = fresh_ty env.gen_level in
     let app_ty =
