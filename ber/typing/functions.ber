@@ -17,4 +17,4 @@ let annotated = fun (x : int) -> x
 
 let bad_annot = fun (x : int) -> x : bool
 
-> Type error at /Users/julesjacobs/git/ber/ber/typing/functions.ber:18:0-18:41: type mismatch
+> Type error at ber/typing/functions.ber:18:0-18:41: type mismatch

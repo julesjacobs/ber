@@ -1,0 +1,12 @@
+#type
+let outer x =
+  let id y = y in
+  (id x, id true)
+
+> val outer : 'a -> 'a * bool
+
+let capture x =
+  let pair y = (x, y) in
+  (pair 1, pair true)
+
+> val capture : 'a -> 'a * int * 'a * bool

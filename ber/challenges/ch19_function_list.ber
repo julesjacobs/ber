@@ -13,4 +13,4 @@ let bool_not b =
 let bad_fs =
   Cons ((fun (x : int) -> x), Cons (bool_not, Nil))
 
-> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch19_function_list.ber:13:0-14:51: type mismatch
+> Type error at ber/challenges/ch19_function_list.ber:13:0-14:51: type mismatch

@@ -12,4 +12,4 @@ let rec size t =
   | Leaf -> 1
   | Node (l, r) -> add_size (size l) (size r)
 
-> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch17_ctor_pattern.ber:10:0-13:45: constructor arity mismatch
+> Type error at ber/challenges/ch17_ctor_pattern.ber:10:0-13:45: constructor arity mismatch

@@ -5,4 +5,4 @@ let negate x = x
 
 let _ = negate 1 2
 
-> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch4_extra_arg.ber:6:0-6:18: type mismatch
+> Type error at ber/challenges/ch4_extra_arg.ber:6:0-6:18: type mismatch

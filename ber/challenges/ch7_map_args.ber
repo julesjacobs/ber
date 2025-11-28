@@ -18,4 +18,4 @@ let apply_all fs x =
 let _ =
   apply_all (Cons ((fun n -> n), Cons ((fun n -> n), Nil))) 10
 
-> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch7_map_args.ber:18:0-19:62: type mismatch
+> Type error at ber/challenges/ch7_map_args.ber:18:0-19:62: type mismatch

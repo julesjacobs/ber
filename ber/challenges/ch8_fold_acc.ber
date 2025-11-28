@@ -21,4 +21,4 @@ let xs = Cons (true, Cons (false, Cons (true, Nil)))
 
 let _ = sum_bool_list xs
 
-> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch8_fold_acc.ber:22:0-22:24: type mismatch
+> Type error at ber/challenges/ch8_fold_acc.ber:22:0-22:24: type mismatch

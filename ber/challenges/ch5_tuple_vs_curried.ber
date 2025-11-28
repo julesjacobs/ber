@@ -7,4 +7,4 @@ let add_pair p =
 
 let _ = add_pair 1 2
 
-> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch5_tuple_vs_curried.ber:8:0-8:20: type mismatch
+> Type error at ber/challenges/ch5_tuple_vs_curried.ber:8:0-8:20: type mismatch

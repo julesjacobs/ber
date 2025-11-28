@@ -42,11 +42,20 @@ let drop_trailing_blank_lines lines =
   aux (List.rev lines) |> List.rev
 
 let format_location (loc : Location.t) =
+  let rel_file =
+    let cwd = Sys.getcwd () in
+    let prefix = cwd ^ Filename.dir_sep in
+    let file = loc.file in
+    if String.length file >= String.length prefix && String.sub file 0 (String.length prefix) = prefix then
+      String.sub file (String.length prefix) (String.length file - String.length prefix)
+    else
+      file
+  in
   let start_line = loc.start.Lexing.pos_lnum in
   let start_col = loc.start.Lexing.pos_cnum - loc.start.Lexing.pos_bol in
   let stop_line = loc.stop.Lexing.pos_lnum in
   let stop_col = loc.stop.Lexing.pos_cnum - loc.stop.Lexing.pos_bol in
-  Format.asprintf "%s:%d:%d-%d:%d" loc.file start_line start_col stop_line stop_col
+  Format.asprintf "%s:%d:%d-%d:%d" rel_file start_line start_col stop_line stop_col
 
 let format_error (err : Parse.parse_error) =
   Format.asprintf "Error at %s: %s" (format_location err.loc) err.message

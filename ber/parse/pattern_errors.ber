@@ -3,4 +3,4 @@ let bad_ctor = Some x y
 let bad_as = fun x -> match x with | y as -> y
 let bad_guard = match None with | None when -> true
 
-> Error at /Users/julesjacobs/git/ber/ber/parse/pattern_errors.ber:3:42-3:44: syntax error
+> Error at ber/parse/pattern_errors.ber:3:42-3:44: syntax error

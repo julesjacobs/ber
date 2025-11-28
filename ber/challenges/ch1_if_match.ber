@@ -8,4 +8,4 @@ let f b =
   in
   x
 
-> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch1_if_match.ber:3:0-9:3: type mismatch
+> Type error at ber/challenges/ch1_if_match.ber:3:0-9:3: type mismatch

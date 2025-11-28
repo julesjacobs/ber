@@ -8,4 +8,4 @@ type 'a option = None | Some of 'a
 let bad_options =
   Cons (Some 1, Cons (None, Cons (Some true, Nil)))
 
-> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch18_option_list.ber:8:0-9:51: type mismatch
+> Type error at ber/challenges/ch18_option_list.ber:8:0-9:51: type mismatch

@@ -11,4 +11,4 @@ let rec length_or_and xs =
     | true -> length_or_and xs'
     | false -> x
 
-> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch2_match_branches.ber:6:0-12:16: type mismatch
+> Type error at ber/challenges/ch2_match_branches.ber:6:0-12:16: type mismatch

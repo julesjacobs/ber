@@ -10,5 +10,5 @@
 
 
 Future:
-- [ ] Make paths in type errors relative.
-- [ ] Add tests for inner let generalization where the generalized type will still have some outer type variables that shouldn't be generalized, but also some inner variables that should be generalized. This will test the level based polymorphism.
+- [x] Make paths in type errors relative.
+- [x] Add tests for inner let generalization where the generalized type will still have some outer type variables that shouldn't be generalized, but also some inner variables that should be generalized. This will test the level based polymorphism.

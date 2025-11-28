@@ -8,4 +8,4 @@ let choose b x =
   | true -> Cons (x, Nil)
   | false -> x
 
-> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch11_occurs_if.ber:6:0-9:14: recursive types
+> Type error at ber/challenges/ch11_occurs_if.ber:6:0-9:14: recursive types

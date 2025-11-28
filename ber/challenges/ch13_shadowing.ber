@@ -13,4 +13,4 @@ let use_int (n : int) = n
 
 let _ = use_int x
 
-> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch13_shadowing.ber:14:0-14:17: type mismatch
+> Type error at ber/challenges/ch13_shadowing.ber:14:0-14:17: type mismatch
