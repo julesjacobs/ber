@@ -8,4 +8,4 @@ let rec g x =
   | 0 -> Nil
   | _ -> g (Cons (x, Nil))
 
-> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch21_polyrec.ber:4:0-7:26: type mismatch
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch21_polyrec.ber:6:0-9:26: type mismatch

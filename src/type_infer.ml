@@ -152,28 +152,40 @@ let initial_env =
 
 let unify_res a b = try unify a b; Ok () with TypeError msg -> Error msg
 
-let string_of_ty ty =
+let string_of_ty ?generalized ty =
   let names = Hashtbl.create 16 in
-  let name_counter = ref 0 in
-  let fresh_name () =
-    let i = !name_counter in
-    incr name_counter;
+  let gen_counter = ref 0 in
+  let weak_counter = ref 0 in
+  let fresh_gen_name () =
+    let i = !gen_counter in
+    incr gen_counter;
     let base =
-      let n = (i mod 26) in
+      let n = i mod 26 in
       String.make 1 (Char.chr (97 + n))
     in
     if i < 26 then "'" ^ base else "'" ^ base ^ string_of_int (i / 26)
   in
+  let fresh_weak_name () =
+    let i = !weak_counter in
+    incr weak_counter;
+    "'_weak" ^ string_of_int (i + 1)
+  in
   let rec aux prec ty =
     match prune ty with
     | TVar tv ->
-      let key = string_of_int tv.id in
       let name =
-        match Hashtbl.find_opt names key with
+        match Hashtbl.find_opt names tv.id with
         | Some n -> n
         | None ->
-          let n = fresh_name () in
-          Hashtbl.add names key n;
+          let n =
+            let is_generalized =
+              match generalized with
+              | None -> true
+              | Some gen -> IMap.mem tv.id gen
+            in
+            if is_generalized then fresh_gen_name () else fresh_weak_name ()
+          in
+          Hashtbl.add names tv.id n;
           n
       in
       name
@@ -194,8 +206,11 @@ let string_of_ty ty =
 
 let string_of_scheme s =
   match s with
-  | Forall ([], ty) -> string_of_ty ty
-  | Forall (_, ty) -> string_of_ty ty
+  | Forall (tvs, ty) ->
+    let gen =
+      List.fold_left (fun acc tv -> IMap.add tv.id () acc) IMap.empty tvs
+    in
+    string_of_ty ~generalized:gen ty
 
 let lookup_type env name =
   match SMap.find_opt name env.types with

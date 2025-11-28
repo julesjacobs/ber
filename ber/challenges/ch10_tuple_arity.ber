@@ -1,8 +1,10 @@
 #type
 let x, y, z = 1, 2
+(* CR codex: This should be flagged as a tuple arity mismatch (3 vars vs 2-tuple),
+   not just a generic type mismatch. *)
 
 > Type error at /Users/julesjacobs/git/ber/ber/challenges/ch10_tuple_arity.ber:2:0-2:18: type mismatch
 
 let _ = x
 
-> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch10_tuple_arity.ber:6:0-6:9: unbound variable x
+> Type error at /Users/julesjacobs/git/ber/ber/challenges/ch10_tuple_arity.ber:8:0-8:9: unbound variable x
