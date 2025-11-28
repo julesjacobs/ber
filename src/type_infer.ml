@@ -428,76 +428,9 @@ let rec infer_expr env expr =
     let* () = unify_res fn_ty app_ty in
     Ok (result_ty, env)
   | ELet { rec_flag; bindings; in_expr } ->
-    let env_rec_level = push_level env in
-    (match rec_flag with
-     | Nonrecursive ->
-       let* env_after =
-         let rec loop env_acc = function
-           | [] -> Ok env_acc
-           | b :: rest ->
-             let* t_rhs, _ = infer_expr env_rec_level b.node.rhs in
-             let* binds, _ = infer_pattern env_rec_level b.node.lhs t_rhs in
-             let env_acc =
-               List.fold_left
-                 (fun acc (name, ty) ->
-                    let sch = generalize env ty in
-                    { acc with vars = SMap.add name sch acc.vars })
-                 env_acc
-                 binds
-             in
-             loop env_acc rest
-         in
-         loop env bindings
-       in
-       let* body_ty, _ = infer_expr env_after in_expr in
-       Ok (body_ty, env_after)
-     | Recursive ->
-       let* names =
-         let rec collect acc = function
-           | [] -> Ok (List.rev acc)
-           | b :: rest ->
-             (match b.node.lhs.node with
-              | PVar id -> collect (id.node :: acc) rest
-              | _ -> Error "let rec requires variable patterns")
-         in
-         collect [] bindings
-       in
-       let provisional =
-         List.map (fun name -> name, fresh_ty env_rec_level.gen_level) names
-       in
-       let env_with_prov =
-         List.fold_left
-           (fun e (name, ty) -> { e with vars = SMap.add name (Forall ([], ty)) e.vars })
-           env_rec_level
-           provisional
-       in
-       let* inferred =
-         let rec loop acc bs provs =
-           match bs, provs with
-           | [], [] -> Ok (List.rev acc)
-           | b :: bs', (_, ty) :: provs' ->
-             let* rhs_ty, _ = infer_expr env_with_prov b.node.rhs in
-             let* () = unify_res ty rhs_ty in
-             let name =
-               match b.node.lhs.node with
-               | PVar id -> id.node
-               | _ -> assert false
-             in
-             loop ((name, rhs_ty) :: acc) bs' provs'
-           | _ -> Error "arity mismatch in let rec bindings"
-         in
-         loop [] bindings provisional
-       in
-       let env_after =
-         List.fold_left
-           (fun e (name, ty) ->
-              let sch = generalize env ty in
-              { e with vars = SMap.add name sch e.vars })
-           env
-           inferred
-       in
-       let* body_ty, _ = infer_expr env_after in_expr in
-       Ok (body_ty, env_after))
+    let* env_after, _infos = infer_let_bindings env rec_flag bindings in
+    let* body_ty, _ = infer_expr env_after in_expr in
+    Ok (body_ty, env_after)
   | EMatch (scrut, cases) ->
     let* scrut_ty, _ = infer_expr env scrut in
     let result_ty = fresh_ty env.gen_level in
@@ -532,6 +465,85 @@ let rec infer_expr env expr =
     let* t_e, _ = infer_expr env e in
     let* () = unify_res t_e t_expected in
     Ok (t_expected, env)
+
+and infer_let_bindings env rec_flag bindings =
+  let env_level = push_level env in
+  match rec_flag with
+  | Nonrecursive ->
+    let rec loop env_acc infos_rev = function
+      | [] -> Ok (env_acc, List.rev infos_rev)
+      | b :: rest ->
+        let* rhs_ty, _ = infer_expr env_level b.node.rhs in
+        let* binds, _ = infer_pattern env_level b.node.lhs rhs_ty in
+        let generalized =
+          List.map
+            (fun (name, ty) -> { name; scheme = generalize env ty })
+            binds
+        in
+        let env_acc =
+          List.fold_left
+            (fun e info -> { e with vars = SMap.add info.name info.scheme e.vars })
+            env_acc
+            generalized
+        in
+        loop env_acc (List.rev_append generalized infos_rev) rest
+    in
+    loop env [] bindings
+  | Recursive ->
+    let* names =
+      let rec collect acc = function
+        | [] -> Ok (List.rev acc)
+        | b :: rest ->
+          (match b.node.lhs.node with
+           | PVar id -> collect (id.node :: acc) rest
+           | _ -> Error "let rec requires variable patterns")
+      in
+      collect [] bindings
+    in
+    let provisional =
+      List.map (fun name -> name, fresh_ty env_level.gen_level) names
+    in
+    let env_with_prov =
+      List.fold_left
+        (fun e (name, ty) -> { e with vars = SMap.add name (Forall ([], ty)) e.vars })
+        env_level
+        provisional
+    in
+    let* env_vars, infos_rev =
+      let rec loop env_vars acc bs provs =
+        match bs, provs with
+        | [], [] -> Ok (env_vars, acc)
+        | b :: bs', (_, ty) :: provs' ->
+          let* rhs_ty, _ = infer_expr env_with_prov b.node.rhs in
+          let* () = unify_res ty rhs_ty in
+          let name =
+            match b.node.lhs.node with
+            | PVar id -> id.node
+            | _ -> assert false
+          in
+          let scheme = generalize env rhs_ty in
+          let env_vars = SMap.add name scheme env_vars in
+          loop env_vars ({ name; scheme } :: acc) bs' provs'
+        | _ -> Error "arity mismatch in let rec bindings"
+      in
+      loop env_with_prov.vars [] bindings provisional
+    in
+    let infos =
+      infos_rev
+      |> List.rev
+      |> List.map (fun info ->
+          match info.scheme with
+          | Forall (_, ty) ->
+            let sch = generalize env ty in
+            { info with scheme = sch })
+    in
+    let env_after =
+      List.fold_left
+        (fun e info -> { e with vars = SMap.add info.name info.scheme e.vars })
+        { env with vars = env_vars }
+        infos
+    in
+    Ok (env_after, infos)
 let register_type_decl env (decl : type_decl) =
   let params = List.map (fun id -> id.node) decl.node.params in
   let param_vars = List.map (fun _ -> fresh_tvar (env.gen_level + 1)) params in
@@ -587,82 +599,9 @@ let infer_toplevel env (tl : toplevel) =
      | Error msg ->
        Error { loc = tl.loc; message = msg })
   | TLet (rec_flag, bindings) ->
-    (try
-       let env', info =
-         match rec_flag with
-         | Nonrecursive ->
-           let env_rhs = push_level env in
-           let env_acc = ref env in
-           let infos = ref [] in
-           List.iter
-             (fun b ->
-                match infer_expr env_rhs b.node.rhs with
-                | Error msg -> raise (TypeError msg)
-                | Ok (rhs_ty, _) ->
-                  (match infer_pattern env_rhs b.node.lhs rhs_ty with
-                   | Error msg -> raise (TypeError msg)
-                   | Ok (binds, _) ->
-                     let generalized =
-                       List.map
-                         (fun (name, ty) -> { name; scheme = generalize env ty })
-                         binds
-                     in
-                     infos := List.rev_append generalized !infos;
-                     env_acc :=
-                       List.fold_left
-                        (fun e info -> { e with vars = SMap.add info.name info.scheme e.vars })
-                        !env_acc
-                        generalized))
-           bindings;
-           !env_acc, InfoLet (List.rev !infos, tl.loc)
-         | Recursive ->
-           let env_rec = push_level env in
-           let names =
-             List.map
-               (fun b ->
-                  match b.node.lhs.node with
-                  | PVar id -> id.node
-                  | _ -> raise (TypeError "let rec requires variable patterns"))
-               bindings
-           in
-           let provisional =
-             List.map (fun name -> name, fresh_ty env_rec.gen_level) names
-           in
-           let env_with_prov =
-             List.fold_left
-               (fun e (name, ty) -> { e with vars = SMap.add name (Forall ([], ty)) e.vars })
-               env_rec
-               provisional
-           in
-           let inferred =
-             List.map2
-               (fun b (_, ty) ->
-                  match infer_expr env_with_prov b.node.rhs with
-                  | Error msg -> raise (TypeError msg)
-                  | Ok (rhs_ty, _) ->
-                    (try unify rhs_ty ty with TypeError msg -> raise (TypeError msg));
-                    let name = match b.node.lhs.node with PVar id -> id.node | _ -> assert false in
-                    name, rhs_ty)
-               bindings provisional
-           in
-           let infos =
-             List.map
-               (fun (name, ty) ->
-                  let sch = generalize env ty in
-                  { name; scheme = sch })
-               inferred
-           in
-           let env' =
-             List.fold_left
-               (fun e info -> { e with vars = SMap.add info.name info.scheme e.vars })
-               env
-               infos
-           in
-           env', InfoLet (infos, tl.loc)
-       in
-       Ok (env', info)
-     with
-     | TypeError msg -> Error { loc = tl.loc; message = msg })
+    (match infer_let_bindings env rec_flag bindings with
+     | Ok (env', infos) -> Ok (env', InfoLet (infos, tl.loc))
+     | Error msg -> Error { loc = tl.loc; message = msg })
 
 let infer_program env (prog : program) =
   let rec loop env infos errors = function
