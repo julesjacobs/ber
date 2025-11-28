@@ -10,3 +10,13 @@ let capture x =
   (pair 1, pair true)
 
 > val capture : 'a -> 'a * int * 'a * bool
+
+type 'a list = Nil | Cons of 'a * 'a list
+
+> type declaration
+
+let capture_list x =
+  let prepend y = Cons (x, Cons (y, Nil)) in
+  (prepend 1, prepend true)
+
+> Type error at ber/typing/let_generalization.ber:18:0-20:27: type mismatch
