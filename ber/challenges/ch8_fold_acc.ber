@@ -8,7 +8,7 @@ let rec fold_left f acc xs =
   | Nil -> acc
   | Cons (x, xs') -> fold_left f (f acc x) xs'
 
-> val fold_left : ('_weak1 -> '_weak2 -> '_weak1) -> '_weak1 -> list '_weak2 -> '_weak1
+> val fold_left : ('a -> 'b -> 'a) -> 'a -> list 'b -> 'a
 
 let sum_bool_list xs =
   fold_left (fun (a : int) (b : int) -> a) 0 xs

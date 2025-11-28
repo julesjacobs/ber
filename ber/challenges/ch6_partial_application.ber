@@ -8,7 +8,7 @@ let rec length xs =
   | Nil -> 0
   | Cons (_, xs') -> length xs'
 
-> val length : list '_weak1 -> int
+> val length : list 'a -> int
 
 let add (x : int) (y : int) = x
 

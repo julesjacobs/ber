@@ -1,2 +1,3 @@
-- [x] Print non-generalized type variables with a distinct prefix (OCaml-style weak vars).
-- [x] Rerun `./ber.sh` after updating type variable printing.
+- [x] Fix `let rec` generalization so recursive functions remain polymorphic.
+- [x] Update/expand fixtures to cover the fixed behavior.
+- [x] Run `./ber.sh` and review diffs.

@@ -1,8 +1,8 @@
 #type
 let rec id x = x
 
-> val id : '_weak1 -> '_weak1
+> val id : 'a -> 'a
 
 let pair = (id 1, id true)
 
-> Type error at /Users/julesjacobs/git/ber/ber/typing/letrec_poly.ber:6:0-6:26: type mismatch
+> val pair : int * bool

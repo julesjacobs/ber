@@ -608,6 +608,7 @@ let infer_toplevel env (tl : toplevel) =
            bindings;
            !env_acc, InfoLet (List.rev !infos, tl.loc)
          | Recursive ->
+           let env_rec = push_level env in
            let names =
              List.map
                (fun b ->
@@ -617,12 +618,12 @@ let infer_toplevel env (tl : toplevel) =
                bindings
            in
            let provisional =
-             List.map (fun name -> name, fresh_ty env.gen_level) names
+             List.map (fun name -> name, fresh_ty env_rec.gen_level) names
            in
            let env_with_prov =
              List.fold_left
                (fun e (name, ty) -> { e with vars = SMap.add name (Forall ([], ty)) e.vars })
-               env
+               env_rec
                provisional
            in
            let infos = ref [] in
