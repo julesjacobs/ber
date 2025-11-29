@@ -327,9 +327,9 @@ let rec infer_pattern env pat expected =
 
 let rec infer_expr env expr =
   let expected = fresh_ty env.gen_level in
-  let* () = infer_expr_with_expected env expected expr in
+  let* () = check_expr env expected expr in
   Ok expected
-and infer_expr_with_expected env expected expr =
+and check_expr env expected expr =
   match expr.node with
   | EInt _ ->
     let* () = unify_res expected t_int in
@@ -365,7 +365,7 @@ and infer_expr_with_expected env expected expr =
          let* _ =
            map_result2
              (fun e t ->
-                let* () = infer_expr_with_expected env t e in
+                let* () = check_expr env t e in
                 Ok t)
              args
              arg_tys
@@ -377,7 +377,7 @@ and infer_expr_with_expected env expected expr =
     let* _ =
       map_result2
         (fun e t ->
-           let* () = infer_expr_with_expected env t e in
+           let* () = check_expr env t e in
            Ok t)
         elems
         elem_tys
@@ -408,7 +408,7 @@ and infer_expr_with_expected env expected expr =
     let fn_ty =
       List.fold_right (fun arg acc -> t_arrow arg acc) param_tys result_ty
     in
-    let* () = infer_expr_with_expected env'' result_ty fn_body in
+    let* () = check_expr env'' result_ty fn_body in
     let* () = unify_res fn_ty expected in
     Ok ()
   | EApp (fn, args) ->
@@ -417,11 +417,11 @@ and infer_expr_with_expected env expected expr =
     let app_ty =
       List.fold_right (fun arg acc -> t_arrow arg acc) arg_tys result_ty
     in
-    let* () = infer_expr_with_expected env app_ty fn in
+    let* () = check_expr env app_ty fn in
     let* _ =
       map_result2
         (fun e t ->
-           let* () = infer_expr_with_expected env t e in
+           let* () = check_expr env t e in
            Ok t)
         args
         arg_tys
@@ -429,11 +429,11 @@ and infer_expr_with_expected env expected expr =
     Ok ()
   | ELet { rec_flag; bindings; in_expr } ->
     let* env_after, _infos = infer_let_bindings env rec_flag bindings in
-    let* () = infer_expr_with_expected env_after expected in_expr in
+    let* () = check_expr env_after expected in_expr in
     Ok ()
   | EMatch (scrut, cases) ->
     let scrut_ty = fresh_ty env.gen_level in
-    let* () = infer_expr_with_expected env scrut_ty scrut in
+    let* () = check_expr env scrut_ty scrut in
     let env_case_level = push_level env in
     let* () =
       let rec loop = function
@@ -449,9 +449,9 @@ and infer_expr_with_expected env expected expr =
           (match c.node.guard with
            | None -> Ok ()
            | Some g ->
-             let* () = infer_expr_with_expected env_with_binds t_bool g in
+             let* () = check_expr env_with_binds t_bool g in
              Ok ()) >>= fun () ->
-          let* () = infer_expr_with_expected env_with_binds expected c.node.body in
+          let* () = check_expr env_with_binds expected c.node.body in
           loop rest
       in
       loop cases
@@ -460,7 +460,7 @@ and infer_expr_with_expected env expected expr =
   | EAnnot (e, texpr) ->
     let tyvars = ref [] in
     let* t_expected = ty_of_type_expr env tyvars texpr in
-    let* () = infer_expr_with_expected env t_expected e in
+    let* () = check_expr env t_expected e in
     let* () = unify_res expected t_expected in
     Ok ()
 
@@ -472,7 +472,7 @@ and infer_let_bindings env rec_flag bindings =
       | [] -> Ok (env_acc, List.rev infos_rev)
       | b :: rest ->
         let rhs_ty = fresh_ty env_level.gen_level in
-        let* () = infer_expr_with_expected env_level rhs_ty b.node.rhs in
+        let* () = check_expr env_level rhs_ty b.node.rhs in
         let* binds, _ = infer_pattern env_level b.node.lhs rhs_ty in
         let generalized =
           List.map
@@ -513,7 +513,7 @@ and infer_let_bindings env rec_flag bindings =
         match bs, provs with
         | [], [] -> Ok ()
         | b :: bs', (_, ty) :: provs' ->
-          let* () = infer_expr_with_expected env_with_prov ty b.node.rhs in
+          let* () = check_expr env_with_prov ty b.node.rhs in
           loop bs' provs'
         | _ -> Error "arity mismatch in let rec bindings"
       in
