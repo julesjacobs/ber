@@ -1,0 +1,33 @@
+#type
+(* Let pattern shadowing an outer binding *)
+let outer = 1
+let (outer, inner) = (true, 2)
+let use_let = outer
+
+> val outer : int
+> val outer : bool
+> val inner : int
+> val use_let : bool
+
+(* Lambda parameter shadowing an outer binding *)
+let arg = "outer"
+let lambda_shadow = (fun arg -> arg) 3
+
+> val arg : string
+> val lambda_shadow : int
+
+(* Match pattern shadowing an outer binding *)
+let match_outer = false
+let match_shadow = match true with | match_outer -> match_outer
+
+> val match_outer : bool
+> val match_shadow : bool
+
+(* Pattern variable shadowing another pattern variable in the same pattern *)
+let tuple_shadow (x, (x, y)) = x
+
+> val tuple_shadow : 'b * 'a * 'c -> 'a
+
+let duplicate_pattern (x, x) = x
+
+> val duplicate_pattern : 'b * 'a -> 'a
