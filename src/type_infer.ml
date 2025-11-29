@@ -61,7 +61,7 @@ type toplevel_info =
   | InfoType of Location.t
 
 let generalize env ty = Type_solver.generalize ~level:env.gen_level ty
-let instantiate env sch = Type_solver.instantiate ~level:env.gen_level sch
+let instantiate ?loc env sch = Type_solver.instantiate ?loc ~level:env.gen_level sch
 
 let push_level env = { env with gen_level = env.gen_level + 1 }
 
@@ -104,14 +104,14 @@ let rec ty_of_type_expr env (tyvars : (string * tvar) list ref) (te : type_expr)
       Error ("type " ^ name.node ^ " expects " ^ string_of_int (List.length type_info.params) ^ " arguments")
     else
       let* args' = map_result (ty_of_type_expr env tyvars) args in
-      Ok (TCon (name.node, args'))
+      Ok (mk_con ~loc:te.loc name.node args')
   | TyArrow (a, b) ->
     let* ta = ty_of_type_expr env tyvars a in
     let* tb = ty_of_type_expr env tyvars b in
-    Ok (t_arrow ta tb)
+    Ok (t_arrow ~loc:te.loc ta tb)
   | TyTuple elems ->
     let* elems' = map_result (ty_of_type_expr env tyvars) elems in
-    Ok (t_tuple elems')
+    Ok (t_tuple ~loc:te.loc elems')
 
 let rec infer_pattern env pat expected =
   match pat.node with
@@ -122,17 +122,17 @@ let rec infer_pattern env pat expected =
     let* binds = infer_pattern env p expected in
     Ok ((id.node, expected) :: binds)
   | PInt _ ->
-    let* () = unify_res expected t_int in
+    let* () = unify_res expected (t_int ~loc:pat.loc ()) in
     Ok []
   | PBool _ ->
-    let* () = unify_res expected t_bool in
+    let* () = unify_res expected (t_bool ~loc:pat.loc ()) in
     Ok []
   | PString _ ->
-    let* () = unify_res expected t_string in
+    let* () = unify_res expected (t_string ~loc:pat.loc ()) in
     Ok []
   | PTuple elems ->
     let ts = List.map (fun _ -> fresh_ty env.gen_level) elems in
-    let tuple_ty = t_tuple ts in
+    let tuple_ty = t_tuple ~loc:pat.loc ts in
     let* () = unify_res expected tuple_ty in
     let rec loop acc pats tys =
       match pats, tys with
@@ -146,10 +146,10 @@ let rec infer_pattern env pat expected =
   | PConstr (ctor, args) ->
     (match SMap.find_opt ctor.node env.vars with
      | Some scheme ->
-       let ctor_ty = instantiate env scheme in
+       let ctor_ty = instantiate ~loc:ctor.loc env scheme in
        let rec collect ty acc =
          match prune ty with
-         | TCon ("->", [ a; b ]) -> collect b (a :: acc)
+         | TCon ("->", [ a; b ], _) -> collect b (a :: acc)
          | result -> List.rev acc, result
        in
        let arg_tys, res_ty = collect ctor_ty [] in
@@ -180,29 +180,29 @@ let rec infer_expr env expr =
 and check_expr env expected expr =
   match expr.node with
   | EInt _ ->
-    let* () = unify_res expected t_int in
+    let* () = unify_res expected (t_int ~loc:expr.loc ()) in
     Ok ()
   | EBool _ ->
-    let* () = unify_res expected t_bool in
+    let* () = unify_res expected (t_bool ~loc:expr.loc ()) in
     Ok ()
   | EString _ ->
-    let* () = unify_res expected t_string in
+    let* () = unify_res expected (t_string ~loc:expr.loc ()) in
     Ok ()
   | EVar id ->
     (match SMap.find_opt id.node env.vars with
      | None -> Error ("unbound variable " ^ id.node)
      | Some s ->
-       let t = instantiate env s in
+       let t = instantiate ~loc:id.loc env s in
        let* () = unify_res t expected in
        Ok ())
   | EConstr (ctor, args) ->
     (match SMap.find_opt ctor.node env.vars with
      | None -> Error ("unknown constructor " ^ ctor.node)
      | Some scheme ->
-       let ctor_ty = instantiate env scheme in
+       let ctor_ty = instantiate ~loc:ctor.loc env scheme in
        let rec collect ty acc =
          match prune ty with
-         | TCon ("->", [ a; b ]) -> collect b (a :: acc)
+         | TCon ("->", [ a; b ], _) -> collect b (a :: acc)
          | result -> List.rev acc, result
        in
        let arg_tys, res_ty = collect ctor_ty [] in
@@ -221,7 +221,7 @@ and check_expr env expected expr =
          Ok ())
   | ETuple elems ->
     let elem_tys = List.map (fun _ -> fresh_ty env.gen_level) elems in
-    let tuple_ty = t_tuple elem_tys in
+    let tuple_ty = t_tuple ~loc:expr.loc elem_tys in
     let* _ =
       map_result2
         (fun e t ->
@@ -255,7 +255,7 @@ and check_expr env expected expr =
     in
     let result_ty = fresh_ty env'.gen_level in
     let fn_ty =
-      List.fold_right (fun arg acc -> t_arrow arg acc) param_tys result_ty
+      List.fold_right (fun arg acc -> t_arrow ~loc:expr.loc arg acc) param_tys result_ty
     in
     let* () = check_expr env'' result_ty fn_body in
     let* () = unify_res fn_ty expected in
@@ -264,7 +264,7 @@ and check_expr env expected expr =
     let result_ty = expected in
     let arg_tys = List.map (fun _ -> fresh_ty env.gen_level) args in
     let app_ty =
-      List.fold_right (fun arg acc -> t_arrow arg acc) arg_tys result_ty
+      List.fold_right (fun arg acc -> t_arrow ~loc:expr.loc arg acc) arg_tys result_ty
     in
     let* () = check_expr env app_ty fn in
     let* _ =
@@ -298,7 +298,7 @@ and check_expr env expected expr =
           (match c.node.guard with
            | None -> Ok ()
            | Some g ->
-             let* () = check_expr env_with_binds t_bool g in
+             let* () = check_expr env_with_binds (t_bool ~loc:g.loc ()) g in
              Ok ()) >>= fun () ->
           let* () = check_expr env_with_binds expected c.node.body in
           loop rest
@@ -383,7 +383,7 @@ let register_type_decl env (decl : type_decl) =
   let param_vars = List.map (fun _ -> fresh_tvar (env.gen_level + 1)) params in
   let param_env = ref [] in
   List.iter2 (fun name tv -> param_env := (name, tv) :: !param_env) params param_vars;
-  let type_body = TCon (decl.node.tname.node, List.map (fun tv -> TVar tv) param_vars) in
+  let type_body = mk_con ~loc:decl.loc decl.node.tname.node (List.map (fun tv -> TVar tv) param_vars) in
   let pre_type_info = { params; ctors = [] } in
   let env_with_type = { env with types = SMap.add decl.node.tname.node pre_type_info env.types } in
   let* ctor_schemes =
@@ -401,7 +401,7 @@ let register_type_decl env (decl : type_decl) =
         in
         let ty =
           List.fold_right
-            (fun arg acc -> t_arrow arg acc)
+            (fun arg acc -> t_arrow ~loc:ctor.loc arg acc)
             args
             type_body
         in

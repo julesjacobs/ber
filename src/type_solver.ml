@@ -1,5 +1,7 @@
 module IMap = Map.Make (Int)
 
+let default_loc = Location.span Lexing.dummy_pos Lexing.dummy_pos
+
 type tvar =
   { id : int
   ; mutable instance : ty option
@@ -8,7 +10,7 @@ type tvar =
 
 and ty =
   | TVar of tvar
-  | TCon of string * ty list
+  | TCon of string * ty list * Location.t option
 
 and scheme = Forall of tvar list * ty
 
@@ -22,12 +24,16 @@ let fresh_id () =
 let fresh_tvar level = { id = fresh_id (); instance = None; level }
 let fresh_ty level = TVar (fresh_tvar level)
 
-let t_int = TCon ("int", [])
-let t_bool = TCon ("bool", [])
-let t_string = TCon ("string", [])
+let mk_con ?loc name args =
+  let loc = match loc with None -> Some default_loc | Some _ as l -> l in
+  TCon (name, args, loc)
 
-let t_arrow a b = TCon ("->", [ a; b ])
-let t_tuple ts = TCon ("*", ts)
+let t_int ?loc () = mk_con ?loc "int" []
+let t_bool ?loc () = mk_con ?loc "bool" []
+let t_string ?loc () = mk_con ?loc "string" []
+
+let t_arrow ?loc a b = mk_con ?loc "->" [ a; b ]
+let t_tuple ?loc ts = mk_con ?loc "*" ts
 
 let rec prune = function
   | TVar ({ instance = Some ty; _ } as tv) ->
@@ -39,7 +45,7 @@ let rec prune = function
 let rec ftv_ty acc ty =
   match prune ty with
   | TVar tv -> IMap.add tv.id tv acc
-  | TCon (_, args) ->
+  | TCon (_, args, _) ->
     List.fold_left ftv_ty acc args
 
 let ftv_scheme (Forall (tvs, ty)) =
@@ -53,7 +59,7 @@ let rec occurs_check_adjust_levels tv ty =
   | TVar tv' ->
     if tv.id = tv'.id then raise (TypeError "recursive types");
     if tv'.level > tv.level then tv'.level <- tv.level
-  | TCon (_, args) -> List.iter (occurs_check_adjust_levels tv) args
+  | TCon (_, args, _) -> List.iter (occurs_check_adjust_levels tv) args
 
 let rec unify a b =
   let a = prune a in
@@ -63,7 +69,7 @@ let rec unify a b =
   | TVar va, ty | ty, TVar va ->
     occurs_check_adjust_levels va ty;
     va.instance <- Some ty
-  | TCon (na, args_a), TCon (nb, args_b) ->
+  | TCon (na, args_a, _), TCon (nb, args_b, _) ->
     if na <> nb || List.length args_a <> List.length args_b then
       raise (TypeError "type mismatch")
     else
@@ -81,7 +87,7 @@ let generalize ~level ty =
   in
   Forall (vars, ty)
 
-let instantiate ~level (Forall (vars, ty)) =
+let instantiate ?loc ~level (Forall (vars, ty)) =
   let subst =
     List.fold_left
       (fun m tv -> IMap.add tv.id (fresh_ty level) m)
@@ -93,7 +99,13 @@ let instantiate ~level (Forall (vars, ty)) =
       (match IMap.find_opt tv.id subst with
        | Some t -> t
        | None -> ty)
-    | TCon (n, args) -> TCon (n, List.map aux args)
+    | TCon (n, args, loc') ->
+      let use_loc =
+        match loc with
+        | None -> loc'
+        | some -> some
+      in
+      mk_con ?loc:use_loc n (List.map aux args)
   in
   aux ty
 
@@ -134,16 +146,16 @@ let string_of_ty ?generalized ty =
           n
       in
       name
-    | TCon ("->", [ a; b ]) ->
+    | TCon ("->", [ a; b ], _) ->
       let s =
         Printf.sprintf "%s -> %s" (aux 1 a) (aux 0 b)
       in
       if prec > 0 then "(" ^ s ^ ")" else s
-    | TCon ("*", elems) ->
+    | TCon ("*", elems, _) ->
       let s = String.concat " * " (List.map (aux 0) elems) in
       if prec > 1 then "(" ^ s ^ ")" else s
-    | TCon (name, []) -> name
-    | TCon (name, args) ->
+    | TCon (name, [], _) -> name
+    | TCon (name, args, _) ->
       let s = Printf.sprintf "%s %s" name (String.concat " " (List.map (aux 2) args)) in
       if prec > 1 then "(" ^ s ^ ")" else s
   in
