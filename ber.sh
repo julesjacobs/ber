@@ -20,9 +20,7 @@ if [[ ${#files[@]} -eq 0 ]]; then
 fi
 
 for file in "${files[@]}"; do
-  echo "Processing $file"
-  dune exec ber-cli -- "$file"
-  echo "----- $file -----"
-  cat "$file"
-  echo
+  dune exec ber-cli -- "$file" >/dev/null
 done
+
+echo "ber.sh finished. Please review git diffs for updated fixtures."

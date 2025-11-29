@@ -267,30 +267,30 @@ let rec ty_of_type_expr env (tyvars : (string * tvar) list ref) (te : type_expr)
 
 let rec infer_pattern env pat expected =
   match pat.node with
-  | PWildcard -> Ok ([], expected)
+  | PWildcard -> Ok []
   | PVar id ->
-    Ok ([ id.node, expected ], expected)
+    Ok [ id.node, expected ]
   | PAs (p, id) ->
-    let* binds, t = infer_pattern env p expected in
-    Ok ((id.node, t) :: binds, t)
+    let* binds = infer_pattern env p expected in
+    Ok ((id.node, expected) :: binds)
   | PInt _ ->
     let* () = unify_res expected t_int in
-    Ok ([], expected)
+    Ok []
   | PBool _ ->
     let* () = unify_res expected t_bool in
-    Ok ([], expected)
+    Ok []
   | PString _ ->
     let* () = unify_res expected t_string in
-    Ok ([], expected)
+    Ok []
   | PTuple elems ->
     let ts = List.map (fun _ -> fresh_ty env.gen_level) elems in
     let tuple_ty = t_tuple ts in
     let* () = unify_res expected tuple_ty in
     let rec loop acc pats tys =
       match pats, tys with
-      | [], [] -> Ok (List.concat (List.rev acc), tuple_ty)
+      | [], [] -> Ok (List.concat (List.rev acc))
       | p :: ps, t :: ts' ->
-        let* b, _ = infer_pattern env p t in
+        let* b = infer_pattern env p t in
         loop (b :: acc) ps ts'
       | _ -> Error "tuple arity mismatch in pattern"
     in
@@ -311,9 +311,9 @@ let rec infer_pattern env pat expected =
          let* () = unify_res expected res_ty in
          let rec loop acc pats tys =
            match pats, tys with
-           | [], [] -> Ok (List.concat (List.rev acc), res_ty)
+           | [], [] -> Ok (List.concat (List.rev acc))
            | p :: ps, t :: ts' ->
-             let* b, _ = infer_pattern env p t in
+             let* b = infer_pattern env p t in
              loop (b :: acc) ps ts'
            | _ -> Error "constructor arity mismatch"
          in
@@ -392,7 +392,7 @@ and check_expr env expected expr =
         match pats, tys with
         | [], [] -> Ok (List.concat (List.rev acc))
         | p :: ps, t :: ts' ->
-          let* b, _ = infer_pattern env' p t in
+          let* b = infer_pattern env' p t in
           loop (b :: acc) ps ts'
         | _ -> Error "arity mismatch in lambda parameters"
       in
@@ -400,7 +400,8 @@ and check_expr env expected expr =
     in
     let env'' =
       List.fold_left
-        (fun e (name, ty) -> { e with vars = SMap.add name (Forall ([], ty)) e.vars })
+        (fun e (name, ty) ->
+           { e with vars = SMap.add name (Forall ([], ty)) e.vars })
         env'
         binds
     in
@@ -439,7 +440,7 @@ and check_expr env expected expr =
       let rec loop = function
         | [] -> Ok ()
         | c :: rest ->
-          let* binds, _ = infer_pattern env_case_level c.node.pattern scrut_ty in
+          let* binds = infer_pattern env_case_level c.node.pattern scrut_ty in
           let env_with_binds =
             List.fold_left
               (fun e (name, ty) -> { e with vars = SMap.add name (Forall ([], ty)) e.vars })
@@ -473,7 +474,7 @@ and infer_let_bindings env rec_flag bindings =
       | b :: rest ->
         let rhs_ty = fresh_ty env_level.gen_level in
         let* () = check_expr env_level rhs_ty b.node.rhs in
-        let* binds, _ = infer_pattern env_level b.node.lhs rhs_ty in
+        let* binds = infer_pattern env_level b.node.lhs rhs_ty in
         let generalized =
           List.map
             (fun (name, ty) -> { name; scheme = generalize env ty })
