@@ -21,6 +21,15 @@ let rec map_result f = function
     let* ys = map_result f xs in
     Ok (y :: ys)
 
+let rec map_result2 f xs ys =
+  match xs, ys with
+  | [], [] -> Ok []
+  | x :: xs', y :: ys' ->
+    let* z = f x y in
+    let* zs = map_result2 f xs' ys' in
+    Ok (z :: zs)
+  | _ -> Error "length mismatch"
+
 type tvar =
   { id : int
   ; mutable instance : ty option
@@ -317,16 +326,26 @@ let rec infer_pattern env pat expected =
     infer_pattern env p t
 
 let rec infer_expr env expr =
+  let expected = fresh_ty env.gen_level in
+  infer_expr_with_expected env expected expr
+and infer_expr_with_expected env expected expr =
   match expr.node with
-  | EInt _ -> Ok (t_int, env)
-  | EBool _ -> Ok (t_bool, env)
-  | EString _ -> Ok (t_string, env)
+  | EInt _ ->
+    let* () = unify_res expected t_int in
+    Ok (expected, env)
+  | EBool _ ->
+    let* () = unify_res expected t_bool in
+    Ok (expected, env)
+  | EString _ ->
+    let* () = unify_res expected t_string in
+    Ok (expected, env)
   | EVar id ->
     (match SMap.find_opt id.node env.vars with
      | None -> Error ("unbound variable " ^ id.node)
      | Some s ->
        let t = instantiate env s in
-       Ok (t, env))
+       let* () = unify_res t expected in
+       Ok (expected, env))
   | EConstr (ctor, args) ->
     (match SMap.find_opt ctor.node env.vars with
      | None -> Error ("unknown constructor " ^ ctor.node)
@@ -341,39 +360,31 @@ let rec infer_expr env expr =
        if List.length arg_tys <> List.length args then
          Error "constructor arity mismatch"
        else
-         let* args_tys =
-           let rec loop acc es tys =
-             match es, tys with
-             | [], [] -> Ok (List.rev acc)
-             | e :: es', t :: ts' ->
-               let* te, _ = infer_expr env e in
-               let* () = unify_res te t in
-               loop (te :: acc) es' ts'
-             | _ -> Error "constructor arity mismatch"
-           in
-           loop [] args arg_tys
+         let* () = unify_res res_ty expected in
+         let* _ =
+           map_result2
+             (fun e t ->
+                let* te, _ = infer_expr_with_expected env t e in
+                let* () = unify_res te t in
+                Ok te)
+             args
+             arg_tys
          in
-         let* () =
-           let rec loop ts es =
-             match ts, es with
-             | [], [] -> Ok ()
-             | t :: ts', e :: es' ->
-               let* () = unify_res t e in
-               loop ts' es'
-             | _ -> Ok ()
-           in
-           loop args_tys arg_tys
-         in
-         Ok (res_ty, env))
+         Ok (expected, env))
   | ETuple elems ->
-    let* ts =
-      map_result
-        (fun e ->
-           let* t, _ = infer_expr env e in
-           Ok t)
+    let elem_tys = List.map (fun _ -> fresh_ty env.gen_level) elems in
+    let tuple_ty = t_tuple elem_tys in
+    let* _ =
+      map_result2
+        (fun e t ->
+           let* te, _ = infer_expr_with_expected env t e in
+           let* () = unify_res te t in
+           Ok te)
         elems
+        elem_tys
     in
-    Ok (t_tuple ts, env)
+    let* () = unify_res tuple_ty expected in
+    Ok (expected, env)
   | ELambda { params; fn_body } ->
     let env' = push_level env in
     let param_tys = List.map (fun _ -> fresh_ty env'.gen_level) params in
@@ -394,33 +405,36 @@ let rec infer_expr env expr =
         env'
         binds
     in
-    let* body_ty, _ = infer_expr env'' fn_body in
+    let result_ty = fresh_ty env'.gen_level in
     let fn_ty =
-      List.fold_right (fun arg acc -> t_arrow arg acc) param_tys body_ty
+      List.fold_right (fun arg acc -> t_arrow arg acc) param_tys result_ty
     in
-    Ok (fn_ty, env)
+    let* _ = infer_expr_with_expected env'' result_ty fn_body in
+    let* () = unify_res fn_ty expected in
+    Ok (expected, env)
   | EApp (fn, args) ->
-    let* fn_ty, _ = infer_expr env fn in
-    let* arg_tys =
-      map_result
-        (fun e ->
-           let* t, _ = infer_expr env e in
-           Ok t)
-        args
-    in
-    let result_ty = fresh_ty env.gen_level in
+    let result_ty = expected in
+    let arg_tys = List.map (fun _ -> fresh_ty env.gen_level) args in
     let app_ty =
       List.fold_right (fun arg acc -> t_arrow arg acc) arg_tys result_ty
     in
-    let* () = unify_res fn_ty app_ty in
-    Ok (result_ty, env)
+    let* _ = infer_expr_with_expected env app_ty fn in
+    let* _ =
+      map_result2
+        (fun e t ->
+           let* _, _ = infer_expr_with_expected env t e in
+           Ok t)
+        args
+        arg_tys
+    in
+    Ok (expected, env)
   | ELet { rec_flag; bindings; in_expr } ->
     let* env_after, _infos = infer_let_bindings env rec_flag bindings in
-    let* body_ty, _ = infer_expr env_after in_expr in
-    Ok (body_ty, env_after)
+    let* _ = infer_expr_with_expected env_after expected in_expr in
+    Ok (expected, env_after)
   | EMatch (scrut, cases) ->
-    let* scrut_ty, _ = infer_expr env scrut in
-    let result_ty = fresh_ty env.gen_level in
+    let scrut_ty = fresh_ty env.gen_level in
+    let* _ = infer_expr_with_expected env scrut_ty scrut in
     let env_case_level = push_level env in
     let* () =
       let rec loop = function
@@ -436,22 +450,20 @@ let rec infer_expr env expr =
           (match c.node.guard with
            | None -> Ok ()
            | Some g ->
-             let* g_ty, _ = infer_expr env_with_binds g in
-             let* () = unify_res g_ty t_bool in
+             let* _ = infer_expr_with_expected env_with_binds t_bool g in
              Ok ()) >>= fun () ->
-          let* rhs_ty, _ = infer_expr env_with_binds c.node.body in
-          let* () = unify_res rhs_ty result_ty in
+          let* _ = infer_expr_with_expected env_with_binds expected c.node.body in
           loop rest
       in
       loop cases
     in
-    Ok (result_ty, env)
+    Ok (expected, env)
   | EAnnot (e, texpr) ->
     let tyvars = ref [] in
     let* t_expected = ty_of_type_expr env tyvars texpr in
-    let* t_e, _ = infer_expr env e in
-    let* () = unify_res t_e t_expected in
-    Ok (t_expected, env)
+    let* _ = infer_expr_with_expected env t_expected e in
+    let* () = unify_res expected t_expected in
+    Ok (expected, env)
 
 and infer_let_bindings env rec_flag bindings =
   let env_level = push_level env in
@@ -460,7 +472,8 @@ and infer_let_bindings env rec_flag bindings =
     let rec loop env_acc infos_rev = function
       | [] -> Ok (env_acc, List.rev infos_rev)
       | b :: rest ->
-        let* rhs_ty, _ = infer_expr env_level b.node.rhs in
+        let rhs_ty = fresh_ty env_level.gen_level in
+        let* _, _ = infer_expr_with_expected env_level rhs_ty b.node.rhs in
         let* binds, _ = infer_pattern env_level b.node.lhs rhs_ty in
         let generalized =
           List.map
@@ -496,38 +509,24 @@ and infer_let_bindings env rec_flag bindings =
         env_level
         provisional
     in
-    let* env_vars, infos_rev =
-      let rec loop env_vars acc bs provs =
+    let* () =
+      let rec loop bs provs =
         match bs, provs with
-        | [], [] -> Ok (env_vars, acc)
+        | [], [] -> Ok ()
         | b :: bs', (_, ty) :: provs' ->
-          let* rhs_ty, _ = infer_expr env_with_prov b.node.rhs in
-          let* () = unify_res ty rhs_ty in
-          let name =
-            match b.node.lhs.node with
-            | PVar id -> id.node
-            | _ -> assert false
-          in
-          let scheme = generalize env rhs_ty in
-          let env_vars = SMap.add name scheme env_vars in
-          loop env_vars ({ name; scheme } :: acc) bs' provs'
+          let* _, _ = infer_expr_with_expected env_with_prov ty b.node.rhs in
+          loop bs' provs'
         | _ -> Error "arity mismatch in let rec bindings"
       in
-      loop env_with_prov.vars [] bindings provisional
+      loop bindings provisional
     in
     let infos =
-      infos_rev
-      |> List.rev
-      |> List.map (fun info ->
-          match info.scheme with
-          | Forall (_, ty) ->
-            let sch = generalize env ty in
-            { info with scheme = sch })
+      List.map (fun (name, ty) -> { name; scheme = generalize env ty }) provisional
     in
     let env_after =
       List.fold_left
         (fun e info -> { e with vars = SMap.add info.name info.scheme e.vars })
-        { env with vars = env_vars }
+        env
         infos
     in
     Ok (env_after, infos)
