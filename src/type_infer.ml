@@ -327,25 +327,26 @@ let rec infer_pattern env pat expected =
 
 let rec infer_expr env expr =
   let expected = fresh_ty env.gen_level in
-  infer_expr_with_expected env expected expr
+  let* () = infer_expr_with_expected env expected expr in
+  Ok expected
 and infer_expr_with_expected env expected expr =
   match expr.node with
   | EInt _ ->
     let* () = unify_res expected t_int in
-    Ok (expected, env)
+    Ok ()
   | EBool _ ->
     let* () = unify_res expected t_bool in
-    Ok (expected, env)
+    Ok ()
   | EString _ ->
     let* () = unify_res expected t_string in
-    Ok (expected, env)
+    Ok ()
   | EVar id ->
     (match SMap.find_opt id.node env.vars with
      | None -> Error ("unbound variable " ^ id.node)
      | Some s ->
        let t = instantiate env s in
        let* () = unify_res t expected in
-       Ok (expected, env))
+       Ok ())
   | EConstr (ctor, args) ->
     (match SMap.find_opt ctor.node env.vars with
      | None -> Error ("unknown constructor " ^ ctor.node)
@@ -364,27 +365,25 @@ and infer_expr_with_expected env expected expr =
          let* _ =
            map_result2
              (fun e t ->
-                let* te, _ = infer_expr_with_expected env t e in
-                let* () = unify_res te t in
-                Ok te)
+                let* () = infer_expr_with_expected env t e in
+                Ok t)
              args
              arg_tys
          in
-         Ok (expected, env))
+         Ok ())
   | ETuple elems ->
     let elem_tys = List.map (fun _ -> fresh_ty env.gen_level) elems in
     let tuple_ty = t_tuple elem_tys in
     let* _ =
       map_result2
         (fun e t ->
-           let* te, _ = infer_expr_with_expected env t e in
-           let* () = unify_res te t in
-           Ok te)
+           let* () = infer_expr_with_expected env t e in
+           Ok t)
         elems
         elem_tys
     in
     let* () = unify_res tuple_ty expected in
-    Ok (expected, env)
+    Ok ()
   | ELambda { params; fn_body } ->
     let env' = push_level env in
     let param_tys = List.map (fun _ -> fresh_ty env'.gen_level) params in
@@ -409,32 +408,32 @@ and infer_expr_with_expected env expected expr =
     let fn_ty =
       List.fold_right (fun arg acc -> t_arrow arg acc) param_tys result_ty
     in
-    let* _ = infer_expr_with_expected env'' result_ty fn_body in
+    let* () = infer_expr_with_expected env'' result_ty fn_body in
     let* () = unify_res fn_ty expected in
-    Ok (expected, env)
+    Ok ()
   | EApp (fn, args) ->
     let result_ty = expected in
     let arg_tys = List.map (fun _ -> fresh_ty env.gen_level) args in
     let app_ty =
       List.fold_right (fun arg acc -> t_arrow arg acc) arg_tys result_ty
     in
-    let* _ = infer_expr_with_expected env app_ty fn in
+    let* () = infer_expr_with_expected env app_ty fn in
     let* _ =
       map_result2
         (fun e t ->
-           let* _, _ = infer_expr_with_expected env t e in
+           let* () = infer_expr_with_expected env t e in
            Ok t)
         args
         arg_tys
     in
-    Ok (expected, env)
+    Ok ()
   | ELet { rec_flag; bindings; in_expr } ->
     let* env_after, _infos = infer_let_bindings env rec_flag bindings in
-    let* _ = infer_expr_with_expected env_after expected in_expr in
-    Ok (expected, env_after)
+    let* () = infer_expr_with_expected env_after expected in_expr in
+    Ok ()
   | EMatch (scrut, cases) ->
     let scrut_ty = fresh_ty env.gen_level in
-    let* _ = infer_expr_with_expected env scrut_ty scrut in
+    let* () = infer_expr_with_expected env scrut_ty scrut in
     let env_case_level = push_level env in
     let* () =
       let rec loop = function
@@ -450,20 +449,20 @@ and infer_expr_with_expected env expected expr =
           (match c.node.guard with
            | None -> Ok ()
            | Some g ->
-             let* _ = infer_expr_with_expected env_with_binds t_bool g in
+             let* () = infer_expr_with_expected env_with_binds t_bool g in
              Ok ()) >>= fun () ->
-          let* _ = infer_expr_with_expected env_with_binds expected c.node.body in
+          let* () = infer_expr_with_expected env_with_binds expected c.node.body in
           loop rest
       in
       loop cases
     in
-    Ok (expected, env)
+    Ok ()
   | EAnnot (e, texpr) ->
     let tyvars = ref [] in
     let* t_expected = ty_of_type_expr env tyvars texpr in
-    let* _ = infer_expr_with_expected env t_expected e in
+    let* () = infer_expr_with_expected env t_expected e in
     let* () = unify_res expected t_expected in
-    Ok (expected, env)
+    Ok ()
 
 and infer_let_bindings env rec_flag bindings =
   let env_level = push_level env in
@@ -473,7 +472,7 @@ and infer_let_bindings env rec_flag bindings =
       | [] -> Ok (env_acc, List.rev infos_rev)
       | b :: rest ->
         let rhs_ty = fresh_ty env_level.gen_level in
-        let* _, _ = infer_expr_with_expected env_level rhs_ty b.node.rhs in
+        let* () = infer_expr_with_expected env_level rhs_ty b.node.rhs in
         let* binds, _ = infer_pattern env_level b.node.lhs rhs_ty in
         let generalized =
           List.map
@@ -514,7 +513,7 @@ and infer_let_bindings env rec_flag bindings =
         match bs, provs with
         | [], [] -> Ok ()
         | b :: bs', (_, ty) :: provs' ->
-          let* _, _ = infer_expr_with_expected env_with_prov ty b.node.rhs in
+          let* () = infer_expr_with_expected env_with_prov ty b.node.rhs in
           loop bs' provs'
         | _ -> Error "arity mismatch in let rec bindings"
       in
@@ -579,7 +578,7 @@ let infer_toplevel env (tl : toplevel) =
      | Error msg -> Error { loc = tl.loc; message = msg })
   | TExpr e ->
     (match infer_expr env e with
-     | Ok (ty, _) ->
+     | Ok ty ->
        let sch = generalize env ty in
        Ok (env, InfoExpr (sch, tl.loc))
      | Error msg ->
