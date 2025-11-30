@@ -145,8 +145,9 @@
     .output[data-state="error"] { border-left: 3px solid var(--error); }
     .output[data-state="pending"] { border-left: 3px solid var(--warn); }
     .ber-twiddle {
-      text-decoration: underline wavy;
+      text-decoration: underline dashed;
       text-decoration-thickness: 2px;
+      text-underline-offset: 4px;
       text-decoration-color: var(--warn);
     }
     .ber-twiddle-got { text-decoration-color: var(--error); }
@@ -181,8 +182,9 @@
     .type-text.got { border-color: rgba(248, 113, 113, 0.4); }
     .type-text.expected { border-color: rgba(34, 197, 94, 0.4); }
     .type-mark {
-      text-decoration: underline wavy;
+      text-decoration: underline dashed;
       text-decoration-thickness: 2px;
+      text-underline-offset: 4px;
     }
     .type-mark-got { text-decoration-color: var(--error); }
     .type-mark-expected { text-decoration-color: var(--accent); }
