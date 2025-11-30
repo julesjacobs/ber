@@ -15,16 +15,15 @@ type Span = {
 
 type Mark = { start: number; len: number };
 
-type MismatchDetail = {
-  kind: "type_mismatch";
-  heading: string;
-  got: string;
-  expected: string;
-  marksGot: Mark[];
-  marksExpected: Mark[];
+type Detail = {
+  kind: "type_mismatch" | "occurs";
+  heading?: string | null;
+  got?: string | null;
+  expected?: string | null;
+  marksGot?: Mark[] | null;
+  marksExpected?: Mark[] | null;
+  occursTy?: string | null;
 };
-
-type Detail = MismatchDetail;
 
 type BerResult = {
   ok: boolean;
@@ -116,13 +115,17 @@ const renderOutput = (result: BerResult) => {
   const detail = result.detail;
   if (!ok || detail) {
     if (detail && detail.kind === "type_mismatch") {
-      const got = renderMarkedText(detail.got, detail.marksGot, "type-mark type-mark-got");
+      const got = renderMarkedText(
+        detail.got || "",
+        detail.marksGot || [],
+        "type-mark type-mark-got"
+      );
       const expected = renderMarkedText(
-        detail.expected,
-        detail.marksExpected,
+        detail.expected || "",
+        detail.marksExpected || [],
         "type-mark type-mark-expected"
       );
-      const heading = escapeHtml(detail.heading);
+      const heading = escapeHtml(detail.heading || "");
       output.innerHTML = `
         <div class="type-heading">Type mismatch at ${heading}</div>
         <div class="type-row">
@@ -133,6 +136,14 @@ const renderOutput = (result: BerResult) => {
           <span class="type-label">Expected:</span>
           <span class="type-text expected">${expected}</span>
         </div>
+      `;
+      return;
+    }
+    if (detail && detail.kind === "occurs") {
+      const msg = escapeHtml(detail.occursTy ?? "");
+      output.innerHTML = `
+        <div class="type-heading">Occurs check failed</div>
+        <div class="occurs-box"><strong>∞</strong> = ${msg}</div>
       `;
       return;
     }
