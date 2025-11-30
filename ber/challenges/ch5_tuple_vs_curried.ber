@@ -7,6 +7,9 @@ let add_pair p =
 
 let _ = add_pair 1 2
 
-> Type mismatch: 'b -> 'a * 'c vs int
+> Expected: 'b -> 'a * 'c
+>                    ~   
+> Got:      int
+>           ---
 > 8 | let _ = add_pair 1 2
 >                      ^  

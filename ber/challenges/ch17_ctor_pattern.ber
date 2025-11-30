@@ -12,6 +12,6 @@ let rec size t =
   | Leaf -> 1
   | Node (l, r) -> add_size (size l) (size r)
 
-> constructor arity mismatch
+> Constructor arity mismatch
 > 12 |   | Leaf -> 1
 >          ^^^^     

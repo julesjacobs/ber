@@ -17,6 +17,9 @@ let annotated = fun (x : int) -> x
 
 let bad_annot = fun (x : int) -> x : bool
 
-> Type mismatch: int vs bool
+> Expected: int
+>           ~~~
+> Got:      bool
+>           ----
 > 18 | let bad_annot = fun (x : int) -> x : bool
 >                                       ^       

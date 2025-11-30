@@ -5,6 +5,9 @@ let negate x = x
 
 let _ = negate 1 2
 
-> Type mismatch: 'b -> 'a vs int
+> Expected: 'a -> 'b
+>              ~~   
+> Got:      int
+>           ---
 > 6 | let _ = negate 1 2
 >                    ^  

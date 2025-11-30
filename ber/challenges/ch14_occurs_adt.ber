@@ -6,7 +6,10 @@ type 'a tree = Leaf of 'a | Node of 'a tree * 'a tree
 let rec bad t =
   Node (t, bad)
 
-> Type mismatch: tree 'a -> tree 'a vs tree 'a
+> Expected: tree 'a -> tree 'a
+>                   ~~        
+> Got:      tree 'a
+>           ----   
 > 6 | let rec bad t =
 >             ^^^^^^^
 > 7 |   Node (t, bad)

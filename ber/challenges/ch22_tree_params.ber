@@ -10,6 +10,9 @@ type 'a list = Nil | Cons of 'a * 'a list
 let trees =
   Cons (Leaf 1, Cons (Leaf (Cons (2, Nil)), Nil))
 
-> Type mismatch: list int vs int
+> Expected: list int
+>           ~~~~    
+> Got:      int
+>           ---
 > 11 |   Cons (Leaf 1, Cons (Leaf (Cons (2, Nil)), Nil))
 >              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  

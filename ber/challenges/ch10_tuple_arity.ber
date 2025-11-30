@@ -3,12 +3,15 @@ let x, y, z = 1, 2
 (* CR codex: This should be flagged as a tuple arity mismatch (3 vars vs 2-tuple),
    not just a generic type mismatch. *)
 
-> Type mismatch: int * int vs 'a * 'b * 'c
+> Expected: int * int
+>               ~    
+> Got:      'a * 'b * 'c
+>              -    -   
 > 2 | let x, y, z = 1, 2
 >         ^^^^^^^       
 
 let _ = x
 
 > unbound variable x
-> 10 | let _ = x
+> 13 | let _ = x
 >              ^

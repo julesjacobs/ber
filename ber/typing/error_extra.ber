@@ -5,33 +5,45 @@ type 'a option = None | Some of 'a
 
 let bad_app = 3 4
 
-> Type mismatch: 'b -> 'a vs int
+> Expected: 'a -> 'b
+>              ~~   
+> Got:      int
+>           ---
 > 6 | let bad_app = 3 4
 >                   ^  
 
 let ascr_mismatch = 1 : bool
 
-> Type mismatch: bool vs int
-> 12 | let ascr_mismatch = 1 : bool
+> Expected: bool
+>           ~~~~
+> Got:      int
+>           ---
+> 15 | let ascr_mismatch = 1 : bool
 >                          ^       
 
 let match_mismatch = match Some 1 with | Some x -> x
 | None -> true
 
-> Type mismatch: int vs bool
-> 19 | | None -> true
+> Expected: int
+>           ~~~
+> Got:      bool
+>           ----
+> 25 | | None -> true
 >                ^^^^
 
 let guard_non_bool2 = match Some 1 with | Some x when x -> x
 | None -> 0
 
-> Type mismatch: int vs bool
-> 25 | let guard_non_bool2 = match Some 1 with | Some x when x -> x
+> Expected: int
+>           ~~~
+> Got:      bool
+>           ----
+> 34 | let guard_non_bool2 = match Some 1 with | Some x when x -> x
 >                                                            ^     
 
 let ctor_unknown_pat = match None with | Foo x -> x
 | _ -> 0
 
 > unknown constructor Foo
-> 32 | let ctor_unknown_pat = match None with | Foo x -> x
+> 44 | let ctor_unknown_pat = match None with | Foo x -> x
 >                                               ^^^^^     

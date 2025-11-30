@@ -11,12 +11,15 @@ let make_node = Node
 
 let wrong_ctor_arity = Node 1
 
-> Type mismatch: tree * tree vs int
+> Expected: tree * tree
+>                ~     
+> Got:      int
+>           ---
 > 12 | let wrong_ctor_arity = Node 1
 >                                  ^
 
 let unknown_ctor = Foo 1
 
 > unknown constructor Foo
-> 18 | let unknown_ctor = Foo 1
+> 21 | let unknown_ctor = Foo 1
 >                         ^^^^^

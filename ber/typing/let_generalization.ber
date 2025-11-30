@@ -19,6 +19,9 @@ let capture_list x =
   let prepend y = Cons (x, Cons (y, Nil)) in
   (prepend 1, prepend true)
 
-> Type mismatch: int vs bool
+> Expected: int
+>           ~~~
+> Got:      bool
+>           ----
 > 20 |   (prepend 1, prepend true)
 >                            ^^^^ 

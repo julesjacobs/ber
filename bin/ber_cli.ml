@@ -1,5 +1,6 @@
 open Ber
 open Location
+open Type_solver
 
 let render_output_lines content =
   let lines = String.split_on_char '\n' content in
@@ -190,10 +191,189 @@ let format_highlights (locs : highlight list) =
         Buffer.contents buf
 
 let format_type_error (err : Type_infer.type_error) =
+  let render_ty =
+    let names = Hashtbl.create 16 in
+    let counter = ref 0 in
+    let fresh_name () =
+      let i = !counter in
+      incr counter;
+      let base =
+        let n = i mod 26 in
+        String.make 1 (Char.chr (97 + n))
+      in
+      if i < 26 then "'" ^ base else "'" ^ base ^ string_of_int (i / 26)
+    in
+    let rec aux prec ty =
+      match prune ty with
+      | TVar tv ->
+        (match Hashtbl.find_opt names tv.id with
+         | Some n -> n
+         | None ->
+           let n = fresh_name () in
+           Hashtbl.add names tv.id n;
+           n)
+      | TCon ("->", [ a; b ], _) ->
+        let s = Printf.sprintf "%s -> %s" (aux 1 a) (aux 0 b) in
+        if prec > 0 then "(" ^ s ^ ")" else s
+      | TCon ("*", elems, _) ->
+        let s = String.concat " * " (List.map (aux 0) elems) in
+        if prec > 1 then "(" ^ s ^ ")" else s
+      | TCon (name, [], _) -> name
+      | TCon (name, args, _) ->
+        let s = Printf.sprintf "%s %s" name (String.concat " " (List.map (aux 2) args)) in
+        if prec > 1 then "(" ^ s ^ ")" else s
+    in
+    aux 0
+  in
+  let diff_mismatch expected got =
+    let render_with_head prec ty =
+      match prune ty with
+      | TVar _ ->
+        let s = render_ty ty in
+        s, [ 0, String.length s ]
+      | TCon ("->", [ a; b ], _) ->
+        let sa = render_ty a in
+        let sb = render_ty b in
+        let op = " -> " in
+        let s = sa ^ op ^ sb in
+        let pos = String.length sa + 1 in
+        let marks = [ pos, 2 ] in
+        let need_paren = prec > 0 in
+        if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks else s, marks
+      | TCon ("*", elems, _) ->
+        let rendered = List.map render_ty elems in
+        let rec join = function
+          | [] -> "", []
+          | [ s ] -> s, []
+          | s :: rest ->
+            let tail_s, marks = join rest in
+            let sep = " * " in
+            let s' = s ^ sep ^ tail_s in
+            let op_pos = String.length s + 1 in
+            let marks' = (op_pos, 1) :: List.map (fun (st, l) -> (st + String.length s + String.length sep, l)) marks in
+            s', marks' in
+        let s, marks = join rendered in
+        let need_paren = prec > 1 in
+        if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks else s, marks
+      | TCon (name, args, _) ->
+        let rendered = List.map render_ty args in
+        let rec join = function
+          | [] -> "", [], 0
+          | [ s ] -> s, [], String.length s
+          | s :: rest ->
+            let tail_s, marks, _ = join rest in
+            let sep = " " in
+            let s' = s ^ sep ^ tail_s in
+            let marks' = List.map (fun (st, l) -> (st + String.length s + String.length sep, l)) marks in
+            s', marks', String.length s'
+        in
+        let args_s, marks, _ = join rendered in
+        let base = if args = [] then name else name ^ " " in
+        let s = base ^ args_s in
+        let marks = (0, String.length name) :: List.map (fun (st, l) -> (st + String.length base, l)) marks in
+        let need_paren = prec > 1 in
+        if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks else s, marks
+    in
+    let rec go prec a b =
+      match prune a, prune b with
+      | TCon (na, args_a, _), TCon (nb, args_b, _) when na = nb && List.length args_a = List.length args_b ->
+        (match na, args_a, args_b with
+         | "->", [ a1; a2 ], [ b1; b2 ] ->
+           let se1, sg1, me1, mg1 = go 1 a1 b1 in
+           let se2, sg2, me2, mg2 = go 0 a2 b2 in
+           let op = " -> " in
+           let se = se1 ^ op ^ se2 in
+           let sg = sg1 ^ op ^ sg2 in
+           let shift m off = List.map (fun (st, l) -> (st + off, l)) m in
+           let me = me1 @ shift me2 (String.length se1 + String.length op) in
+           let mg = mg1 @ shift mg2 (String.length sg1 + String.length op) in
+           let need_paren = prec > 0 in
+           let wrap s m = if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) m else s, m in
+           let se, me = wrap se me in
+           let sg, mg = wrap sg mg in
+           se, sg, me, mg
+         | "*", _, _ ->
+           let parts = List.map2 (go 0) args_a args_b in
+           let rec join = function
+             | [] -> "", [], "", []
+             | [ (se, sg, me, mg) ] -> se, me, sg, mg
+             | (se, sg, me, mg) :: ps ->
+               let rest_se, rest_me, rest_sg, rest_mg = join ps in
+               let sep = " * " in
+               let se' = se ^ sep ^ rest_se in
+               let sg' = sg ^ sep ^ rest_sg in
+               let off = String.length se + String.length sep in
+               let shift m = List.map (fun (st, l) -> (st + off, l)) m in
+               let me' = me @ shift rest_me in
+               let mg' = mg @ shift rest_mg in
+               se', me', sg', mg'
+           in
+           let se, me, sg, mg = join parts in
+           let need_paren = prec > 1 in
+           let wrap s m = if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) m else s, m in
+           let se, me = wrap se me in
+           let sg, mg = wrap sg mg in
+           se, sg, me, mg
+         | _, _, _ ->
+           let parts = List.map2 (go 2) args_a args_b in
+           let rec join = function
+             | [] -> "", [], "", []
+             | [ (se, sg, me, mg) ] -> se, me, sg, mg
+             | (se, sg, me, mg) :: ps ->
+               let rest_se, rest_me, rest_sg, rest_mg = join ps in
+               let sep = " " in
+               let se' = se ^ sep ^ rest_se in
+               let sg' = sg ^ sep ^ rest_sg in
+               let off = String.length se + String.length sep in
+               let shift m = List.map (fun (st, l) -> (st + off, l)) m in
+               let me' = me @ shift rest_me in
+               let mg' = mg @ shift rest_mg in
+               se', me', sg', mg'
+           in
+           let args_se, args_me, args_sg, args_mg = join parts in
+           let base = na ^ " " in
+           let se = base ^ args_se in
+           let sg = base ^ args_sg in
+           let shift m = List.map (fun (st, l) -> (st + String.length base, l)) m in
+           let me = shift args_me in
+           let mg = shift args_mg in
+           let need_paren = prec > 1 in
+           let wrap s m = if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) m else s, m in
+           let se, me = wrap se me in
+           let sg, mg = wrap sg mg in
+           se, sg, me, mg)
+      | TVar va, TVar vb when va.id = vb.id ->
+        let s = render_ty a in
+        s, s, [], []
+      | _ ->
+        let se, me = render_with_head prec a in
+        let sg, mg = render_with_head prec b in
+        se, sg, me, mg
+    in
+    go 0 expected got
+  in
   let kind_msg =
     match err.kind with
     | Type_infer.Type_mismatch (a, b) ->
-      Format.asprintf "Type mismatch: %s vs %s" (Type_infer.string_of_ty a) (Type_infer.string_of_ty b)
+      let se, sg, me, mg = diff_mismatch a b in
+      let mk_line prefix s marks ch =
+        let line = prefix ^ s in
+        let underline =
+          if marks = [] then None
+          else
+            let arr = Array.make (String.length s) ' ' in
+            List.iter (fun (start, len) -> for i = start to start + len - 1 do if i >= 0 && i < Array.length arr then arr.(i) <- ch done) marks;
+            Some (String.make (String.length prefix) ' ' ^ String.init (Array.length arr) (fun i -> arr.(i)))
+        in
+        match underline with
+        | None -> [ line ]
+        | Some u -> [ line; u ]
+      in
+      let lines =
+        mk_line "Expected: " se me '~'
+        @ mk_line "Got:      " sg mg '-'
+      in
+      String.concat "\n" lines
     | Type_infer.Occurs_check (tv, ty) ->
       Format.asprintf "Occurs check failed: %s occurs in %s" (Type_infer.string_of_ty (Type_solver.TVar tv)) (Type_infer.string_of_ty ty)
     | Type_infer.Message msg -> msg

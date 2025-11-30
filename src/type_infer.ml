@@ -163,7 +163,7 @@ let rec infer_pattern env pat expected =
        in
        let arg_tys, res_ty = collect ctor_ty [] in
        if List.length arg_tys <> List.length args then
-         error_msg pat.loc "constructor arity mismatch"
+         error_msg pat.loc "Constructor arity mismatch"
        else (
          let* () = unify_res pat.loc expected res_ty in
          let rec loop acc pats tys =
@@ -172,7 +172,7 @@ let rec infer_pattern env pat expected =
            | p :: ps, t :: ts' ->
              let* b = infer_pattern env p t in
              loop (b :: acc) ps ts'
-           | _ -> error_msg pat.loc "constructor arity mismatch"
+           | _ -> error_msg pat.loc "Constructor arity mismatch"
          in
          loop [] args arg_tys)
      | None -> error_msg pat.loc ("unknown constructor " ^ ctor.node))

@@ -8,6 +8,9 @@ let f b =
   | true -> id 0
   | false -> id true
 
-> Type mismatch: int vs bool
+> Expected: int
+>           ~~~
+> Got:      bool
+>           ----
 > 9 |   | false -> id true
 >                     ^^^^

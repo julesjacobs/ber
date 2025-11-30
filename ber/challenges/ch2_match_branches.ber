@@ -11,6 +11,9 @@ let rec length_or_and xs =
     | true -> length_or_and xs'
     | false -> x
 
-> Type mismatch: bool vs int
+> Expected: bool
+>           ~~~~
+> Got:      int
+>           ---
 > 12 |     | false -> x
 >                     ^

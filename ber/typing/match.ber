@@ -11,7 +11,10 @@ let option_default = fun def opt -> match opt with | None -> def
 let guard_non_bool = match None with | None when 1 -> true
 | Some _ -> false
 
-> Type mismatch: bool vs int
+> Expected: bool
+>           ~~~~
+> Got:      int
+>           ---
 > 11 | let guard_non_bool = match None with | None when 1 -> true
 >                                                       ^        
 

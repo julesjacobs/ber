@@ -8,6 +8,9 @@ let f b =
   in
   x
 
-> Type mismatch: int vs bool
+> Expected: int
+>           ~~~
+> Got:      bool
+>           ----
 > 7 |     | false -> false
 >                    ^^^^^

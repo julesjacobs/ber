@@ -11,6 +11,9 @@ let g : bool -> bool = fun b -> b
 
 let _ = compose h g 0
 
-> Type mismatch: bool vs int
+> Expected: bool
+>           ~~~~
+> Got:      int
+>           ---
 > 12 | let _ = compose h g 0
 >                        ^  
