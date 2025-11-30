@@ -8,12 +8,12 @@ let rec bad t =
 
 > Type mismatch:
 > 6 | let rec bad t =
->             -------
 >             ▲▲▲▲▲▲▲
+>             -------
 > 7 |   Node (t, bad)
 >       △△△△         
->     -------------- 
 >     ▲▲▲▲▲▲▲▲▲▲▲▲▲▲ 
+>     -------------- 
 > 
 > Got:      tree 'a -> tree 'a
 >                   ▲▲        

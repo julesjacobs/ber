@@ -25,8 +25,8 @@ let rec eval e =
 > 19 |   | Int n -> n
 >                   △
 > 20 |   | Bool b -> b
->                    -
 >                    ▲
+>                    -
 > 
 > Got:      bool
 >           ▲▲▲▲

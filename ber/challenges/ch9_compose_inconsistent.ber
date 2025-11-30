@@ -13,8 +13,8 @@ let _ = compose h g 0
 
 > Type mismatch:
 > 12 | let _ = compose h g 0
->                        -  
->                      △ ▲  
+>                        ▲  
+>                      △ -  
 > 
 > Got:      bool
 >           ▲▲▲▲

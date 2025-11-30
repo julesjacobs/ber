@@ -12,8 +12,8 @@ let f b =
 > 8 |   | true -> id 0
 >                    △
 > 9 |   | false -> id true
->                     ----
 >                     ▲▲▲▲
+>                     ----
 > 
 > Got:      bool
 >           ▲▲▲▲

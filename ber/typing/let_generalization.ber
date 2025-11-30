@@ -21,8 +21,8 @@ let capture_list x =
 
 > Type mismatch:
 > 20 |   (prepend 1, prepend true)
->                            ---- 
->                    △△△△△△△ ▲▲▲▲ 
+>                            ▲▲▲▲ 
+>                    △△△△△△△ ---- 
 > 
 > Got:      bool
 >           ▲▲▲▲
