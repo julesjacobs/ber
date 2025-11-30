@@ -26,7 +26,7 @@ let _ = sum_bool_list xs
 >                            ▲▲
 >              △△△△△△△△△△△△△ --
 > 
-> Got:      bool
->           ▲▲▲▲
-> Expected: int
->           △△△
+> Got:      list (bool)
+>                 ▲▲▲▲ 
+> Expected: list (int)
+>                 △△△ 

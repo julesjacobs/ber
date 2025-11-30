@@ -54,7 +54,7 @@ let ftv_scheme (Forall (tvs, ty)) =
 
 exception Occurs_check_failed
 exception Occurs of tvar * ty
-exception TypeMismatch of ty * ty
+exception TypeMismatch
 exception Compiler_bug of string
 
 let rec occurs_check_adjust_levels tv ty =
@@ -83,7 +83,7 @@ and unify a b =
     va.instance <- Some ty
   | TCon (na, args_a, _), TCon (nb, args_b, _) ->
     if na <> nb || List.length args_a <> List.length args_b then
-      raise (TypeMismatch (a, b))
+      raise TypeMismatch
     else
       match unify_list args_a args_b with
       | Ok () -> ()

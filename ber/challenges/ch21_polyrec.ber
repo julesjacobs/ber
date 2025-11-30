@@ -20,7 +20,7 @@ let rec g x =
 >                 △△△△          
 >     --------------------------
 > 
-> Got:      int
->           ▲▲▲
-> Expected: list int
->           △△△△    
+> Got:      int -> list 'a
+>           ▲▲▲           
+> Expected: list int -> list 'a
+>           △△△△               

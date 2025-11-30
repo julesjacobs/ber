@@ -16,9 +16,24 @@ let bad_fs =
 > Type mismatch:
 > 14 |   Cons ((fun (x : int) -> x), Cons (bool_not, Nil))
 >                                          ▲▲▲▲▲▲▲▲       
->                        △△△               --------       
+>                                          ▲▲▲▲▲▲▲▲       
+>                        △△△     △         --------       
 > 
-> Got:      bool
->           ▲▲▲▲
-> Expected: int
->           △△△
+> Got:      bool -> bool
+>           ▲▲▲▲    ▲▲▲▲
+> Expected: int -> int
+>           △△△    △△△
+
+let bad_fs =
+  Cons ((fun (x : int) -> (x,x)), Cons (bool_not, Nil))
+
+> Type mismatch:
+> 28 |   Cons ((fun (x : int) -> (x,x)), Cons (bool_not, Nil))
+>                                              ▲▲▲▲▲▲▲▲       
+>                                              ▲▲▲▲▲▲▲▲       
+>                        △△△      △△△          --------       
+> 
+> Got:      bool -> bool
+>           ▲▲▲▲    ▲▲▲▲
+> Expected: int -> int * int
+>           △△△        △    

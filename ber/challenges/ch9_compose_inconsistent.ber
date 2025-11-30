@@ -17,39 +17,43 @@ compose g g
 
 > val it : bool -> bool
 
+compose h
+
+> val it : ('_weak1 -> int) -> '_weak1 -> int
+
 compose h g
 
 > Type mismatch:
-> 20 | compose h g
+> 24 | compose h g
 >                ▲
 >              △ -
 > 
-> Got:      bool
->           ▲▲▲▲
-> Expected: int
->           △△△
+> Got:      bool  -> bool
+>                    ▲▲▲▲
+> Expected: bool  -> int
+>                    △△△
 
 compose h g 0
 
 > Type mismatch:
-> 32 | compose h g 0
+> 36 | compose h g 0
 >                ▲  
 >              △ -  
 > 
-> Got:      bool
->           ▲▲▲▲
-> Expected: int
->           △△△
+> Got:      bool  -> bool
+>                    ▲▲▲▲
+> Expected: bool  -> int
+>                    △△△
 
 compose h g 0 0
 
 > Type mismatch:
-> 44 | compose h g 0 0
+> 48 | compose h g 0 0
 >              ▲      
 >              -      
 >      △△△△△△△△△△△△△△△
 > 
-> Got:      int
->           ▲▲▲
-> Expected: 'a -> 'b
->              △△   
+> Got:      int  -> int
+>                   ▲▲▲
+> Expected: int  -> 'a -> 'b
+>                      △△   
