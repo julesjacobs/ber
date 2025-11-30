@@ -270,12 +270,12 @@ and check_expr env expected expr =
     let* () = unify_types expr.loc ~got:fn_ty ~expected in
     Ok ()
   | EApp (fn, args) ->
-    let result_ty = expected in
+    let* fn_ty = infer_expr env fn in
     let arg_tys = List.map (fun _ -> fresh_ty env.gen_level) args in
-    let app_ty =
-      List.fold_right (fun arg acc -> t_arrow ~loc:expr.loc arg acc) arg_tys result_ty
-    in
-    let* () = check_expr env app_ty fn in
+    let result_ty = fresh_ty env.gen_level in
+    let app_ty = List.fold_right (fun arg acc -> t_arrow ~loc:expr.loc arg acc) arg_tys result_ty in
+    let* () = unify_types expr.loc ~got:fn_ty ~expected:app_ty in
+    let* () = unify_types expr.loc ~got:result_ty ~expected in
     let* _ =
       map_result2
         (fun e t ->

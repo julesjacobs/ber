@@ -16,5 +16,5 @@ let x, y, z = 1, 2
 let _ = x
 
 > Unbound variable x
-> 15 | let _ = x
+> 16 | let _ = x
 >              ▲
