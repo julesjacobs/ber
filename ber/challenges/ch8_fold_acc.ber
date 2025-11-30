@@ -23,6 +23,7 @@ let _ = sum_bool_list xs
 
 > Type mismatch:
 > 22 | let _ = sum_bool_list xs
+>                            --
 >              △△△△△△△△△△△△△ ▲▲
 > 
 > Got:      bool

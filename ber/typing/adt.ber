@@ -13,6 +13,7 @@ let wrong_ctor_arity = Node 1
 
 > Type mismatch:
 > 12 | let wrong_ctor_arity = Node 1
+>                                  -
 >                             △△△△ ▲
 > 
 > Got:      int
@@ -23,5 +24,5 @@ let wrong_ctor_arity = Node 1
 let unknown_ctor = Foo 1
 
 > unknown constructor Foo
-> 23 | let unknown_ctor = Foo 1
+> 24 | let unknown_ctor = Foo 1
 >                         ▲▲▲▲▲

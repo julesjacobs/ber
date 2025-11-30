@@ -7,6 +7,7 @@ let mixed_list = Cons (1, Cons (2, Cons (true, Nil)))
 
 > Type mismatch:
 > 6 | let mixed_list = Cons (1, Cons (2, Cons (true, Nil)))
+>                                     ------------------   
 >                                     △        ▲▲▲▲        
 > 
 > Got:      bool

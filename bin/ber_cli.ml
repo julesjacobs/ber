@@ -70,6 +70,7 @@ type highlight =
 
 let got_ch = "▲"
 let expected_ch = "△"
+let error_ch = "-"
 
 let read_file_lines file =
   try
@@ -383,6 +384,7 @@ let format_type_error (err : Type_infer.type_error) =
         let highlights =
           List.map (fun loc -> { loc; ch = got_ch; label = None }) locs_g
           @ List.map (fun loc -> { loc; ch = expected_ch; label = None }) locs_e
+          @ [ { loc = err.loc; ch = error_ch; label = None } ]
         in
         format_highlights highlights
       in

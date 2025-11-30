@@ -9,10 +9,16 @@ let rec g x =
   | _ -> g (Cons (x, Nil))
 
 > Type mismatch:
+> 6 | let rec g x =
+>             -----
+> 7 |   match x with
+>     --------------
 > 8 |   | 0 -> Nil
 >         ▲       
+>     ------------
 > 9 |   | _ -> g (Cons (x, Nil))
 >                 △△△△          
+>     --------------------------
 > 
 > Got:      int
 >           ▲▲▲

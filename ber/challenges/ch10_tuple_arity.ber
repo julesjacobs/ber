@@ -5,6 +5,7 @@ let x, y, z = 1, 2
 
 > Type mismatch:
 > 2 | let x, y, z = 1, 2
+>         -------       
 >         ▲▲▲▲▲▲▲   △△△△
 > 
 > Got:      'a * 'b * 'c
@@ -15,5 +16,5 @@ let x, y, z = 1, 2
 let _ = x
 
 > unbound variable x
-> 15 | let _ = x
+> 16 | let _ = x
 >              ▲

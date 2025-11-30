@@ -95,7 +95,7 @@ let lookup_type env name loc =
   | None ->
     (match name with
      | "int" | "bool" | "string" -> Ok { params = []; ctors = [] }
-     | _ -> error_msg loc ("unknown type " ^ name))
+     | _ -> error_msg loc ("Unknown type " ^ name))
 
 let rec ty_of_type_expr env (tyvars : (string * tvar) list ref) (te : type_expr) =
   let lookup name = List.assoc_opt name !tyvars in
@@ -149,7 +149,7 @@ let rec infer_pattern env pat expected =
       | p :: ps, t :: ts' ->
         let* b = infer_pattern env p t in
         loop (b :: acc) ps ts'
-      | _ -> error_msg pat.loc "tuple arity mismatch in pattern"
+      | _ -> error_msg pat.loc "Tuple arity mismatch in pattern"
     in
     loop [] elems ts
   | PConstr (ctor, args) ->
@@ -175,7 +175,7 @@ let rec infer_pattern env pat expected =
            | _ -> error_msg pat.loc "Constructor arity mismatch"
          in
          loop [] args arg_tys)
-     | None -> error_msg pat.loc ("unknown constructor " ^ ctor.node))
+     | None -> error_msg pat.loc ("Unknown constructor " ^ ctor.node))
   | PAnnot (p, texpr) ->
     let tyvars = ref [] in
     let* t = ty_of_type_expr env tyvars texpr in
@@ -199,14 +199,14 @@ and check_expr env expected expr =
     Ok ()
   | EVar id ->
     (match SMap.find_opt id.node env.vars with
-     | None -> error_msg expr.loc ("unbound variable " ^ id.node)
+     | None -> error_msg expr.loc ("Unbound variable " ^ id.node)
      | Some s ->
        let t = instantiate ~loc:id.loc env s in
        let* () = unify_types expr.loc ~got:t ~expected in
        Ok ())
   | EConstr (ctor, args) ->
     (match SMap.find_opt ctor.node env.vars with
-     | None -> error_msg expr.loc ("unknown constructor " ^ ctor.node)
+     | None -> error_msg expr.loc ("Unknown constructor " ^ ctor.node)
      | Some scheme ->
        let ctor_ty = instantiate ~loc:ctor.loc env scheme in
        let rec collect ty acc =
@@ -215,19 +215,19 @@ and check_expr env expected expr =
          | result -> List.rev acc, result
        in
        let arg_tys, res_ty = collect ctor_ty [] in
-    if List.length arg_tys <> List.length args then
-      error_msg expr.loc "constructor arity mismatch"
-    else
-         let* () = unify_types expr.loc ~got:res_ty ~expected in
-         let* _ =
-           map_result2
-             (fun e t ->
-                let* () = check_expr env t e in
-                Ok t)
-             args
-             arg_tys
-         in
-         Ok ())
+        if List.length arg_tys <> List.length args then
+          error_msg expr.loc "Constructor arity mismatch"
+        else
+            let* () = unify_types expr.loc ~got:res_ty ~expected in
+            let* _ =
+              map_result2
+                (fun e t ->
+                    let* () = check_expr env t e in
+                    Ok t)
+                args
+                arg_tys
+            in
+            Ok ())
   | ETuple elems ->
     let elem_tys = List.map (fun _ -> fresh_ty env.gen_level) elems in
     let tuple_ty = t_tuple ~loc:expr.loc elem_tys in
@@ -373,7 +373,7 @@ and infer_let_bindings env rec_flag bindings =
         | b :: bs', (_, ty) :: provs' ->
           let* () = check_expr env_with_prov ty b.node.rhs in
           loop bs' provs'
-        | _ -> error_msg dummy_loc "arity mismatch in let rec bindings"
+        | _ -> error_msg dummy_loc "Arity mismatch in let rec bindings"
       in
       loop bindings provisional
     in

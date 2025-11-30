@@ -18,6 +18,7 @@ let rec length_or_and xs =
 > 10 |     match x with
 > 11 |     | true -> length_or_and xs'
 > 12 |     | false -> x
+>                     -
 >                     ▲
 > 
 > Got:      bool

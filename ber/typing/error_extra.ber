@@ -7,6 +7,7 @@ let bad_app = 3 4
 
 > Type mismatch:
 > 6 | let bad_app = 3 4
+>                   -  
 >                   △△△
 >                   ▲  
 > 
@@ -18,7 +19,8 @@ let bad_app = 3 4
 let ascr_mismatch = 1 : bool
 
 > Type mismatch:
-> 18 | let ascr_mismatch = 1 : bool
+> 19 | let ascr_mismatch = 1 : bool
+>                          -       
 >                          ▲   △△△△
 > 
 > Got:      int
@@ -30,9 +32,10 @@ let match_mismatch = match Some 1 with | Some x -> x
 | None -> true
 
 > Type mismatch:
-> 29 | let match_mismatch = match Some 1 with | Some x -> x
+> 31 | let match_mismatch = match Some 1 with | Some x -> x
 >                                                         △
-> 30 | | None -> true
+> 32 | | None -> true
+>                ----
 >                ▲▲▲▲
 > 
 > Got:      bool
@@ -44,7 +47,8 @@ let guard_non_bool2 = match Some 1 with | Some x when x -> x
 | None -> 0
 
 > Type mismatch:
-> 43 | let guard_non_bool2 = match Some 1 with | Some x when x -> x
+> 46 | let guard_non_bool2 = match Some 1 with | Some x when x -> x
+>                                                            -     
 >                                                            △     
 >                                                            ▲     
 > 
@@ -57,5 +61,5 @@ let ctor_unknown_pat = match None with | Foo x -> x
 | _ -> 0
 
 > unknown constructor Foo
-> 56 | let ctor_unknown_pat = match None with | Foo x -> x
+> 60 | let ctor_unknown_pat = match None with | Foo x -> x
 >                                               ▲▲▲▲▲     
