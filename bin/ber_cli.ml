@@ -62,6 +62,35 @@ let format_location (loc : Location.t) =
 let format_error (err : Parse.parse_error) =
   Format.asprintf "Error at %s: %s" (format_location err.loc) err.message
 
+let mismatch_locs expected got =
+  let head_loc ty =
+    match prune ty with
+    | TCon (_, _, Some loc) when loc.file <> "" -> [ loc ]
+    | _ -> []
+  in
+  let rec go a b =
+    match prune a, prune b with
+    | TCon (na, args_a, _), TCon (nb, args_b, _)
+      when na = nb && List.length args_a = List.length args_b ->
+      (match na, args_a, args_b with
+       | "->", [ a1; a2 ], [ b1; b2 ] ->
+         let le1, lg1 = go a1 b1 in
+         let le2, lg2 = go a2 b2 in
+         le1 @ le2, lg1 @ lg2
+       | _, _, _ ->
+         let parts = List.map2 go args_a args_b in
+         List.fold_left
+           (fun (le_acc, lg_acc) (le, lg) -> le_acc @ le, lg_acc @ lg)
+           ([], [])
+           parts)
+    | TVar va, TVar vb when va.id = vb.id -> [], []
+    | _ ->
+      let le = head_loc a in
+      let lg = head_loc b in
+      le, lg
+  in
+  go expected got
+
 type highlight =
   { loc : Location.t
   ; ch : string
@@ -350,18 +379,20 @@ let format_type_error (err : Type_infer.type_error) =
          | "*", _, _ ->
            let parts = List.map2 (go 0) args_a args_b in
            let rec join = function
-             | [] -> "", [], "", [], [], []
-             | [ (se, sg, me, mg, le, lg) ] -> se, me, sg, mg, le, lg
-             | (se, sg, me, mg, le, lg) :: ps ->
-               let rest_se, rest_me, rest_sg, rest_mg, rest_le, rest_lg = join ps in
-               let sep = " * " in
-               let se' = se ^ sep ^ rest_se in
-               let sg' = sg ^ sep ^ rest_sg in
-               let off = String.length se + String.length sep in
-               let shift m = List.map (fun (st, l) -> (st + off, l)) m in
-               let me' = me @ shift rest_me in
-               let mg' = mg @ shift rest_mg in
-               se', me', sg', mg', le @ rest_le, lg @ rest_lg
+           | [] -> "", [], "", [], [], []
+           | [ (se, sg, me, mg, le, lg) ] -> se, me, sg, mg, le, lg
+           | (se, sg, me, mg, le, lg) :: ps ->
+             let rest_se, rest_me, rest_sg, rest_mg, rest_le, rest_lg = join ps in
+             let sep = " * " in
+             let se' = se ^ sep ^ rest_se in
+             let sg' = sg ^ sep ^ rest_sg in
+             let off_e = String.length se + String.length sep in
+             let off_g = String.length sg + String.length sep in
+             let shift_e m = List.map (fun (st, l) -> (st + off_e, l)) m in
+             let shift_g m = List.map (fun (st, l) -> (st + off_g, l)) m in
+             let me' = me @ shift_e rest_me in
+             let mg' = mg @ shift_g rest_mg in
+             se', me', sg', mg', le @ rest_le, lg @ rest_lg
            in
            let se, me, sg, mg, le, lg = join parts in
            let need_paren = prec > 1 in
@@ -375,15 +406,17 @@ let format_type_error (err : Type_infer.type_error) =
              | [] -> "", [], "", [], [], []
              | [ (se, sg, me, mg, le, lg) ] -> se, me, sg, mg, le, lg
              | (se, sg, me, mg, le, lg) :: ps ->
-               let rest_se, rest_me, rest_sg, rest_mg, rest_le, rest_lg = join ps in
-               let sep = ", " in
-               let se' = se ^ sep ^ rest_se in
-               let sg' = sg ^ sep ^ rest_sg in
-               let off = String.length se + String.length sep in
-               let shift m = List.map (fun (st, l) -> (st + off, l)) m in
-               let me' = me @ shift rest_me in
-               let mg' = mg @ shift rest_mg in
-               se', me', sg', mg', le @ rest_le, lg @ rest_lg
+             let rest_se, rest_me, rest_sg, rest_mg, rest_le, rest_lg = join ps in
+             let sep = ", " in
+             let se' = se ^ sep ^ rest_se in
+             let sg' = sg ^ sep ^ rest_sg in
+             let off_e = String.length se + String.length sep in
+             let off_g = String.length sg + String.length sep in
+             let shift_e m = List.map (fun (st, l) -> (st + off_e, l)) m in
+             let shift_g m = List.map (fun (st, l) -> (st + off_g, l)) m in
+             let me' = me @ shift_e rest_me in
+             let mg' = mg @ shift_g rest_mg in
+             se', me', sg', mg', le @ rest_le, lg @ rest_lg
            in
            let args_se, args_me, args_sg, args_mg, le_args, lg_args = join parts in
            let need_paren = prec > 1 in
@@ -425,12 +458,14 @@ let format_type_error (err : Type_infer.type_error) =
         let sg, mg, lg = render_with_head prec b in
         se, sg, me, mg, le, lg
     in
-    go 0 expected got
+    let se, sg, me, mg, _le, _lg = go 0 expected got in
+    se, sg, me, mg
   in
   let kind_msg =
     match err.kind with
     | Type_infer.Type_mismatch (got_ty, expected_ty) ->
-      let se, sg, me, mg, locs_e, locs_g = diff_mismatch expected_ty got_ty in
+      let se, sg, me, mg = diff_mismatch expected_ty got_ty in
+      let locs_e, locs_g = mismatch_locs expected_ty got_ty in
       let mk_line prefix s marks ch =
         let line = prefix ^ s in
         let underline =

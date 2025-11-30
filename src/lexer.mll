@@ -27,7 +27,10 @@ rule token = parse
   | '\n'                  { Lexing.new_line lexbuf; token lexbuf }
   | "(*"                  { comment 1 lexbuf; token lexbuf }
   | digit+ as lit         { INT (int_of_string lit) }
-  | '"'                   { string (Buffer.create 16) lexbuf }
+  | '"'                   {
+      let start = Lexing.lexeme_start_p lexbuf in
+      string start (Buffer.create 16) lexbuf
+    }
   | "_"                   { UNDERSCORE }
   | "->"                  { ARROW }
   | ":"                   { COLON }
@@ -66,13 +69,16 @@ and comment depth = parse
   | eof                   { unterminated lexbuf "comment" }
   | _                     { comment depth lexbuf }
 
-and string buf = parse
-  | '"'                   { STRING (Buffer.contents buf) }
-  | '\\' ('\\' | '"' as c){ Buffer.add_char buf c; string buf lexbuf }
-  | "\\n"                 { Buffer.add_char buf '\n'; string buf lexbuf }
-  | "\\t"                 { Buffer.add_char buf '\t'; string buf lexbuf }
-  | "\\r"                 { Buffer.add_char buf '\r'; string buf lexbuf }
-  | "\\b"                 { Buffer.add_char buf '\b'; string buf lexbuf }
-  | '\n'                  { Lexing.new_line lexbuf; Buffer.add_char buf '\n'; string buf lexbuf }
+and string start buf = parse
+  | '"'                   {
+      lexbuf.lex_start_p <- start;
+      STRING (Buffer.contents buf)
+    }
+  | '\\' ('\\' | '"' as c){ Buffer.add_char buf c; string start buf lexbuf }
+  | "\\n"                 { Buffer.add_char buf '\n'; string start buf lexbuf }
+  | "\\t"                 { Buffer.add_char buf '\t'; string start buf lexbuf }
+  | "\\r"                 { Buffer.add_char buf '\r'; string start buf lexbuf }
+  | "\\b"                 { Buffer.add_char buf '\b'; string start buf lexbuf }
+  | '\n'                  { Lexing.new_line lexbuf; Buffer.add_char buf '\n'; string start buf lexbuf }
   | eof                   { unterminated lexbuf "string literal" }
-  | _ as c                { Buffer.add_char buf c; string buf lexbuf }
+  | _ as c                { Buffer.add_char buf c; string start buf lexbuf }

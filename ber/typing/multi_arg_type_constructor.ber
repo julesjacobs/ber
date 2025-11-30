@@ -50,7 +50,7 @@ let tree_bad = Node ("root", Leaf 1, Leaf "oops")
 
 > Type mismatch:
 > 49 | let tree_bad = Node ("root", Leaf 1, Leaf "oops")
->                                        △            ▲ 
+>                                        △       ▲▲▲▲▲▲ 
 > 
 > Got:      string
 >           ▲▲▲▲▲▲

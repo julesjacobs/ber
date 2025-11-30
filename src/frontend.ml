@@ -262,10 +262,12 @@ let mismatch_detail heading expected_ty got_ty =
                let sep = " * " in
                let se' = se ^ sep ^ rest_se in
                let sg' = sg ^ sep ^ rest_sg in
-               let off = String.length se + String.length sep in
-               let shift m = List.map (fun (st, l) -> (st + off, l)) m in
-               let me' = me @ shift rest_me in
-               let mg' = mg @ shift rest_mg in
+               let off_e = String.length se + String.length sep in
+               let off_g = String.length sg + String.length sep in
+               let shift_e m = List.map (fun (st, l) -> (st + off_e, l)) m in
+               let shift_g m = List.map (fun (st, l) -> (st + off_g, l)) m in
+               let me' = me @ shift_e rest_me in
+               let mg' = mg @ shift_g rest_mg in
                se', me', sg', mg'
            in
            let se, me, sg, mg = join parts in
@@ -275,33 +277,53 @@ let mismatch_detail heading expected_ty got_ty =
            let sg, mg = wrap sg mg in
            se, me, sg, mg
          | _, _, _ ->
-           let parts = List.map2 (go 2) args_a args_b in
+           let parts = List.map2 (go 0) args_a args_b in
            let rec join = function
              | [] -> "", [], "", []
              | [ (se, me, sg, mg) ] -> se, me, sg, mg
              | (se, me, sg, mg) :: ps ->
                let rest_se, rest_me, rest_sg, rest_mg = join ps in
-               let sep = " " in
+               let sep = ", " in
                let se' = se ^ sep ^ rest_se in
                let sg' = sg ^ sep ^ rest_sg in
-               let off = String.length se + String.length sep in
-               let shift m = List.map (fun (st, l) -> (st + off, l)) m in
-               let me' = me @ shift rest_me in
-               let mg' = mg @ shift rest_mg in
+               let off_e = String.length se + String.length sep in
+               let off_g = String.length sg + String.length sep in
+               let shift_e m = List.map (fun (st, l) -> (st + off_e, l)) m in
+               let shift_g m = List.map (fun (st, l) -> (st + off_g, l)) m in
+               let me' = me @ shift_e rest_me in
+               let mg' = mg @ shift_g rest_mg in
                se', me', sg', mg'
            in
            let args_se, args_me, args_sg, args_mg = join parts in
-           let base = na ^ " " in
-           let se = base ^ args_se in
-           let sg = base ^ args_sg in
-           let shift m = List.map (fun (st, l) -> (st + String.length base, l)) m in
-           let me = shift args_me in
-           let mg = shift args_mg in
            let need_paren = prec > 1 in
-           let wrap s m = if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) m else s, m in
-           let se, me = wrap se me in
-           let sg, mg = wrap sg mg in
-           se, me, sg, mg)
+           (match args_a with
+            | [] ->
+              let se = na in
+              let sg = na in
+              let wrap s m = if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) m else s, m in
+              let se, me = wrap se [] in
+              let sg, mg = wrap sg [] in
+              se, me, sg, mg
+            | [ _ ] ->
+              let sep = " " in
+              let se = args_se ^ sep ^ na in
+              let sg = args_sg ^ sep ^ na in
+              let wrap s m = if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) m else s, m in
+              let se, me = wrap se args_me in
+              let sg, mg = wrap sg args_mg in
+              se, me, sg, mg
+            | _ ->
+              let base_e = "(" ^ args_se ^ ")" in
+              let base_g = "(" ^ args_sg ^ ")" in
+              let se = base_e ^ " " ^ na in
+              let sg = base_g ^ " " ^ na in
+              let shift m = List.map (fun (st, l) -> (st + 1, l)) m in
+              let me = shift args_me in
+              let mg = shift args_mg in
+              let wrap s m = if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) m else s, m in
+              let se, me = wrap se me in
+              let sg, mg = wrap sg mg in
+              se, me, sg, mg))
       | TVar va, TVar vb when va.id = vb.id ->
         let s = render_ty a in
         s, [], s, []
