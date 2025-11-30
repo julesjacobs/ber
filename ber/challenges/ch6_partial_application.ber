@@ -17,9 +17,11 @@ let add (x : int) (y : int) = x
 let add1_to_length xs =
   add 1 length
 
-> Expected: list 'a -> int
->                   ~~    
-> Got:      int
->           ---
+> Type mismatch:
 > 18 |   add 1 length
->        ---   ~~~~~~
+>        △△△   ▲▲▲▲▲▲
+> 
+> Got:      list 'a -> int
+>                   ▲▲    
+> Expected: int
+>           △△△

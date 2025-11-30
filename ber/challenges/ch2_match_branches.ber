@@ -11,14 +11,16 @@ let rec length_or_and xs =
     | true -> length_or_and xs'
     | false -> x
 
-> Expected: bool
->           ~~~~
-> Got:      int
->           ---
+> Type mismatch:
 > 8 |   | Nil -> 0
->                -
+>                △
 > 9 |   | Cons (x, xs') ->
 > 10 |     match x with
 > 11 |     | true -> length_or_and xs'
 > 12 |     | false -> x
->                     ~
+>                     ▲
+> 
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△

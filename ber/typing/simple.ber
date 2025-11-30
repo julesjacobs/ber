@@ -19,4 +19,4 @@ let unbound = y
 
 > unbound variable y
 > 18 | let unbound = y
->                    ^
+>                    ▲

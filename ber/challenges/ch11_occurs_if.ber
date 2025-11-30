@@ -10,4 +10,4 @@ let choose b x =
 
 > Occurs check failed: 'a occurs in 'a
 > 9 |   | false -> x
->                  ^
+>                  ▲

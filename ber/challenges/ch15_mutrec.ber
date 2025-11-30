@@ -8,11 +8,13 @@ and odd n =
   | 0 -> 0
   | _ -> even n
 
-> Expected: bool
->           ~~~~
-> Got:      int
->           ---
+> Type mismatch:
 > 8 |   | 0 -> 0
->              -
+>              △
 > 9 |   | _ -> even n
->              ~~~~  
+>              ▲▲▲▲  
+> 
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△

@@ -8,11 +8,13 @@ let f b =
   in
   x
 
-> Expected: int
->           ~~~
-> Got:      bool
->           ----
+> Type mismatch:
 > 6 |     | true -> 0
->                   ~
+>                   △
 > 7 |     | false -> false
->                    -----
+>                    ▲▲▲▲▲
+> 
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△

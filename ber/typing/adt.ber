@@ -7,19 +7,21 @@ let make_node = Node
 
 > constructor arity mismatch
 > 6 | let make_node = Node
->                     ^^^^
+>                     ▲▲▲▲
 
 let wrong_ctor_arity = Node 1
 
-> Expected: tree * tree
->                ~     
+> Type mismatch:
+> 12 | let wrong_ctor_arity = Node 1
+>                             △△△△ ▲
+> 
 > Got:      int
->           ---
-> 10 | let wrong_ctor_arity = Node 1
->                             ~~~~ -
+>           ▲▲▲
+> Expected: tree * tree
+>                △     
 
 let unknown_ctor = Foo 1
 
 > unknown constructor Foo
-> 20 | let unknown_ctor = Foo 1
->                         ^^^^^
+> 23 | let unknown_ctor = Foo 1
+>                         ▲▲▲▲▲

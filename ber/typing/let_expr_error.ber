@@ -1,9 +1,11 @@
 #type
 (let 1 = true in 0)
 
-> Expected: bool
->           ~~~~
-> Got:      int
->           ---
+> Type mismatch:
 > 2 | (let 1 = true in 0)
->          -   ~~~~      
+>          ▲   △△△△      
+> 
+> Got:      int
+>           ▲▲▲
+> Expected: bool
+>           △△△△

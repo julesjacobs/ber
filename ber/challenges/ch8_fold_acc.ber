@@ -21,9 +21,11 @@ let xs = Cons (true, Cons (false, Cons (true, Nil)))
 
 let _ = sum_bool_list xs
 
-> Expected: bool
->           ~~~~
-> Got:      int
->           ---
+> Type mismatch:
 > 22 | let _ = sum_bool_list xs
->              ------------- ~~
+>              △△△△△△△△△△△△△ ▲▲
+> 
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△

@@ -11,13 +11,15 @@ let option_default = fun def opt -> match opt with | None -> def
 let guard_non_bool = match None with | None when 1 -> true
 | Some _ -> false
 
-> Expected: bool
->           ~~~~
-> Got:      int
->           ---
+> Type mismatch:
 > 11 | let guard_non_bool = match None with | None when 1 -> true
->                                                       -        
->                                                       ~        
+>                                                       △        
+>                                                       ▲        
+> 
+> Got:      int
+>           ▲▲▲
+> Expected: bool
+>           △△△△
 
 let tuple_match = fun t -> match t with
 | a, b -> a

@@ -8,11 +8,13 @@ let rec g x =
   | 0 -> Nil
   | _ -> g (Cons (x, Nil))
 
-> Expected: int
->           ~~~
-> Got:      list int
->           ----    
+> Type mismatch:
 > 8 |   | 0 -> Nil
->         ~       
+>         ▲       
 > 9 |   | _ -> g (Cons (x, Nil))
->                 ----          
+>                 △△△△          
+> 
+> Got:      int
+>           ▲▲▲
+> Expected: list int
+>           △△△△    

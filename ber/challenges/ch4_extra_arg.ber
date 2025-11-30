@@ -5,10 +5,12 @@ let negate x = x
 
 let _ = negate 1 2
 
-> Expected: 'a -> 'b
->              ~~   
-> Got:      int
->           ---
+> Type mismatch:
 > 6 | let _ = negate 1 2
->                    -  
->             ~~~~~~~~~~
+>                    ▲  
+>             △△△△△△△△△△
+> 
+> Got:      int
+>           ▲▲▲
+> Expected: 'a -> 'b
+>              △△   

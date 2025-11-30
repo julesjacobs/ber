@@ -80,10 +80,10 @@ let initial_env =
   ; gen_level = 1
   }
 
-let unify_res loc a b =
-  match Type_solver.unify a b with
+let unify_types loc ~got ~expected =
+  match Type_solver.unify got expected with
   | Ok () -> Ok ()
-  | Error (Type_solver.Type_mismatch (x, y)) -> Error { loc; kind = Type_mismatch (x, y) }
+  | Error (Type_solver.Type_mismatch (a, b)) -> Error { loc; kind = Type_mismatch (a, b) }
   | Error (Type_solver.Occurs (tv, ty)) -> Error { loc; kind = Occurs_check (tv, ty) }
 
 let string_of_ty = Type_solver.string_of_ty
@@ -131,18 +131,18 @@ let rec infer_pattern env pat expected =
     let* binds = infer_pattern env p expected in
     Ok ((id.node, expected) :: binds)
   | PInt _ ->
-    let* () = unify_res pat.loc expected (t_int ~loc:pat.loc ()) in
+    let* () = unify_types pat.loc ~got:(t_int ~loc:pat.loc ()) ~expected in
     Ok []
   | PBool _ ->
-    let* () = unify_res pat.loc expected (t_bool ~loc:pat.loc ()) in
+    let* () = unify_types pat.loc ~got:(t_bool ~loc:pat.loc ()) ~expected in
     Ok []
   | PString _ ->
-    let* () = unify_res pat.loc expected (t_string ~loc:pat.loc ()) in
+    let* () = unify_types pat.loc ~got:(t_string ~loc:pat.loc ()) ~expected in
     Ok []
   | PTuple elems ->
     let ts = List.map (fun _ -> fresh_ty env.gen_level) elems in
     let tuple_ty = t_tuple ~loc:pat.loc ts in
-    let* () = unify_res pat.loc expected tuple_ty in
+    let* () = unify_types pat.loc ~got:tuple_ty ~expected in
     let rec loop acc pats tys =
       match pats, tys with
       | [], [] -> Ok (List.concat (List.rev acc))
@@ -165,7 +165,7 @@ let rec infer_pattern env pat expected =
        if List.length arg_tys <> List.length args then
          error_msg pat.loc "Constructor arity mismatch"
        else (
-         let* () = unify_res pat.loc expected res_ty in
+         let* () = unify_types pat.loc ~got:res_ty ~expected in
          let rec loop acc pats tys =
            match pats, tys with
            | [], [] -> Ok (List.concat (List.rev acc))
@@ -179,7 +179,7 @@ let rec infer_pattern env pat expected =
   | PAnnot (p, texpr) ->
     let tyvars = ref [] in
     let* t = ty_of_type_expr env tyvars texpr in
-    let* () = unify_res pat.loc expected t in
+    let* () = unify_types pat.loc ~got:t ~expected in
     infer_pattern env p t
 
 let rec infer_expr env expr =
@@ -189,20 +189,20 @@ let rec infer_expr env expr =
 and check_expr env expected expr =
   match expr.node with
   | EInt _ ->
-    let* () = unify_res expr.loc expected (t_int ~loc:expr.loc ()) in
+    let* () = unify_types expr.loc ~got:(t_int ~loc:expr.loc ()) ~expected in
     Ok ()
   | EBool _ ->
-    let* () = unify_res expr.loc expected (t_bool ~loc:expr.loc ()) in
+    let* () = unify_types expr.loc ~got:(t_bool ~loc:expr.loc ()) ~expected in
     Ok ()
   | EString _ ->
-    let* () = unify_res expr.loc expected (t_string ~loc:expr.loc ()) in
+    let* () = unify_types expr.loc ~got:(t_string ~loc:expr.loc ()) ~expected in
     Ok ()
   | EVar id ->
     (match SMap.find_opt id.node env.vars with
      | None -> error_msg expr.loc ("unbound variable " ^ id.node)
      | Some s ->
        let t = instantiate ~loc:id.loc env s in
-       let* () = unify_res expr.loc t expected in
+       let* () = unify_types expr.loc ~got:t ~expected in
        Ok ())
   | EConstr (ctor, args) ->
     (match SMap.find_opt ctor.node env.vars with
@@ -218,7 +218,7 @@ and check_expr env expected expr =
     if List.length arg_tys <> List.length args then
       error_msg expr.loc "constructor arity mismatch"
     else
-         let* () = unify_res expr.loc res_ty expected in
+         let* () = unify_types expr.loc ~got:res_ty ~expected in
          let* _ =
            map_result2
              (fun e t ->
@@ -239,7 +239,7 @@ and check_expr env expected expr =
         elems
         elem_tys
     in
-    let* () = unify_res expr.loc tuple_ty expected in
+    let* () = unify_types expr.loc ~got:tuple_ty ~expected in
     Ok ()
   | ELambda { params; fn_body } ->
     let env' = push_level env in
@@ -267,7 +267,7 @@ and check_expr env expected expr =
       List.fold_right (fun arg acc -> t_arrow ~loc:expr.loc arg acc) param_tys result_ty
     in
     let* () = check_expr env'' result_ty fn_body in
-    let* () = unify_res expr.loc fn_ty expected in
+    let* () = unify_types expr.loc ~got:fn_ty ~expected in
     Ok ()
   | EApp (fn, args) ->
     let result_ty = expected in
@@ -319,7 +319,7 @@ and check_expr env expected expr =
     let tyvars = ref [] in
     let* t_expected = ty_of_type_expr env tyvars texpr in
     let* () = check_expr env t_expected e in
-    let* () = unify_res texpr.loc expected t_expected in
+    let* () = unify_types texpr.loc ~got:t_expected ~expected in
     Ok ()
 
 and infer_let_bindings env rec_flag bindings =

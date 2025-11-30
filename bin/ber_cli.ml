@@ -64,9 +64,12 @@ let format_error (err : Parse.parse_error) =
 
 type highlight =
   { loc : Location.t
-  ; ch : char
+  ; ch : string
   ; label : string option
   }
+
+let got_ch = "▲"
+let expected_ch = "△"
 
 let read_file_lines file =
   try
@@ -156,16 +159,16 @@ let format_highlights (locs : highlight list) =
           let prefix_spaces = String.make (String.length prefix) ' ' in
           List.iter
             (fun line ->
-               let arr = Array.make (String.length line_content) ' ' in
+               let arr = Array.make (String.length line_content) " " in
               List.iter
                 (fun (s, e, h) ->
                    for i = s to e do
                      arr.(i) <- h.ch
                    done)
-                 line;
-               if Array.exists (fun c -> c <> ' ') arr then (
+                line;
+               if Array.exists (fun c -> c <> " ") arr then (
                  Buffer.add_string buf prefix_spaces;
-                 Buffer.add_string buf (String.init (Array.length arr) (fun i -> arr.(i)));
+                 Array.iter (Buffer.add_string buf) arr;
                  Buffer.add_char buf '\n'))
             underline_lines;
           let messages =
@@ -358,39 +361,42 @@ let format_type_error (err : Type_infer.type_error) =
   in
   let kind_msg =
     match err.kind with
-    | Type_infer.Type_mismatch (a, b) ->
-      let se, sg, me, mg, locs_e, locs_g = diff_mismatch a b in
+    | Type_infer.Type_mismatch (got_ty, expected_ty) ->
+      let se, sg, me, mg, locs_e, locs_g = diff_mismatch expected_ty got_ty in
       let mk_line prefix s marks ch =
         let line = prefix ^ s in
         let underline =
           if marks = [] then None
           else
-            let arr = Array.make (String.length s) ' ' in
+            let arr = Array.make (String.length s) " " in
             List.iter (fun (start, len) -> for i = start to start + len - 1 do if i >= 0 && i < Array.length arr then arr.(i) <- ch done) marks;
-            Some (String.make (String.length prefix) ' ' ^ String.init (Array.length arr) (fun i -> arr.(i)))
+            let buf = Buffer.create 16 in
+            Buffer.add_string buf (String.make (String.length prefix) ' ');
+            Array.iter (Buffer.add_string buf) arr;
+            Some (Buffer.contents buf)
         in
         match underline with
         | None -> [ line ]
         | Some u -> [ line; u ]
       in
-      let lines =
-        mk_line "Expected: " se me '~'
-        @ mk_line "Got:      " sg mg '-'
-      in
       let loc_block =
         let highlights =
-          List.map (fun loc -> { loc; ch = '~'; label = None }) locs_e
-          @ List.map (fun loc -> { loc; ch = '-'; label = None }) locs_g
+          List.map (fun loc -> { loc; ch = got_ch; label = None }) locs_g
+          @ List.map (fun loc -> { loc; ch = expected_ch; label = None }) locs_e
         in
         format_highlights highlights
       in
-      String.concat "\n" lines ^ "\n" ^ loc_block
+      let lines =
+        mk_line "Got:      " sg mg got_ch
+        @ mk_line "Expected: " se me expected_ch
+      in
+      "Type mismatch:\n" ^ loc_block ^ "\n" ^ String.concat "\n" lines
     | Type_infer.Occurs_check (tv, ty) ->
       let msg = Format.asprintf "Occurs check failed: %s occurs in %s" (Type_infer.string_of_ty (Type_solver.TVar tv)) (Type_infer.string_of_ty ty) in
-      let loc_block = format_highlights [ { loc = err.loc; ch = '^'; label = None } ] in
+      let loc_block = format_highlights [ { loc = err.loc; ch = got_ch; label = None } ] in
       msg ^ "\n" ^ loc_block
     | Type_infer.Message msg ->
-      let loc_block = format_highlights [ { loc = err.loc; ch = '^'; label = None } ] in
+      let loc_block = format_highlights [ { loc = err.loc; ch = got_ch; label = None } ] in
       msg ^ "\n" ^ loc_block
   in
   kind_msg

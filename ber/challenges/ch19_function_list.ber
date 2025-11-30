@@ -13,9 +13,11 @@ let bool_not b =
 let bad_fs =
   Cons ((fun (x : int) -> x), Cons (bool_not, Nil))
 
-> Expected: bool
->           ~~~~
-> Got:      int
->           ---
+> Type mismatch:
 > 14 |   Cons ((fun (x : int) -> x), Cons (bool_not, Nil))
->                        ---               ~~~~~~~~       
+>                        △△△               ▲▲▲▲▲▲▲▲       
+> 
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△

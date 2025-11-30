@@ -8,9 +8,11 @@ type 'a option = None | Some of 'a
 let bad_options =
   Cons (Some 1, Cons (None, Cons (Some true, Nil)))
 
-> Expected: bool
->           ~~~~
-> Got:      int
->           ---
+> Type mismatch:
 > 9 |   Cons (Some 1, Cons (None, Cons (Some true, Nil)))
->                  -                         ~~~~        
+>                  △                         ▲▲▲▲        
+> 
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△

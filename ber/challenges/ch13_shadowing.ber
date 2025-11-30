@@ -13,9 +13,11 @@ let use_int (n : int) = n
 
 let _ = use_int x
 
-> Expected: bool
->           ~~~~
-> Got:      int
->           ---
+> Type mismatch:
 > 14 | let _ = use_int x
->              ------- ~
+>              △△△△△△△ ▲
+> 
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△
