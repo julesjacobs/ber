@@ -13,9 +13,9 @@ and odd n =
 >              △
 > 9 |   | _ -> even n
 >              ▲▲▲▲  
->              ------
+>              ----  
 > 
-> Got:      bool
->           ▲▲▲▲
-> Expected: int
->           △△△
+> Got:      int  -> bool
+>                   ▲▲▲▲
+> Expected: int  -> int
+>                   △△△
