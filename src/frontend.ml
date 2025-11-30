@@ -170,6 +170,9 @@ let mismatch_detail heading expected_ty got_ty =
         let marks = [ pos, 2 ] in
         let need_paren = prec > 0 in
         if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks else s, marks
+      | TCon ("*", elems, _) when elems = [] ->
+        let s = "unit" in
+        s, [ 0, String.length s ]
       | TCon ("*", elems, _) ->
         let rendered = List.map render_ty elems in
         let rec join = function

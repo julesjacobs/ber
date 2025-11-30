@@ -268,11 +268,18 @@ let format_type_error (err : Type_infer.type_error) =
         let need_paren = prec > 0 in
         if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks, locs else s, marks, locs
       | TCon ("*", elems, loc) ->
-        let rendered = List.map render_ty elems in
-        let rec join = function
-          | [] -> "", [], 0
-          | [ s ] -> s, [], String.length s
-          | s :: rest ->
+        (match elems with
+         | [] ->
+           let s = "unit" in
+           let marks = [ 0, String.length s ] in
+           let locs = match loc with None -> [] | Some l -> [ l ] in
+           s, marks, locs
+         | _ ->
+          let rendered = List.map render_ty elems in
+          let rec join = function
+            | [] -> "", [], 0
+            | [ s ] -> s, [], String.length s
+            | s :: rest ->
             let tail_s, marks, _ = join rest in
             let sep = " * " in
             let s' = s ^ sep ^ tail_s in
@@ -283,7 +290,7 @@ let format_type_error (err : Type_infer.type_error) =
         let s, marks, _ = join rendered in
         let locs = match loc with None -> [] | Some l -> [ l ] in
         let need_paren = prec > 1 in
-        if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks, locs else s, marks, locs
+        if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks, locs else s, marks, locs)
       | TCon (name, args, loc) ->
         let rendered = List.map render_ty args in
         let rec join = function

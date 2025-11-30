@@ -68,11 +68,27 @@ let bad_fs =
   Cons ((fun (x) -> x), Cons (bool_not2, Nil))
 
 > Type mismatch:
-> 66 |   Cons ((fun (x) -> x), Cons (bool_not2, Nil))
->                                    △△△△△△△△△
->                                    ▲▲▲▲▲▲▲▲▲
+> 68 |   Cons ((fun (x) -> x), Cons (bool_not2, Nil))
+>                                    △△△△△△△△△       
+>                                    ▲▲▲▲▲▲▲▲▲       
 > 
 > Got:      bool  -> int
 >                    ▲▲▲
 > Expected: bool  -> bool
 >                    △△△△
+
+let bool_not3 b =
+  match b with
+  | true -> false
+  | false -> ()
+
+> Type mismatch:
+> 82 |   | true -> false
+>                  △△△△△
+> 83 |   | false -> ()
+>                   ▲▲
+> 
+> Got:      unit
+>           ▲▲▲▲
+> Expected: bool
+>           △△△△
