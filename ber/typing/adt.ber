@@ -5,7 +5,7 @@ type tree = Leaf | Node of tree * tree
 
 let make_node = Node
 
-> constructor arity mismatch
+> Constructor arity mismatch
 > 6 | let make_node = Node
 >                     ▲▲▲▲
 
@@ -23,6 +23,6 @@ let wrong_ctor_arity = Node 1
 
 let unknown_ctor = Foo 1
 
-> unknown constructor Foo
+> Unknown constructor Foo
 > 24 | let unknown_ctor = Foo 1
 >                         ▲▲▲▲▲

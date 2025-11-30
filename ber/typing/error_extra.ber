@@ -60,6 +60,6 @@ let guard_non_bool2 = match Some 1 with | Some x when x -> x
 let ctor_unknown_pat = match None with | Foo x -> x
 | _ -> 0
 
-> unknown constructor Foo
+> Unknown constructor Foo
 > 60 | let ctor_unknown_pat = match None with | Foo x -> x
 >                                               ▲▲▲▲▲     

@@ -17,6 +17,6 @@ let shadow = let x = lit_int in let x = x in x
 
 let unbound = y
 
-> unbound variable y
+> Unbound variable y
 > 18 | let unbound = y
 >                    ▲

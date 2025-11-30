@@ -231,6 +231,7 @@ and check_expr env expected expr =
   | ETuple elems ->
     let elem_tys = List.map (fun _ -> fresh_ty env.gen_level) elems in
     let tuple_ty = t_tuple ~loc:expr.loc elem_tys in
+    let* () = unify_types expr.loc ~got:tuple_ty ~expected in
     let* _ =
       map_result2
         (fun e t ->
@@ -239,7 +240,6 @@ and check_expr env expected expr =
         elems
         elem_tys
     in
-    let* () = unify_types expr.loc ~got:tuple_ty ~expected in
     Ok ()
   | ELambda { params; fn_body } ->
     let env' = push_level env in
