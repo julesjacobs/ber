@@ -10,4 +10,5 @@ let _ = negate 1 2
 > Got:      int
 >           ---
 > 6 | let _ = negate 1 2
->                    ^  
+>                    -  
+>             ~~~~~~~~~~

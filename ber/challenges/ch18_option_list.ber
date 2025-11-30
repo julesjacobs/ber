@@ -13,4 +13,4 @@ let bad_options =
 > Got:      int
 >           ---
 > 9 |   Cons (Some 1, Cons (None, Cons (Some true, Nil)))
->             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   
+>                  -                         ~~~~        

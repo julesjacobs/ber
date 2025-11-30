@@ -16,4 +16,4 @@ let _ = compose h g 0
 > Got:      int
 >           ---
 > 12 | let _ = compose h g 0
->                        ^  
+>                      - ~  

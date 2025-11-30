@@ -24,4 +24,4 @@ let capture_list x =
 > Got:      bool
 >           ----
 > 20 |   (prepend 1, prepend true)
->                            ^^^^ 
+>                    ~~~~~~~ ---- 

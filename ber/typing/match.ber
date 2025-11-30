@@ -16,7 +16,8 @@ let guard_non_bool = match None with | None when 1 -> true
 > Got:      int
 >           ---
 > 11 | let guard_non_bool = match None with | None when 1 -> true
->                                                       ^        
+>                                                       -        
+>                                                       ~        
 
 let tuple_match = fun t -> match t with
 | a, b -> a

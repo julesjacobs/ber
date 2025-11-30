@@ -18,4 +18,4 @@ let _ = use_int x
 > Got:      int
 >           ---
 > 14 | let _ = use_int x
->                      ^
+>              ------- ~

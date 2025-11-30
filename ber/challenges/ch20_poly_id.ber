@@ -12,5 +12,7 @@ let f b =
 >           ~~~
 > Got:      bool
 >           ----
+> 8 |   | true -> id 0
+>                    ~
 > 9 |   | false -> id true
->                     ^^^^
+>                     ----

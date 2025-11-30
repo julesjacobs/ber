@@ -8,10 +8,10 @@ let x, y, z = 1, 2
 > Got:      'a * 'b * 'c
 >              -    -   
 > 2 | let x, y, z = 1, 2
->         ^^^^^^^       
+>         -------   ~~~~
 
 let _ = x
 
 > unbound variable x
-> 13 | let _ = x
+> 14 | let _ = x
 >              ^

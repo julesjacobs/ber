@@ -22,4 +22,4 @@ let bad_annot = fun (x : int) -> x : bool
 > Got:      bool
 >           ----
 > 18 | let bad_annot = fun (x : int) -> x : bool
->                                       ^       
+>                                       ~   ----

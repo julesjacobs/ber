@@ -23,4 +23,4 @@ let _ =
 > Got:      int
 >           ---
 > 19 |   apply_all (Cons ((fun n -> n), Cons ((fun n -> n), Nil))) 10
->                                                                  ^^
+>        ~~~~~~~~~                                                 --

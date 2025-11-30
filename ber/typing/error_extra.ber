@@ -10,7 +10,8 @@ let bad_app = 3 4
 > Got:      int
 >           ---
 > 6 | let bad_app = 3 4
->                   ^  
+>                   -  
+>                   ~~~
 
 let ascr_mismatch = 1 : bool
 
@@ -18,8 +19,8 @@ let ascr_mismatch = 1 : bool
 >           ~~~~
 > Got:      int
 >           ---
-> 15 | let ascr_mismatch = 1 : bool
->                          ^       
+> 17 | let ascr_mismatch = 1 : bool
+>                          -   ~~~~
 
 let match_mismatch = match Some 1 with | Some x -> x
 | None -> true
@@ -28,8 +29,10 @@ let match_mismatch = match Some 1 with | Some x -> x
 >           ~~~
 > Got:      bool
 >           ----
-> 25 | | None -> true
->                ^^^^
+> 27 | let match_mismatch = match Some 1 with | Some x -> x
+>                                                         ~
+> 28 | | None -> true
+>                ----
 
 let guard_non_bool2 = match Some 1 with | Some x when x -> x
 | None -> 0
@@ -38,12 +41,13 @@ let guard_non_bool2 = match Some 1 with | Some x when x -> x
 >           ~~~
 > Got:      bool
 >           ----
-> 34 | let guard_non_bool2 = match Some 1 with | Some x when x -> x
->                                                            ^     
+> 40 | let guard_non_bool2 = match Some 1 with | Some x when x -> x
+>                                                            -     
+>                                                            ~     
 
 let ctor_unknown_pat = match None with | Foo x -> x
 | _ -> 0
 
 > unknown constructor Foo
-> 44 | let ctor_unknown_pat = match None with | Foo x -> x
+> 52 | let ctor_unknown_pat = match None with | Foo x -> x
 >                                               ^^^^^     

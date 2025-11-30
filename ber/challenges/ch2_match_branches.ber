@@ -15,5 +15,10 @@ let rec length_or_and xs =
 >           ~~~~
 > Got:      int
 >           ---
+> 8 |   | Nil -> 0
+>                -
+> 9 |   | Cons (x, xs') ->
+> 10 |     match x with
+> 11 |     | true -> length_or_and xs'
 > 12 |     | false -> x
->                     ^
+>                     ~

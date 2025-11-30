@@ -26,4 +26,4 @@ let _ = sum_bool_list xs
 > Got:      int
 >           ---
 > 22 | let _ = sum_bool_list xs
->                            ^^
+>              ------------- ~~

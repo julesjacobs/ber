@@ -10,7 +10,7 @@ let bad_annot = (fun x -> x) : int -> bool
 > Got:      bool
 >           ----
 > 6 | let bad_annot = (fun x -> x) : int -> bool
->                      ^^^^^^^^^^               
+>                                    ~~~    ----
 
 let let_annot : int = 3
 

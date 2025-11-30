@@ -15,4 +15,4 @@ let trees =
 > Got:      int
 >           ---
 > 11 |   Cons (Leaf 1, Cons (Leaf (Cons (2, Nil)), Nil))
->              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  
+>                   -              ~~~~                 
