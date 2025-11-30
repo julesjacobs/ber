@@ -72,6 +72,26 @@ let print_error_span = ref false
 
 let got_ch = "▲"
 let expected_ch = "△"
+
+let dedup_highlights hs =
+  let tbl = Hashtbl.create 32 in
+  let key h =
+    let loc = h.loc in
+    let s = loc.start in
+    let e = loc.stop in
+    Printf.sprintf "%s:%d:%d-%d:%d:%s"
+      loc.file
+      s.Lexing.pos_lnum (s.Lexing.pos_cnum - s.Lexing.pos_bol)
+      e.Lexing.pos_lnum (e.Lexing.pos_cnum - e.Lexing.pos_bol)
+      h.ch
+  in
+  List.filter
+    (fun h ->
+       let k = key h in
+       if Hashtbl.mem tbl k then false
+       else (Hashtbl.add tbl k (); true))
+    hs
+
  let read_file_lines file =
   try
     let ic = open_in file in
@@ -117,6 +137,7 @@ let format_highlights (locs : highlight list) =
   match locs with
   | [] -> ""
   | locs ->
+    let locs = dedup_highlights locs in
     let file = (List.hd locs).loc.file in
     let all_same_file = List.for_all (fun l -> l.loc.file = file) locs in
     if not all_same_file then

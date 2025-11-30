@@ -35,7 +35,7 @@ compose h g
 compose h g 0
 
 > Type mismatch:
-> 36 | compose h g 0
+> 35 | compose h g 0
 >              △ ▲  
 > 
 > Got:      bool  -> bool
@@ -46,7 +46,7 @@ compose h g 0
 compose h g 0 0
 
 > Type mismatch:
-> 48 | compose h g 0 0
+> 46 | compose h g 0 0
 >              ▲      
 >      △△△△△△△△△△△△△△△
 > 
