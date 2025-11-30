@@ -29,3 +29,59 @@ let _ = sum_bool_list xs
 >                 ▲▲▲▲ 
 > Expected: list (int)
 >                 △△△ 
+
+let add (x : int) (y : int) = x
+
+> val add : int -> int -> int
+
+let lst = Cons(1, Cons(2, Nil))
+
+> val lst : list int
+
+fold_left add 0 lst
+
+> val it : int
+
+fold_left 0 add lst
+
+> Type mismatch:
+> 45 | fold_left 0 add lst
+>      △△△△△△△△△ ▲        
+> 
+> Got:      int
+>           ▲▲▲
+> Expected: 'a -> 'b -> 'a
+>              △△         
+
+fold_left 0 add
+
+> Type mismatch:
+> 47 | fold_left 0 add
+>      △△△△△△△△△ ▲    
+> 
+> Got:      int
+>           ▲▲▲
+> Expected: 'a -> 'b -> 'a
+>              △△         
+
+fold_left add lst 0
+
+> Type mismatch:
+> 49 | fold_left add lst 0
+>                △△△ ▲▲▲  
+> 
+> Got:      list int
+>           ▲▲▲▲    
+> Expected: int
+>           △△△
+
+fold_left add lst
+
+> Type mismatch:
+> 51 | fold_left add lst
+>                △△△ ▲▲▲
+> 
+> Got:      list int
+>           ▲▲▲▲    
+> Expected: int
+>           △△△
