@@ -2,7 +2,8 @@
 
 After completing a task, notify the user about what you completed using the macos `say` command with a descriptive message.
 
-Never git commit unless the user asks you to.
+NEVER git commit unless the user asks you to.
+ALWAYS check the git status before doing git commands because the user might have done git operations in the meantime.
 
 ## Dev loop we follow
 - After making code changes, run `./ber.sh`. This walks all `.ber` files (recursively under `ber/`) and rewrites them with fresh `>` outputs (parse ASTs or inferred types/type errors depending on `#type` pragma). It also prints each file so you can inspect the new outputs.

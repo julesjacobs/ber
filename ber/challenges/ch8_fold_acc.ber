@@ -56,7 +56,7 @@ fold_left 0 add lst
 fold_left 0 add
 
 > Type mismatch:
-> 47 | fold_left 0 add
+> 56 | fold_left 0 add
 >      △△△△△△△△△ ▲    
 > 
 > Got:      int
@@ -67,7 +67,7 @@ fold_left 0 add
 fold_left add lst 0
 
 > Type mismatch:
-> 49 | fold_left add lst 0
+> 67 | fold_left add lst 0
 >                △△△ ▲▲▲  
 > 
 > Got:      list int
@@ -78,7 +78,7 @@ fold_left add lst 0
 fold_left add lst
 
 > Type mismatch:
-> 51 | fold_left add lst
+> 78 | fold_left add lst
 >                △△△ ▲▲▲
 > 
 > Got:      list int

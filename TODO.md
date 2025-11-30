@@ -6,3 +6,10 @@
 - [ ] Simplify inference return types (e.g. have `infer_expr_with_expected` return unit) and adjust callers.
 - [ ] Clean up any now-dead env threading in inference helpers.
 - [ ] Run `./ber.sh` after the refactor and review diffs.
+
+
+> Type mismatch:
+> 38 |   Cons ((fun x -> (x,x)), Cons (bool_not, Nil))
+>                         △△△          ▲▲▲▲▲▲▲▲ bool -> bool      
+>                          |                            ----
+>                     bool * bool <----------------------^

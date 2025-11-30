@@ -45,3 +45,14 @@ let bad_fs =
 >                    ▲▲▲▲
 > Expected: bool  -> bool * bool
 >                         △     
+
+Cons(1, Cons((fun x -> x), Nil))
+
+> Type mismatch:
+> 49 | Cons(1, Cons((fun x -> x), Nil))
+>           △        ▲▲▲▲▲▲▲▲▲▲        
+> 
+> Got:      'a -> 'a
+>              ▲▲   
+> Expected: int
+>           △△△
