@@ -165,6 +165,7 @@ let string_of_ty ?generalized ty =
         Printf.sprintf "%s -> %s" (aux 1 a) (aux 0 b)
       in
       if prec > 0 then "(" ^ s ^ ")" else s
+    | TCon ("*", [], _) -> "unit"
     | TCon ("*", elems, _) ->
       let s = String.concat " * " (List.map (aux 0) elems) in
       if prec > 1 then "(" ^ s ^ ")" else s

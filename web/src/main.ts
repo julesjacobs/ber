@@ -52,16 +52,16 @@ if (!editorMount || !output || !status) {
   throw new Error("Missing editor/output containers in the DOM");
 }
 
-const initialDoc = `type 'a option = None | Some of 'a
+const initialDoc = `type 'a list = Nil | Cons of 'a * 'a list
 
-let map_option = fun f opt ->
-  match opt with
-  | None -> None
-  | Some x -> Some (f x)
+let bool_not b =
+  match b with
+  | true -> false
+  | false -> true
+  
 
-let id = fun x -> x
-
-let demo = map_option id (Some 42)`;
+let bad_fs =
+  Cons ((fun x -> Cons(x, Nil)), Cons (bool_not, Nil))`;
 
 let view: EditorView;
 const errorMarks = StateEffect.define<DecorationSet>();
@@ -276,11 +276,6 @@ view = new EditorView({
       oneDark,
     ],
   }),
-});
-
-runBtn?.addEventListener("click", (event) => {
-  event.preventDefault();
-  runTypecheck();
 });
 
 runTypecheck();

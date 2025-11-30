@@ -33,28 +33,21 @@
     }
     header {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
+      flex-direction: column;
+      gap: 6px;
     }
     header h1 {
       margin: 0;
-      font-size: 24px;
+      font-size: 26px;
       letter-spacing: 0.02em;
-      font-weight: 700;
+      font-weight: 800;
     }
     header p {
-      margin: 4px 0 0 0;
+      margin: 0;
       color: var(--muted);
       font-size: 14px;
-    }
-    .pill {
-      padding: 6px 10px;
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: var(--muted);
-      font-size: 12px;
+      max-width: 860px;
+      line-height: 1.5;
     }
     .pane-grid {
       display: grid;
@@ -199,18 +192,14 @@
   <div class="page">
     <header>
       <div>
-        <h1>Ber Web Playground</h1>
-        <p>Syntax highlighting via CodeMirror 6 with on-demand typechecking in WebAssembly.</p>
+        <h1>Ber: Better Errors</h1>
+        <p>Experiment with type inference and see precise, inline error highlights as you type. Cmd/Ctrl+Enter to run a fresh check anytime; results appear instantly with got/expected breakdowns.</p>
       </div>
-      <div class="pill">Ctrl/Cmd + Enter to typecheck</div>
     </header>
     <div class="pane-grid">
       <section class="pane">
         <div class="pane-header">
           <div class="pane-title">Editor</div>
-          <div class="pane-controls">
-            <button id="run-btn">Typecheck ⌘/Ctrl+Enter</button>
-          </div>
         </div>
         <div id="editor"></div>
       </section>

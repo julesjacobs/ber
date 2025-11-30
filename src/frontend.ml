@@ -141,6 +141,7 @@ let mismatch_detail heading expected_ty got_ty =
            let n = fresh_name () in
            Hashtbl.add names tv.id n;
            n)
+      | TCon ("*", [], _) -> "unit"
       | TCon ("->", [ a; b ], _) ->
         let s = Printf.sprintf "%s -> %s" (aux 1 a) (aux 0 b) in
         if prec > 0 then "(" ^ s ^ ")" else s
@@ -290,7 +291,8 @@ let typecheck_string ?(filename = "repl") source =
   Parse.set_initial_pos ~filename lexbuf;
   match Parse.parse_program_lexbuf lexbuf with
   | Error err ->
-    { ok = false; output_lines = [ format_parse_error err ]; spans = []; detail = None }
+    let spans = [ { loc = err.loc; label = Some "error" } ] in
+    { ok = false; output_lines = [ format_parse_error err ]; spans; detail = None }
   | Ok prog ->
     let rec loop env acc = function
       | [] -> { ok = true; output_lines = List.rev acc; spans = []; detail = None }
