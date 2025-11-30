@@ -8,6 +8,6 @@ let choose b x =
   | true -> Cons (x, Nil)
   | false -> x
 
-> Occurs check failed: 'a occurs in 'a
+> Would require self-referential type ∞ = list ∞
 > 9 |   | false -> x
 >                  ▲

@@ -396,7 +396,15 @@ let format_type_error (err : Type_infer.type_error) =
       in
       "Type mismatch:\n" ^ loc_block ^ "\n" ^ String.concat "\n" lines
     | Type_infer.Occurs_check (tv, ty) ->
-      let msg = Format.asprintf "Occurs check failed: %s occurs in %s" (Type_infer.string_of_ty (Type_solver.TVar tv)) (Type_infer.string_of_ty ty) in
+      let inf = TCon ("∞", [], None) in
+      let ty_infinite =
+        let save = tv.instance in
+        tv.instance <- Some inf;
+        let s = Type_infer.string_of_ty ty in
+        tv.instance <- save;
+        s
+      in
+      let msg = "Would require self-referential type ∞ = " ^ ty_infinite in
       let loc_block = format_highlights [ { loc = err.loc; ch = got_ch; label = None } ] in
       msg ^ "\n" ^ loc_block
     | Type_infer.Message msg ->

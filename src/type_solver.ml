@@ -14,15 +14,6 @@ and ty =
 
 and scheme = Forall of tvar list * ty
 
-type unify_error =
-  | Type_mismatch of ty * ty
-  | Occurs of tvar * ty
-
-let ( let* ) r f =
-  match r with
-  | Ok v -> f v
-  | Error _ as e -> e
-
 let counter = ref 0
 
 let fresh_id () =
@@ -61,46 +52,42 @@ let ftv_scheme (Forall (tvs, ty)) =
   let acc = ftv_ty IMap.empty ty in
   List.fold_left (fun a tv -> IMap.remove tv.id a) acc tvs
 
-exception TypeError of string
+exception Occurs_check_failed
+exception Occurs of tvar * ty
+exception TypeMismatch of ty * ty
+exception Compiler_bug of string
 
 let rec occurs_check_adjust_levels tv ty =
   match prune ty with
   | TVar tv' ->
-    if tv.id = tv'.id then Error (Occurs (tv, ty))
-    else (
-      if tv'.level > tv.level then tv'.level <- tv.level;
-      Ok ())
+    if tv.id = tv'.id then raise Occurs_check_failed
+    else if tv'.level > tv.level then tv'.level <- tv.level
   | TCon (_, args, _) ->
-    let rec loop = function
-      | [] -> Ok ()
-      | a :: rest ->
-        let* () = occurs_check_adjust_levels tv a in
-        loop rest
-    in
-    loop args
+    List.iter (occurs_check_adjust_levels tv) args
 
 and unify_list xs ys =
   match xs, ys with
   | [], [] -> Ok ()
   | x :: xs', y :: ys' ->
-    let* () = unify x y in
+    unify x y;
     unify_list xs' ys'
-  | _ -> Error (Type_mismatch (TCon ("", xs, None), TCon ("", ys, None)))
+  | _ -> raise (Compiler_bug "arity mismatch in unify_list")
 
 and unify a b =
   let a = prune a in
   let b = prune b in
   match a, b with
-  | TVar va, TVar vb when va.id = vb.id -> Ok ()
+  | TVar va, TVar vb when va.id = vb.id -> ()
   | TVar va, ty | ty, TVar va ->
-    let* () = occurs_check_adjust_levels va ty in
-    va.instance <- Some ty;
-    Ok ()
+    (try occurs_check_adjust_levels va ty with Occurs_check_failed -> raise (Occurs (va, ty)));
+    va.instance <- Some ty
   | TCon (na, args_a, _), TCon (nb, args_b, _) ->
     if na <> nb || List.length args_a <> List.length args_b then
-      Error (Type_mismatch (a, b))
+      raise (TypeMismatch (a, b))
     else
-      unify_list args_a args_b
+      match unify_list args_a args_b with
+      | Ok () -> ()
+      | Error e -> raise e
 
 let unify_res = unify
 

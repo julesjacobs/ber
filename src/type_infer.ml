@@ -81,10 +81,11 @@ let initial_env =
   }
 
 let unify_types loc ~got ~expected =
-  match Type_solver.unify got expected with
-  | Ok () -> Ok ()
-  | Error (Type_solver.Type_mismatch (a, b)) -> Error { loc; kind = Type_mismatch (a, b) }
-  | Error (Type_solver.Occurs (tv, ty)) -> Error { loc; kind = Occurs_check (tv, ty) }
+  try Type_solver.unify got expected; Ok ()
+  with
+  | Type_solver.TypeMismatch (a, b) -> Error { loc; kind = Type_mismatch (a, b) }
+  | Type_solver.Occurs (tv, ty) -> Error { loc; kind = Occurs_check (tv, ty) }
+  | Type_solver.Compiler_bug msg -> error_msg loc ("Compiler bug: " ^ msg)
 
 let string_of_ty = Type_solver.string_of_ty
 let string_of_scheme = Type_solver.string_of_scheme
