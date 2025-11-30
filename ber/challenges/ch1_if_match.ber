@@ -13,7 +13,6 @@ let f b =
 >                   △
 > 7 |     | false -> false
 >                    ▲▲▲▲▲
->                    -----
 > 
 > Got:      bool
 >           ▲▲▲▲

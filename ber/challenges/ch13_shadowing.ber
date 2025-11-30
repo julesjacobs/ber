@@ -15,8 +15,7 @@ let _ = use_int x
 
 > Type mismatch:
 > 14 | let _ = use_int x
->                      ▲
->              △△△△△△△ -
+>              △△△△△△△ ▲
 > 
 > Got:      bool
 >           ▲▲▲▲

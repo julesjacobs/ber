@@ -13,7 +13,6 @@ and odd n =
 >              △
 > 9 |   | _ -> even n
 >              ▲▲▲▲  
->              ----  
 > 
 > Got:      int  -> bool
 >                   ▲▲▲▲

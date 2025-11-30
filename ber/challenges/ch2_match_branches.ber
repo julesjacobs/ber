@@ -19,7 +19,6 @@ let rec length_or_and xs =
 > 11 |     | true -> length_or_and xs'
 > 12 |     | false -> x
 >                     ▲
->                     -
 > 
 > Got:      bool
 >           ▲▲▲▲

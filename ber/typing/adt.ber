@@ -13,8 +13,7 @@ let wrong_ctor_arity = Node 1
 
 > Type mismatch:
 > 12 | let wrong_ctor_arity = Node 1
->                                  ▲
->                             △△△△ -
+>                             △△△△ ▲
 > 
 > Got:      int
 >           ▲▲▲

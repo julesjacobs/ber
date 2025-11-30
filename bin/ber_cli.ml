@@ -68,7 +68,7 @@ type highlight =
   ; label : string option
   }
 
-let print_error_span = ref true
+let print_error_span = ref false
 
 let got_ch = "▲"
 let expected_ch = "△"

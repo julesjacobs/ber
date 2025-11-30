@@ -3,8 +3,7 @@
 
 > Type mismatch:
 > 2 | (let 1 = true in 0)
->          ▲             
->          -   △△△△      
+>          ▲   △△△△      
 > 
 > Got:      int
 >           ▲▲▲
