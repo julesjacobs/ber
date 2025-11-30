@@ -21,6 +21,6 @@ let xs = Cons (true, Cons (false, Cons (true, Nil)))
 
 let _ = sum_bool_list xs
 
-> Type error: type mismatch: bool vs int
+> Type mismatch: bool vs int
 > 22 | let _ = sum_bool_list xs
 >                            ^^

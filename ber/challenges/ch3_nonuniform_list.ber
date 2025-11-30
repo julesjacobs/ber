@@ -5,6 +5,6 @@ type 'a list = Nil | Cons of 'a * 'a list
 
 let mixed_list = Cons (1, Cons (2, Cons (true, Nil)))
 
-> Type error: type mismatch: bool vs int
+> Type mismatch: bool vs int
 > 6 | let mixed_list = Cons (1, Cons (2, Cons (true, Nil)))
 >                                     ^^^^^^^^^^^^^^^^^^   

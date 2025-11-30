@@ -5,7 +5,7 @@ let good_annot = (fun x -> x) : int -> int
 
 let bad_annot = (fun x -> x) : int -> bool
 
-> Type error: type mismatch: int vs bool
+> Type mismatch: int vs bool
 > 6 | let bad_annot = (fun x -> x) : int -> bool
 >                      ^^^^^^^^^^               
 

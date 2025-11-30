@@ -1,6 +1,6 @@
 #type
 let rec occurs = fun x -> x x
 
-> Type error: occurs check failed: 'a occurs in 'a
+> Occurs check failed: 'a occurs in 'a
 > 2 | let rec occurs = fun x -> x x
 >                                 ^

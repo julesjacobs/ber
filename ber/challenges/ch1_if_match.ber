@@ -8,6 +8,6 @@ let f b =
   in
   x
 
-> Type error: type mismatch: int vs bool
+> Type mismatch: int vs bool
 > 7 |     | false -> false
 >                    ^^^^^

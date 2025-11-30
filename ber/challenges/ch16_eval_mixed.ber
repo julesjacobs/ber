@@ -21,6 +21,6 @@ let rec eval e =
   | Add (e1, e2) -> add (eval e1) (eval e2)
   | And (e1, e2) -> bool_and (eval e1) (eval e2)
 
-> Type error: type mismatch: bool vs int
+> Type mismatch: bool vs int
 > 20 |   | Bool b -> b
 >                    ^

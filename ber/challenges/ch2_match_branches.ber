@@ -11,6 +11,6 @@ let rec length_or_and xs =
     | true -> length_or_and xs'
     | false -> x
 
-> Type error: type mismatch: bool vs int
+> Type mismatch: bool vs int
 > 12 |     | false -> x
 >                     ^

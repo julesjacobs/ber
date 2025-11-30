@@ -5,18 +5,18 @@ type tree = Leaf | Node of tree * tree
 
 let make_node = Node
 
-> Type error: constructor arity mismatch
+> constructor arity mismatch
 > 6 | let make_node = Node
 >                     ^^^^
 
 let wrong_ctor_arity = Node 1
 
-> Type error: type mismatch: tree * tree vs int
-> 10 | let wrong_ctor_arity = Node 1
+> Type mismatch: tree * tree vs int
+> 12 | let wrong_ctor_arity = Node 1
 >                                  ^
 
 let unknown_ctor = Foo 1
 
-> Type error: unknown constructor Foo
-> 14 | let unknown_ctor = Foo 1
+> unknown constructor Foo
+> 18 | let unknown_ctor = Foo 1
 >                         ^^^^^

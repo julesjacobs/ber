@@ -8,6 +8,6 @@ and odd n =
   | 0 -> 0
   | _ -> even n
 
-> Type error: type mismatch: bool vs int
+> Type mismatch: bool vs int
 > 9 |   | _ -> even n
 >              ^^^^  
