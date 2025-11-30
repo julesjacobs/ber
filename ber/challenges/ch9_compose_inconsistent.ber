@@ -9,37 +9,45 @@ let g : bool -> bool = fun b -> b
 > val h : int -> int
 > val g : bool -> bool
 
-let _ = compose h g
+compose h h
+
+> val it : int -> int
+
+compose g g 
+
+> val it : bool -> bool
+
+compose h g
 
 > Type mismatch:
-> 12 | let _ = compose h g
->                        ▲
->                      △ -
+> 20 | compose h g
+>                ▲
+>              △ -
 > 
 > Got:      bool
 >           ▲▲▲▲
 > Expected: int
 >           △△△
 
-let _ = compose h g 0
+compose h g 0
 
 > Type mismatch:
-> 24 | let _ = compose h g 0
->                        ▲  
->                      △ -  
+> 32 | compose h g 0
+>                ▲  
+>              △ -  
 > 
 > Got:      bool
 >           ▲▲▲▲
 > Expected: int
 >           △△△
 
-let _ = compose h g 0 0
+compose h g 0 0
 
 > Type mismatch:
-> 27 | let _ = compose h g 0 0
->                      ▲      
->                      -      
->              △△△△△△△△△△△△△△△
+> 44 | compose h g 0 0
+>              ▲      
+>              -      
+>      △△△△△△△△△△△△△△△
 > 
 > Got:      int
 >           ▲▲▲
