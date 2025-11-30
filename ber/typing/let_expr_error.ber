@@ -1,4 +1,4 @@
 #type
 (let 1 = true in 0)
 
-> Type error at ber/typing/let_expr_error.ber:2:0-2:19: type mismatch
+> Type error at ber/typing/let_expr_error.ber:2:5-2:6: type mismatch: bool vs int

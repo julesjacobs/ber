@@ -8,4 +8,4 @@ and odd n =
   | 0 -> 0
   | _ -> even n
 
-> Type error at ber/challenges/ch15_mutrec.ber:2:0-9:15: type mismatch
+> Type error at ber/challenges/ch15_mutrec.ber:9:9-9:13: type mismatch: bool vs int

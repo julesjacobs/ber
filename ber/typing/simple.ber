@@ -17,4 +17,4 @@ let shadow = let x = lit_int in let x = x in x
 
 let unbound = y
 
-> Type error at ber/typing/simple.ber:18:0-18:15: unbound variable y
+> Type error at ber/typing/simple.ber:18:14-18:15: unbound variable y

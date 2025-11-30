@@ -61,7 +61,15 @@ let format_error (err : Parse.parse_error) =
   Format.asprintf "Error at %s: %s" (format_location err.loc) err.message
 
 let format_type_error (err : Type_infer.type_error) =
-  Format.asprintf "Type error at %s: %s" (format_location err.loc) err.message
+  let kind_msg =
+    match err.kind with
+    | Type_infer.Type_mismatch (a, b) ->
+      Format.asprintf "type mismatch: %s vs %s" (Type_infer.string_of_ty a) (Type_infer.string_of_ty b)
+    | Type_infer.Occurs_check (tv, ty) ->
+      Format.asprintf "occurs check failed: %s occurs in %s" (Type_infer.string_of_ty (Type_solver.TVar tv)) (Type_infer.string_of_ty ty)
+    | Type_infer.Message msg -> msg
+  in
+  Format.asprintf "Type error at %s: %s" (format_location err.loc) kind_msg
 
 let process_block_type filename (env : Type_infer.env) (block : File_format.block) =
   let has_content = List.exists (fun l -> String.trim l <> "") block.code_lines in

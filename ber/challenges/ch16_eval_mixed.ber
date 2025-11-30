@@ -21,4 +21,4 @@ let rec eval e =
   | Add (e1, e2) -> add (eval e1) (eval e2)
   | And (e1, e2) -> bool_and (eval e1) (eval e2)
 
-> Type error at ber/challenges/ch16_eval_mixed.ber:17:0-22:48: type mismatch
+> Type error at ber/challenges/ch16_eval_mixed.ber:20:14-20:15: type mismatch: bool vs int

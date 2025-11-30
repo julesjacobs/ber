@@ -8,4 +8,4 @@ let rec g x =
   | 0 -> Nil
   | _ -> g (Cons (x, Nil))
 
-> Type error at ber/challenges/ch21_polyrec.ber:6:0-9:26: type mismatch
+> Type error at ber/challenges/ch21_polyrec.ber:6:8-9:26: type mismatch: int vs list int

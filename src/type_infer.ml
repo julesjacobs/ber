@@ -4,6 +4,8 @@ open Type_solver
 
 module SMap = Map.Make (String)
 
+let dummy_loc = Location.span Lexing.dummy_pos Lexing.dummy_pos
+
 let ( let* ) r f =
   match r with
   | Ok v -> f v
@@ -13,22 +15,6 @@ let ( >>= ) r f =
   match r with
   | Ok v -> f v
   | Error msg -> Error msg
-
-let rec map_result f = function
-  | [] -> Ok []
-  | x :: xs ->
-    let* y = f x in
-    let* ys = map_result f xs in
-    Ok (y :: ys)
-
-let rec map_result2 f xs ys =
-  match xs, ys with
-  | [], [] -> Ok []
-  | x :: xs', y :: ys' ->
-    let* z = f x y in
-    let* zs = map_result2 f xs' ys' in
-    Ok (z :: zs)
-  | _ -> Error "length mismatch"
 
 type value_env = scheme SMap.t
 
@@ -47,8 +33,31 @@ type env =
 
 type type_error =
   { loc : Location.t
-  ; message : string
+  ; kind : type_error_kind
   }
+
+and type_error_kind =
+  | Type_mismatch of ty * ty
+  | Occurs_check of tvar * ty
+  | Message of string
+
+let error_msg loc message = Error { loc; kind = Message message }
+
+let rec map_result f = function
+  | [] -> Ok []
+  | x :: xs ->
+    let* y = f x in
+    let* ys = map_result f xs in
+    Ok (y :: ys)
+
+let rec map_result2 f xs ys =
+  match xs, ys with
+  | [], [] -> Ok []
+  | x :: xs', y :: ys' ->
+    let* z = f x y in
+    let* zs = map_result2 f xs' ys' in
+    Ok (z :: zs)
+  | _ -> error_msg dummy_loc "length mismatch"
 
 type binding_info =
   { name : string
@@ -71,18 +80,22 @@ let initial_env =
   ; gen_level = 1
   }
 
-let unify_res = Type_solver.unify_res
+let unify_res loc a b =
+  match Type_solver.unify a b with
+  | Ok () -> Ok ()
+  | Error (Type_solver.Type_mismatch (x, y)) -> Error { loc; kind = Type_mismatch (x, y) }
+  | Error (Type_solver.Occurs (tv, ty)) -> Error { loc; kind = Occurs_check (tv, ty) }
 
 let string_of_ty = Type_solver.string_of_ty
 let string_of_scheme = Type_solver.string_of_scheme
 
-let lookup_type env name =
+let lookup_type env name loc =
   match SMap.find_opt name env.types with
   | Some info -> Ok info
   | None ->
     (match name with
      | "int" | "bool" | "string" -> Ok { params = []; ctors = [] }
-      | _ -> Error ("unknown type " ^ name))
+     | _ -> error_msg loc ("unknown type " ^ name))
 
 let rec ty_of_type_expr env (tyvars : (string * tvar) list ref) (te : type_expr) =
   let lookup name = List.assoc_opt name !tyvars in
@@ -95,13 +108,9 @@ let rec ty_of_type_expr env (tyvars : (string * tvar) list ref) (te : type_expr)
        tyvars := (id.node, tv) :: !tyvars;
        Ok (TVar tv))
   | TyConstr (name, args) ->
-    let* type_info =
-      match lookup_type env name.node with
-      | Ok info -> Ok info
-      | Error msg -> Error msg
-    in
+    let* type_info = lookup_type env name.node te.loc in
     if List.length args <> List.length type_info.params then
-      Error ("type " ^ name.node ^ " expects " ^ string_of_int (List.length type_info.params) ^ " arguments")
+      error_msg te.loc ("type " ^ name.node ^ " expects " ^ string_of_int (List.length type_info.params) ^ " arguments")
     else
       let* args' = map_result (ty_of_type_expr env tyvars) args in
       Ok (mk_con ~loc:te.loc name.node args')
@@ -122,25 +131,25 @@ let rec infer_pattern env pat expected =
     let* binds = infer_pattern env p expected in
     Ok ((id.node, expected) :: binds)
   | PInt _ ->
-    let* () = unify_res expected (t_int ~loc:pat.loc ()) in
+    let* () = unify_res pat.loc expected (t_int ~loc:pat.loc ()) in
     Ok []
   | PBool _ ->
-    let* () = unify_res expected (t_bool ~loc:pat.loc ()) in
+    let* () = unify_res pat.loc expected (t_bool ~loc:pat.loc ()) in
     Ok []
   | PString _ ->
-    let* () = unify_res expected (t_string ~loc:pat.loc ()) in
+    let* () = unify_res pat.loc expected (t_string ~loc:pat.loc ()) in
     Ok []
   | PTuple elems ->
     let ts = List.map (fun _ -> fresh_ty env.gen_level) elems in
     let tuple_ty = t_tuple ~loc:pat.loc ts in
-    let* () = unify_res expected tuple_ty in
+    let* () = unify_res pat.loc expected tuple_ty in
     let rec loop acc pats tys =
       match pats, tys with
       | [], [] -> Ok (List.concat (List.rev acc))
       | p :: ps, t :: ts' ->
         let* b = infer_pattern env p t in
         loop (b :: acc) ps ts'
-      | _ -> Error "tuple arity mismatch in pattern"
+      | _ -> error_msg pat.loc "tuple arity mismatch in pattern"
     in
     loop [] elems ts
   | PConstr (ctor, args) ->
@@ -154,23 +163,23 @@ let rec infer_pattern env pat expected =
        in
        let arg_tys, res_ty = collect ctor_ty [] in
        if List.length arg_tys <> List.length args then
-         Error "constructor arity mismatch"
+         error_msg pat.loc "constructor arity mismatch"
        else (
-         let* () = unify_res expected res_ty in
+         let* () = unify_res pat.loc expected res_ty in
          let rec loop acc pats tys =
            match pats, tys with
            | [], [] -> Ok (List.concat (List.rev acc))
            | p :: ps, t :: ts' ->
              let* b = infer_pattern env p t in
              loop (b :: acc) ps ts'
-           | _ -> Error "constructor arity mismatch"
+           | _ -> error_msg pat.loc "constructor arity mismatch"
          in
          loop [] args arg_tys)
-     | None -> Error ("unknown constructor " ^ ctor.node))
+     | None -> error_msg pat.loc ("unknown constructor " ^ ctor.node))
   | PAnnot (p, texpr) ->
     let tyvars = ref [] in
     let* t = ty_of_type_expr env tyvars texpr in
-    let* () = unify_res expected t in
+    let* () = unify_res pat.loc expected t in
     infer_pattern env p t
 
 let rec infer_expr env expr =
@@ -180,24 +189,24 @@ let rec infer_expr env expr =
 and check_expr env expected expr =
   match expr.node with
   | EInt _ ->
-    let* () = unify_res expected (t_int ~loc:expr.loc ()) in
+    let* () = unify_res expr.loc expected (t_int ~loc:expr.loc ()) in
     Ok ()
   | EBool _ ->
-    let* () = unify_res expected (t_bool ~loc:expr.loc ()) in
+    let* () = unify_res expr.loc expected (t_bool ~loc:expr.loc ()) in
     Ok ()
   | EString _ ->
-    let* () = unify_res expected (t_string ~loc:expr.loc ()) in
+    let* () = unify_res expr.loc expected (t_string ~loc:expr.loc ()) in
     Ok ()
   | EVar id ->
     (match SMap.find_opt id.node env.vars with
-     | None -> Error ("unbound variable " ^ id.node)
+     | None -> error_msg expr.loc ("unbound variable " ^ id.node)
      | Some s ->
        let t = instantiate ~loc:id.loc env s in
-       let* () = unify_res t expected in
+       let* () = unify_res expr.loc t expected in
        Ok ())
   | EConstr (ctor, args) ->
     (match SMap.find_opt ctor.node env.vars with
-     | None -> Error ("unknown constructor " ^ ctor.node)
+     | None -> error_msg expr.loc ("unknown constructor " ^ ctor.node)
      | Some scheme ->
        let ctor_ty = instantiate ~loc:ctor.loc env scheme in
        let rec collect ty acc =
@@ -206,10 +215,10 @@ and check_expr env expected expr =
          | result -> List.rev acc, result
        in
        let arg_tys, res_ty = collect ctor_ty [] in
-       if List.length arg_tys <> List.length args then
-         Error "constructor arity mismatch"
-       else
-         let* () = unify_res res_ty expected in
+    if List.length arg_tys <> List.length args then
+      error_msg expr.loc "constructor arity mismatch"
+    else
+         let* () = unify_res expr.loc res_ty expected in
          let* _ =
            map_result2
              (fun e t ->
@@ -230,7 +239,7 @@ and check_expr env expected expr =
         elems
         elem_tys
     in
-    let* () = unify_res tuple_ty expected in
+    let* () = unify_res expr.loc tuple_ty expected in
     Ok ()
   | ELambda { params; fn_body } ->
     let env' = push_level env in
@@ -242,7 +251,7 @@ and check_expr env expected expr =
         | p :: ps, t :: ts' ->
           let* b = infer_pattern env' p t in
           loop (b :: acc) ps ts'
-        | _ -> Error "arity mismatch in lambda parameters"
+        | _ -> error_msg expr.loc "arity mismatch in lambda parameters"
       in
       loop [] params param_tys
     in
@@ -258,7 +267,7 @@ and check_expr env expected expr =
       List.fold_right (fun arg acc -> t_arrow ~loc:expr.loc arg acc) param_tys result_ty
     in
     let* () = check_expr env'' result_ty fn_body in
-    let* () = unify_res fn_ty expected in
+    let* () = unify_res expr.loc fn_ty expected in
     Ok ()
   | EApp (fn, args) ->
     let result_ty = expected in
@@ -310,7 +319,7 @@ and check_expr env expected expr =
     let tyvars = ref [] in
     let* t_expected = ty_of_type_expr env tyvars texpr in
     let* () = check_expr env t_expected e in
-    let* () = unify_res expected t_expected in
+    let* () = unify_res texpr.loc expected t_expected in
     Ok ()
 
 and infer_let_bindings env rec_flag bindings =
@@ -344,7 +353,7 @@ and infer_let_bindings env rec_flag bindings =
         | b :: rest ->
           (match b.node.lhs.node with
            | PVar id -> collect (id.node :: acc) rest
-           | _ -> Error "let rec requires variable patterns")
+           | _ -> error_msg b.loc "let rec requires variable patterns")
       in
       collect [] bindings
     in
@@ -364,7 +373,7 @@ and infer_let_bindings env rec_flag bindings =
         | b :: bs', (_, ty) :: provs' ->
           let* () = check_expr env_with_prov ty b.node.rhs in
           loop bs' provs'
-        | _ -> Error "arity mismatch in let rec bindings"
+        | _ -> error_msg dummy_loc "arity mismatch in let rec bindings"
       in
       loop bindings provisional
     in
@@ -424,18 +433,17 @@ let infer_toplevel env (tl : toplevel) =
   | TType decl ->
     (match register_type_decl env decl with
      | Ok env' -> Ok (env', InfoType tl.loc)
-     | Error msg -> Error { loc = tl.loc; message = msg })
+     | Error err -> Error err)
   | TExpr e ->
     (match infer_expr env e with
      | Ok ty ->
        let sch = generalize env ty in
        Ok (env, InfoExpr (sch, tl.loc))
-     | Error msg ->
-       Error { loc = tl.loc; message = msg })
+     | Error err -> Error err)
   | TLet (rec_flag, bindings) ->
     (match infer_let_bindings env rec_flag bindings with
      | Ok (env', infos) -> Ok (env', InfoLet (infos, tl.loc))
-     | Error msg -> Error { loc = tl.loc; message = msg })
+     | Error err -> Error err)
 
 let infer_program env (prog : program) =
   let rec loop env infos errors = function
@@ -443,6 +451,6 @@ let infer_program env (prog : program) =
     | tl :: rest ->
       (match infer_toplevel env tl with
        | Ok (env', info) -> loop env' (info :: infos) errors rest
-       | Error err -> loop env (infos) (err :: errors) rest)
+       | Error err -> loop env infos (err :: errors) rest)
   in
   loop env [] [] prog

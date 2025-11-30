@@ -8,4 +8,4 @@ let f b =
   | true -> id 0
   | false -> id true
 
-> Type error at ber/challenges/ch20_poly_id.ber:6:0-9:20: type mismatch
+> Type error at ber/challenges/ch20_poly_id.ber:9:16-9:20: type mismatch: int vs bool

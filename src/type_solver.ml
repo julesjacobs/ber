@@ -14,6 +14,15 @@ and ty =
 
 and scheme = Forall of tvar list * ty
 
+type unify_error =
+  | Type_mismatch of ty * ty
+  | Occurs of tvar * ty
+
+let ( let* ) r f =
+  match r with
+  | Ok v -> f v
+  | Error _ as e -> e
+
 let counter = ref 0
 
 let fresh_id () =
@@ -57,25 +66,43 @@ exception TypeError of string
 let rec occurs_check_adjust_levels tv ty =
   match prune ty with
   | TVar tv' ->
-    if tv.id = tv'.id then raise (TypeError "recursive types");
-    if tv'.level > tv.level then tv'.level <- tv.level
-  | TCon (_, args, _) -> List.iter (occurs_check_adjust_levels tv) args
+    if tv.id = tv'.id then Error (Occurs (tv, ty))
+    else (
+      if tv'.level > tv.level then tv'.level <- tv.level;
+      Ok ())
+  | TCon (_, args, _) ->
+    let rec loop = function
+      | [] -> Ok ()
+      | a :: rest ->
+        let* () = occurs_check_adjust_levels tv a in
+        loop rest
+    in
+    loop args
 
-let rec unify a b =
+and unify_list xs ys =
+  match xs, ys with
+  | [], [] -> Ok ()
+  | x :: xs', y :: ys' ->
+    let* () = unify x y in
+    unify_list xs' ys'
+  | _ -> Error (Type_mismatch (TCon ("", xs, None), TCon ("", ys, None)))
+
+and unify a b =
   let a = prune a in
   let b = prune b in
   match a, b with
-  | TVar va, TVar vb when va.id = vb.id -> ()
+  | TVar va, TVar vb when va.id = vb.id -> Ok ()
   | TVar va, ty | ty, TVar va ->
-    occurs_check_adjust_levels va ty;
-    va.instance <- Some ty
+    let* () = occurs_check_adjust_levels va ty in
+    va.instance <- Some ty;
+    Ok ()
   | TCon (na, args_a, _), TCon (nb, args_b, _) ->
     if na <> nb || List.length args_a <> List.length args_b then
-      raise (TypeError "type mismatch")
+      Error (Type_mismatch (a, b))
     else
-      List.iter2 unify args_a args_b
+      unify_list args_a args_b
 
-let unify_res a b = try unify a b; Ok () with TypeError msg -> Error msg
+let unify_res = unify
 
 let generalize ~level ty =
   let ty_ftv = ftv_ty IMap.empty ty in
@@ -168,3 +195,7 @@ let string_of_scheme s =
       List.fold_left (fun acc tv -> IMap.add tv.id () acc) IMap.empty tvs
     in
     string_of_ty ~generalized:gen ty
+let ( let* ) r f =
+  match r with
+  | Ok v -> f v
+  | Error _ as e -> e

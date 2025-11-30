@@ -19,4 +19,4 @@ let capture_list x =
   let prepend y = Cons (x, Cons (y, Nil)) in
   (prepend 1, prepend true)
 
-> Type error at ber/typing/let_generalization.ber:18:0-20:27: type mismatch
+> Type error at ber/typing/let_generalization.ber:20:22-20:26: type mismatch: int vs bool
