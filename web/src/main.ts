@@ -1,5 +1,5 @@
 import { EditorState, StateEffect, StateField } from "@codemirror/state";
-import { Decoration, DecorationSet, EditorView, keymap, highlightSpecialChars } from "@codemirror/view";
+import { Decoration, DecorationSet, EditorView, ViewUpdate, keymap, highlightSpecialChars } from "@codemirror/view";
 import { basicSetup } from "codemirror";
 import { StreamLanguage } from "@codemirror/language";
 import { oCaml } from "@codemirror/legacy-modes/mode/mllike";
@@ -85,17 +85,38 @@ const waitForBer = async (timeoutMs = 10000): Promise<BerApi> => {
   throw new Error("ber wasm runtime not ready. Did ber_wasm.bc.wasm.js load?");
 };
 
+let running = false;
+let pending = false;
+let nextRunId = 0;
+let appliedRunId = 0;
+
 const runTypecheck = async () => {
-  setStatus("Running typecheck…", "pending");
+  if (running) {
+    pending = true;
+    return;
+  }
+  running = true;
+  const runId = ++nextRunId;
+  setStatus("Typechecking…", "pending");
   try {
     const api = await waitForBer();
     const result = api.typecheck(view.state.doc.toString());
+    if (runId < appliedRunId) return;
+    appliedRunId = runId;
     renderOutput(result.output.trim(), result.ok);
     updateHighlights(result.spans ?? []);
   } catch (err) {
+    if (runId < appliedRunId) return;
+    appliedRunId = runId;
     const message = err instanceof Error ? err.message : String(err);
     renderOutput(message, false);
     updateHighlights([]);
+  } finally {
+    running = false;
+    if (pending) {
+      pending = false;
+      void runTypecheck();
+    }
   }
 };
 
@@ -162,6 +183,11 @@ const updateHighlights = (spans: Span[]) => {
   view.dispatch({ effects: errorMarks.of(deco) });
 };
 
+const queueTypecheck = () => {
+  setStatus("Typechecking…", "pending");
+  void runTypecheck();
+};
+
 view = new EditorView({
   parent: editorMount,
   state: EditorState.create({
@@ -170,6 +196,11 @@ view = new EditorView({
       errorField,
       typecheckKeymap,
       typecheckDomHandlers,
+      EditorView.updateListener.of((update: ViewUpdate) => {
+        if (update.docChanged) {
+          queueTypecheck();
+        }
+      }),
       basicSetup,
       highlightSpecialChars(),
       StreamLanguage.define(oCaml),
