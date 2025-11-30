@@ -1,0 +1,7 @@
+(executable
+ (name ber_wasm)
+ (modes wasm)
+ (libraries ber js_of_ocaml js_of_ocaml-ppx)
+ (preprocess (pps js_of_ocaml-ppx))
+ (wasm_of_ocaml
+  (flags :standard)))
