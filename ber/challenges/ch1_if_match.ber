@@ -8,4 +8,6 @@ let f b =
   in
   x
 
-> Type error at ber/challenges/ch1_if_match.ber:7:15-7:20: type mismatch: int vs bool
+> Type error: type mismatch: int vs bool
+> 7 |     | false -> false
+>                    ^^^^^

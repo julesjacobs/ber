@@ -18,4 +18,6 @@ let apply_all fs x =
 let _ =
   apply_all (Cons ((fun n -> n), Cons ((fun n -> n), Nil))) 10
 
-> Type error at ber/challenges/ch7_map_args.ber:19:60-19:62: type mismatch: ('b -> 'b) -> 'a vs int
+> Type error: type mismatch: ('b -> 'b) -> 'a vs int
+> 19 |   apply_all (Cons ((fun n -> n), Cons ((fun n -> n), Nil))) 10
+>                                                                  ^^

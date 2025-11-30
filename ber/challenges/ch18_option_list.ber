@@ -8,4 +8,6 @@ type 'a option = None | Some of 'a
 let bad_options =
   Cons (Some 1, Cons (None, Cons (Some true, Nil)))
 
-> Type error at ber/challenges/ch18_option_list.ber:9:8-9:48: type mismatch: bool vs int
+> Type error: type mismatch: bool vs int
+> 9 |   Cons (Some 1, Cons (None, Cons (Some true, Nil)))
+>             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   

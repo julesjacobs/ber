@@ -11,4 +11,6 @@ let g : bool -> bool = fun b -> b
 
 let _ = compose h g 0
 
-> Type error at ber/challenges/ch9_compose_inconsistent.ber:12:18-12:19: type mismatch: bool vs int
+> Type error: type mismatch: bool vs int
+> 12 | let _ = compose h g 0
+>                        ^  

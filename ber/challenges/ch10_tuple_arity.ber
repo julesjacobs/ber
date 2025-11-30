@@ -3,8 +3,12 @@ let x, y, z = 1, 2
 (* CR codex: This should be flagged as a tuple arity mismatch (3 vars vs 2-tuple),
    not just a generic type mismatch. *)
 
-> Type error at ber/challenges/ch10_tuple_arity.ber:2:4-2:11: type mismatch: int * int vs 'a * 'b * 'c
+> Type error: type mismatch: int * int vs 'a * 'b * 'c
+> 2 | let x, y, z = 1, 2
+>         ^^^^^^^       
 
 let _ = x
 
-> Type error at ber/challenges/ch10_tuple_arity.ber:8:8-8:9: unbound variable x
+> Type error: unbound variable x
+> 8 | let _ = x
+>             ^

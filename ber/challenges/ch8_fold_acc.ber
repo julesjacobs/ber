@@ -21,4 +21,6 @@ let xs = Cons (true, Cons (false, Cons (true, Nil)))
 
 let _ = sum_bool_list xs
 
-> Type error at ber/challenges/ch8_fold_acc.ber:22:22-22:24: type mismatch: bool vs int
+> Type error: type mismatch: bool vs int
+> 22 | let _ = sum_bool_list xs
+>                            ^^

@@ -7,4 +7,6 @@ let add_pair p =
 
 let _ = add_pair 1 2
 
-> Type error at ber/challenges/ch5_tuple_vs_curried.ber:8:17-8:18: type mismatch: 'b -> 'a * 'c vs int
+> Type error: type mismatch: 'b -> 'a * 'c vs int
+> 8 | let _ = add_pair 1 2
+>                      ^  

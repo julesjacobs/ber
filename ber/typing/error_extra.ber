@@ -5,23 +5,33 @@ type 'a option = None | Some of 'a
 
 let bad_app = 3 4
 
-> Type error at ber/typing/error_extra.ber:6:14-6:15: type mismatch: 'b -> 'a vs int
+> Type error: type mismatch: 'b -> 'a vs int
+> 6 | let bad_app = 3 4
+>                   ^  
 
 let ascr_mismatch = 1 : bool
 
-> Type error at ber/typing/error_extra.ber:10:20-10:21: type mismatch: bool vs int
+> Type error: type mismatch: bool vs int
+> 10 | let ascr_mismatch = 1 : bool
+>                          ^       
 
 let match_mismatch = match Some 1 with | Some x -> x
 | None -> true
 
-> Type error at ber/typing/error_extra.ber:15:10-15:14: type mismatch: int vs bool
+> Type error: type mismatch: int vs bool
+> 15 | | None -> true
+>                ^^^^
 
 let guard_non_bool2 = match Some 1 with | Some x when x -> x
 | None -> 0
 
-> Type error at ber/typing/error_extra.ber:19:54-19:55: type mismatch: int vs bool
+> Type error: type mismatch: int vs bool
+> 19 | let guard_non_bool2 = match Some 1 with | Some x when x -> x
+>                                                            ^     
 
 let ctor_unknown_pat = match None with | Foo x -> x
 | _ -> 0
 
-> Type error at ber/typing/error_extra.ber:24:41-24:46: unknown constructor Foo
+> Type error: unknown constructor Foo
+> 24 | let ctor_unknown_pat = match None with | Foo x -> x
+>                                               ^^^^^     

@@ -17,4 +17,6 @@ let annotated = fun (x : int) -> x
 
 let bad_annot = fun (x : int) -> x : bool
 
-> Type error at ber/typing/functions.ber:18:33-18:34: type mismatch: int vs bool
+> Type error: type mismatch: int vs bool
+> 18 | let bad_annot = fun (x : int) -> x : bool
+>                                       ^       

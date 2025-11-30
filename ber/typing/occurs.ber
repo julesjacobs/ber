@@ -1,4 +1,6 @@
 #type
 let rec occurs = fun x -> x x
 
-> Type error at ber/typing/occurs.ber:2:28-2:29: occurs check failed: 'a occurs in 'a
+> Type error: occurs check failed: 'a occurs in 'a
+> 2 | let rec occurs = fun x -> x x
+>                                 ^

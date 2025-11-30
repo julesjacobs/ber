@@ -11,7 +11,9 @@ let option_default = fun def opt -> match opt with | None -> def
 let guard_non_bool = match None with | None when 1 -> true
 | Some _ -> false
 
-> Type error at ber/typing/match.ber:11:49-11:50: type mismatch: bool vs int
+> Type error: type mismatch: bool vs int
+> 11 | let guard_non_bool = match None with | None when 1 -> true
+>                                                       ^        
 
 let tuple_match = fun t -> match t with
 | a, b -> a

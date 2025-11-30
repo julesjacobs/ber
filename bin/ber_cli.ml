@@ -1,4 +1,5 @@
 open Ber
+open Location
 
 let render_output_lines content =
   let lines = String.split_on_char '\n' content in
@@ -60,6 +61,79 @@ let format_location (loc : Location.t) =
 let format_error (err : Parse.parse_error) =
   Format.asprintf "Error at %s: %s" (format_location err.loc) err.message
 
+let format_locations (locs : Location.t list) =
+  match locs with
+  | [] -> ""
+  | locs ->
+    let file = (List.hd locs).file in
+    let all_same_file = List.for_all (fun l -> l.file = file) locs in
+    if not all_same_file then
+      String.concat "\n" (List.map format_location locs)
+    else
+      let lines =
+        try
+          let ic = open_in file in
+          let rec loop acc =
+            match input_line ic with
+            | line -> loop (line :: acc)
+            | exception End_of_file ->
+              close_in ic;
+              List.rev acc
+          in
+          Some (loop [])
+        with _ -> None
+      in
+      match lines with
+      | None -> String.concat "\n" (List.map format_location locs)
+      | Some file_lines ->
+        let min_line =
+          List.fold_left (fun acc l -> min acc l.start.Lexing.pos_lnum) max_int locs
+        in
+        let max_line =
+          List.fold_left (fun acc l -> max acc l.stop.Lexing.pos_lnum) min_int locs
+        in
+        let buf = Buffer.create 128 in
+        for line_no = min_line to max_line do
+          let line_content =
+            if line_no - 1 < List.length file_lines then List.nth file_lines (line_no - 1) else ""
+          in
+          let prefix = Printf.sprintf "%d | " line_no in
+          Buffer.add_string buf prefix;
+          Buffer.add_string buf line_content;
+          Buffer.add_char buf '\n';
+          let underline =
+            let len = String.length line_content in
+            let arr = Array.make len ' ' in
+            let apply_loc loc =
+              let start_line = loc.start.Lexing.pos_lnum in
+              let stop_line = loc.stop.Lexing.pos_lnum in
+              let start_col = loc.start.Lexing.pos_cnum - loc.start.Lexing.pos_bol in
+              let stop_col = loc.stop.Lexing.pos_cnum - loc.stop.Lexing.pos_bol in
+              if line_no < start_line || line_no > stop_line then ()
+              else
+                let s =
+                  if line_no = start_line then start_col else 0
+                in
+                let e =
+                  if line_no = stop_line then max s (stop_col - 1) else len - 1
+                in
+                let s = max 0 (min s (len - 1)) in
+                let e = max s (min e (len - 1)) in
+                for i = s to e do
+                  arr.(i) <- '^'
+                done
+            in
+            List.iter apply_loc locs;
+            let underline_str = String.init len (fun i -> arr.(i)) in
+            underline_str
+          in
+          if underline |> String.trim |> String.length > 0 then (
+            Buffer.add_string buf (String.make (String.length prefix) ' ');
+            Buffer.add_string buf underline;
+            Buffer.add_char buf '\n')
+        done;
+        Buffer.contents buf
+
 let format_type_error (err : Type_infer.type_error) =
   let kind_msg =
     match err.kind with
@@ -69,7 +143,8 @@ let format_type_error (err : Type_infer.type_error) =
       Format.asprintf "occurs check failed: %s occurs in %s" (Type_infer.string_of_ty (Type_solver.TVar tv)) (Type_infer.string_of_ty ty)
     | Type_infer.Message msg -> msg
   in
-  Format.asprintf "Type error at %s: %s" (format_location err.loc) kind_msg
+  let loc_block = format_locations [ err.loc ] in
+  Format.asprintf "Type error: %s\n%s" kind_msg loc_block
 
 let process_block_type filename (env : Type_infer.env) (block : File_format.block) =
   let has_content = List.exists (fun l -> String.trim l <> "") block.code_lines in
