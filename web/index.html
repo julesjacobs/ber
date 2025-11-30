@@ -159,6 +159,40 @@
     .ber-twiddle-got { text-decoration-color: var(--error); }
     .ber-twiddle-expected { text-decoration-color: var(--accent); }
     .ber-twiddle-generic { text-decoration-color: var(--warn); }
+    .type-heading {
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .type-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin: 4px 0;
+      font-family: "JetBrains Mono", "Fira Code", monospace;
+    }
+    .type-label {
+      min-width: 90px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 12px;
+    }
+    .type-text {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .type-text.got { border-color: rgba(248, 113, 113, 0.4); }
+    .type-text.expected { border-color: rgba(34, 197, 94, 0.4); }
+    .type-mark {
+      text-decoration: underline wavy;
+      text-decoration-thickness: 2px;
+    }
+    .type-mark-got { text-decoration-color: var(--error); }
+    .type-mark-expected { text-decoration-color: var(--accent); }
   </style>
 </head>
 <body>

@@ -23,10 +23,32 @@ let wrap_result (res : Ber.Frontend.check_result) =
   in
   let spans = List.map js_span res.spans in
   let spans_arr = Js.array (Array.of_list spans) in
+  let detail =
+    match res.detail with
+    | None -> Js.null
+    | Some (Ber.Frontend.Mismatch d) ->
+      let marks arr =
+        Js.array (Array.of_list (List.map (fun (s, l) ->
+            object%js
+              val start = s
+              val len = l
+            end) arr))
+      in
+      Js.some
+        (object%js
+          val kind = Js.string "type_mismatch"
+          val heading = Js.string d.heading
+          val got = Js.string d.got
+          val expected = Js.string d.expected
+          val marksGot = marks d.marks_got
+          val marksExpected = marks d.marks_expected
+        end)
+  in
   object%js
     val ok = Js.bool res.ok
     val output = Js.string output
     val spans = spans_arr
+    val detail = detail
   end
 
 let typecheck code =

@@ -13,10 +13,24 @@ type Span = {
   label?: string | null;
 };
 
+type Mark = { start: number; len: number };
+
+type MismatchDetail = {
+  kind: "type_mismatch";
+  heading: string;
+  got: string;
+  expected: string;
+  marksGot: Mark[];
+  marksExpected: Mark[];
+};
+
+type Detail = MismatchDetail;
+
 type BerResult = {
   ok: boolean;
   output: string;
   spans?: Span[];
+  detail?: Detail | null;
 };
 
 type BerApi = {
@@ -68,10 +82,65 @@ const setStatus = (text: string, mode: "ok" | "error" | "pending") => {
   status.dataset.state = mode;
 };
 
-const renderOutput = (text: string, ok: boolean) => {
-  output.textContent = text;
+const escapeHtml = (str: string) =>
+  str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const renderMarkedText = (text: string, marks: Mark[], cls: string) => {
+  if (!marks.length) return escapeHtml(text);
+  const sorted = [...marks].sort((a, b) => a.start - b.start);
+  let cursor = 0;
+  let html = "";
+  for (const m of sorted) {
+    const start = Math.max(0, Math.min(text.length, m.start));
+    const end = Math.max(start, Math.min(text.length, m.start + m.len));
+    if (start > cursor) {
+      html += escapeHtml(text.slice(cursor, start));
+    }
+    html += `<span class="${cls}">${escapeHtml(text.slice(start, end))}</span>`;
+    cursor = end;
+  }
+  if (cursor < text.length) html += escapeHtml(text.slice(cursor));
+  return html;
+};
+
+const renderOutput = (result: BerResult) => {
+  const ok = result.ok;
   output.dataset.state = ok ? "ok" : "error";
   setStatus(ok ? "Typecheck succeeded" : "Typecheck failed", ok ? "ok" : "error");
+
+  const detail = result.detail;
+  if (!ok || detail) {
+    if (detail && detail.kind === "type_mismatch") {
+      const got = renderMarkedText(detail.got, detail.marksGot, "type-mark type-mark-got");
+      const expected = renderMarkedText(
+        detail.expected,
+        detail.marksExpected,
+        "type-mark type-mark-expected"
+      );
+      const heading = escapeHtml(detail.heading);
+      output.innerHTML = `
+        <div class="type-heading">Type mismatch at ${heading}</div>
+        <div class="type-row">
+          <span class="type-label">Got:</span>
+          <span class="type-text got">${got}</span>
+        </div>
+        <div class="type-row">
+          <span class="type-label">Expected:</span>
+          <span class="type-text expected">${expected}</span>
+        </div>
+      `;
+      return;
+    }
+    output.textContent = result.output;
+    return;
+  }
+
+  output.textContent = result.output;
 };
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -103,13 +172,13 @@ const runTypecheck = async () => {
     const result = api.typecheck(view.state.doc.toString());
     if (runId < appliedRunId) return;
     appliedRunId = runId;
-    renderOutput(result.output.trim(), result.ok);
+    renderOutput(result);
     updateHighlights(result.spans ?? []);
   } catch (err) {
     if (runId < appliedRunId) return;
     appliedRunId = runId;
     const message = err instanceof Error ? err.message : String(err);
-    renderOutput(message, false);
+    renderOutput({ ok: false, output: message });
     updateHighlights([]);
   } finally {
     running = false;

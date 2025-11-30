@@ -56,3 +56,23 @@ Cons(1, Cons((fun x -> x), Nil))
 >              ▲▲   
 > Expected: int
 >           △△△
+
+let bool_not2 b =
+  match b with
+  | true -> 2
+  | false -> 1
+
+> val bool_not2 : bool -> int
+
+let bad_fs =
+  Cons ((fun (x) -> x), Cons (bool_not2, Nil))
+
+> Type mismatch:
+> 66 |   Cons ((fun (x) -> x), Cons (bool_not2, Nil))
+>                                    △△△△△△△△△
+>                                    ▲▲▲▲▲▲▲▲▲
+> 
+> Got:      bool  -> int
+>                    ▲▲▲
+> Expected: bool  -> bool
+>                    △△△△
