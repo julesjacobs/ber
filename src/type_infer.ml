@@ -328,9 +328,17 @@ and infer_let_bindings env rec_flag bindings =
     let rec loop env_acc infos_rev = function
       | [] -> Ok (env_acc, List.rev infos_rev)
       | b :: rest ->
-        let rhs_ty = fresh_ty env_level.gen_level in
+        let* rhs_ty, pat =
+          match b.node.lhs.node with
+          | PAnnot (p, texpr) ->
+            let tyvars = ref [] in
+            let* ann_ty = ty_of_type_expr env tyvars texpr in
+            Ok (ann_ty, p)
+          | _ ->
+            Ok (fresh_ty env_level.gen_level, b.node.lhs)
+        in
         let* () = check_expr env_level rhs_ty b.node.rhs in
-        let* binds = infer_pattern env_level b.node.lhs rhs_ty in
+        let* binds = infer_pattern env_level pat rhs_ty in
         let generalized =
           List.map
             (fun (name, ty) -> { name; scheme = generalize env ty })
