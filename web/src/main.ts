@@ -141,9 +141,10 @@ const renderOutput = (result: BerResult) => {
     }
     if (detail && detail.kind === "occurs") {
       const msg = escapeHtml(detail.occursTy ?? "");
+      const heading = escapeHtml(detail.heading ? `at ${detail.heading}` : "");
       output.innerHTML = `
-        <div class="type-heading">Occurs check failed</div>
-        <div class="occurs-box"><strong>∞</strong> = ${msg}</div>
+        <div class="type-heading">Would require self-referential type ${heading}</div>
+        <div class="occurs-box">∞ = ${msg}</div>
       `;
       return;
     }

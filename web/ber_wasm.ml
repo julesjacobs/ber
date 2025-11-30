@@ -37,11 +37,23 @@ let wrap_result (res : Ber.Frontend.check_result) =
       Js.some
         (object%js
           val kind = Js.string "type_mismatch"
-          val heading = Js.string d.heading
-          val got = Js.string d.got
-          val expected = Js.string d.expected
-          val marksGot = marks d.marks_got
-          val marksExpected = marks d.marks_expected
+          val heading = Js.some (Js.string d.heading)
+          val got = Js.some (Js.string d.got)
+          val expected = Js.some (Js.string d.expected)
+          val marksGot = Js.some (marks d.marks_got)
+          val marksExpected = Js.some (marks d.marks_expected)
+          val occursTy = Js.null
+        end)
+    | Some (Ber.Frontend.Occurs ty_s) ->
+      Js.some
+        (object%js
+          val kind = Js.string "occurs"
+          val heading = Js.some (Js.string ty_s.heading)
+          val got = Js.null
+          val expected = Js.null
+          val marksGot = Js.null
+          val marksExpected = Js.null
+          val occursTy = Js.some (Js.string ty_s.ty)
         end)
   in
   object%js

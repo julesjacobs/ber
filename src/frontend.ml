@@ -23,6 +23,10 @@ and mismatch_detail =
 
 and detail =
   | Mismatch of mismatch_detail
+  | Occurs of
+      { heading : string
+      ; ty : string
+      }
 
 let format_location (loc : Location.t) =
   let start_line = loc.start.Lexing.pos_lnum in
@@ -41,10 +45,16 @@ let format_type_error (err : Type_infer.type_error) =
       (format_location err.loc)
       (Type_infer.string_of_ty got)
       (Type_infer.string_of_ty expected)
-  | Type_infer.Occurs_check (_tv, ty) ->
-    Format.asprintf "Occurs check at %s: cannot construct infinite type %s"
-      (format_location err.loc)
-      (Type_infer.string_of_ty ty)
+  | Type_infer.Occurs_check (tv, ty) ->
+    let inf = TCon ("∞", [], None) in
+    let ty_infinite =
+      let save = tv.instance in
+      tv.instance <- Some inf;
+      let s = Type_infer.string_of_ty ty in
+      tv.instance <- save;
+      s
+    in
+    "Would require self-referential type ∞ = " ^ ty_infinite
   | Type_infer.Message msg ->
     Format.asprintf "Error at %s: %s" (format_location err.loc) msg
 
@@ -310,6 +320,16 @@ let typecheck_string ?(filename = "repl") source =
              match err.kind with
              | Type_infer.Type_mismatch (got, expected) ->
                Some (Mismatch (mismatch_detail (format_location err.loc) expected got))
+             | Type_infer.Occurs_check (tv, ty) ->
+               let inf = TCon ("∞", [], None) in
+               let ty_infinite =
+                 let save = tv.instance in
+                 tv.instance <- Some inf;
+                 let s = Type_infer.string_of_ty ty in
+                 tv.instance <- save;
+                 s
+               in
+               Some (Occurs { heading = format_location err.loc; ty = ty_infinite })
              | _ -> None
            in
            { ok = false; output_lines = [ format_type_error err ]; spans; detail })
