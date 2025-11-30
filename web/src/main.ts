@@ -1,12 +1,26 @@
-import { EditorState } from "@codemirror/state";
-import { EditorView, keymap, highlightSpecialChars } from "@codemirror/view";
+import { EditorState, StateEffect, StateField } from "@codemirror/state";
+import { Decoration, DecorationSet, EditorView, keymap, highlightSpecialChars } from "@codemirror/view";
 import { basicSetup } from "codemirror";
 import { StreamLanguage } from "@codemirror/language";
 import { oCaml } from "@codemirror/legacy-modes/mode/mllike";
 import { oneDark } from "@codemirror/theme-one-dark";
 
+type Span = {
+  startLine: number;
+  startCol: number;
+  endLine: number;
+  endCol: number;
+  label?: string | null;
+};
+
+type BerResult = {
+  ok: boolean;
+  output: string;
+  spans?: Span[];
+};
+
 type BerApi = {
-  typecheck: (code: string) => { ok: boolean; output: string };
+  typecheck: (code: string) => BerResult;
 };
 
 declare global {
@@ -36,6 +50,18 @@ let id = fun x -> x
 let demo = map_option id (Some 42)`;
 
 let view: EditorView;
+const errorMarks = StateEffect.define<DecorationSet>();
+const errorField = StateField.define<DecorationSet>({
+  create: () => Decoration.none,
+  update(value, tr) {
+    const updated = value.map(tr.changes);
+    for (const e of tr.effects) {
+      if (e.is(errorMarks)) return e.value;
+    }
+    return updated;
+  },
+  provide: (f) => EditorView.decorations.from(f),
+});
 
 const setStatus = (text: string, mode: "ok" | "error" | "pending") => {
   status.textContent = text;
@@ -65,9 +91,11 @@ const runTypecheck = async () => {
     const api = await waitForBer();
     const result = api.typecheck(view.state.doc.toString());
     renderOutput(result.output.trim(), result.ok);
+    updateHighlights(result.spans ?? []);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     renderOutput(message, false);
+    updateHighlights([]);
   }
 };
 
@@ -95,11 +123,51 @@ const typecheckDomHandlers = EditorView.domEventHandlers({
   },
 });
 
+const spanToRange = (span: Span) => {
+  const doc = view.state.doc;
+  const clampLine = (line: number) => Math.max(1, Math.min(doc.lines, line));
+  const startLine = clampLine(span.startLine);
+  const endLine = clampLine(span.endLine);
+  const startLineInfo = doc.line(startLine);
+  const endLineInfo = doc.line(endLine);
+  const start = Math.min(
+    startLineInfo.from + Math.max(0, span.startCol),
+    doc.length
+  );
+  const end = Math.min(
+    endLineInfo.from + Math.max(0, span.endCol),
+    doc.length
+  );
+  return { from: Math.min(start, end), to: Math.max(start, end) };
+};
+
+const decorateSpans = (spans: Span[]) => {
+  const marks: Decoration[] = [];
+  for (const span of spans) {
+    const { from, to } = spanToRange(span);
+    if (from === to) continue;
+    const cls =
+      span.label === "got"
+        ? "ber-twiddle ber-twiddle-got"
+        : span.label === "expected"
+          ? "ber-twiddle ber-twiddle-expected"
+          : "ber-twiddle ber-twiddle-generic";
+    marks.push(Decoration.mark({ class: cls }).range(from, to));
+  }
+  return Decoration.set(marks, true);
+};
+
+const updateHighlights = (spans: Span[]) => {
+  const deco = spans.length ? decorateSpans(spans) : Decoration.none;
+  view.dispatch({ effects: errorMarks.of(deco) });
+};
+
 view = new EditorView({
   parent: editorMount,
   state: EditorState.create({
     doc: initialDoc,
     extensions: [
+      errorField,
       typecheckKeymap,
       typecheckDomHandlers,
       basicSetup,

@@ -151,6 +151,14 @@
     .output[data-state="ok"] { border-left: 3px solid var(--accent-2); }
     .output[data-state="error"] { border-left: 3px solid var(--error); }
     .output[data-state="pending"] { border-left: 3px solid var(--warn); }
+    .ber-twiddle {
+      text-decoration: underline wavy;
+      text-decoration-thickness: 2px;
+      text-decoration-color: var(--warn);
+    }
+    .ber-twiddle-got { text-decoration-color: var(--error); }
+    .ber-twiddle-expected { text-decoration-color: var(--accent); }
+    .ber-twiddle-generic { text-decoration-color: var(--warn); }
   </style>
 </head>
 <body>
