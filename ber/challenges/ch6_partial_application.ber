@@ -8,7 +8,7 @@ let rec length xs =
   | Nil -> 0
   | Cons (_, xs') -> length xs'
 
-> val length : list 'a -> int
+> val length : 'a list -> int
 
 let add (x : int) (y : int) = x
 
@@ -21,7 +21,7 @@ let add1_to_length xs =
 > 18 |   add 1 length
 >        △△△   ▲▲▲▲▲▲
 > 
-> Got:      list 'a -> int
+> Got:      'a list -> int
 >                   ▲▲    
 > Expected: int
 >           △△△

@@ -8,12 +8,12 @@ let rec map f xs =
   | Nil -> Nil
   | Cons (x, xs') -> Cons (f x, map f xs')
 
-> val map : ('b -> 'a) -> list 'b -> list 'a
+> val map : ('b -> 'a) -> 'b list -> 'a list
 
 let apply_all fs x =
   map x fs
 
-> val apply_all : list 'b -> ('b -> 'a) -> list 'a
+> val apply_all : 'b list -> ('b -> 'a) -> 'a list
 
 let _ =
   apply_all (Cons ((fun n -> n), Cons ((fun n -> n), Nil))) 10

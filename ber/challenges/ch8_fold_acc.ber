@@ -8,16 +8,16 @@ let rec fold_left f acc xs =
   | Nil -> acc
   | Cons (x, xs') -> fold_left f (f acc x) xs'
 
-> val fold_left : ('a -> 'b -> 'a) -> 'a -> list 'b -> 'a
+> val fold_left : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
 
 let sum_bool_list xs =
   fold_left (fun (a : int) (b : int) -> a) 0 xs
 
-> val sum_bool_list : list int -> int
+> val sum_bool_list : int list -> int
 
 let xs = Cons (true, Cons (false, Cons (true, Nil)))
 
-> val xs : list bool
+> val xs : bool list
 
 let _ = sum_bool_list xs
 
@@ -25,10 +25,10 @@ let _ = sum_bool_list xs
 > 22 | let _ = sum_bool_list xs
 >              △△△△△△△△△△△△△ ▲▲
 > 
-> Got:      list (bool)
->                 ▲▲▲▲ 
-> Expected: list (int)
->                 △△△ 
+> Got:      bool list
+>           ▲▲▲▲     
+> Expected: int list
+>           △△△     
 
 let add (x : int) (y : int) = x
 
@@ -36,7 +36,7 @@ let add (x : int) (y : int) = x
 
 let lst = Cons(1, Cons(2, Nil))
 
-> val lst : list int
+> val lst : int list
 
 fold_left add 0 lst
 
@@ -70,8 +70,8 @@ fold_left add lst 0
 > 67 | fold_left add lst 0
 >                △△△ ▲▲▲  
 > 
-> Got:      list int
->           ▲▲▲▲    
+> Got:      int list
+>               ▲▲▲▲
 > Expected: int
 >           △△△
 
@@ -81,7 +81,7 @@ fold_left add lst
 > 78 | fold_left add lst
 >                △△△ ▲▲▲
 > 
-> Got:      list int
->           ▲▲▲▲    
+> Got:      int list
+>               ▲▲▲▲
 > Expected: int
 >           △△△

@@ -41,10 +41,10 @@ let bad_fs =
 > 38 |   Cons ((fun x -> (x,x)), Cons (bool_not, Nil))
 >                         △△△          ▲▲▲▲▲▲▲▲       
 > 
-> Got:      bool  -> bool
->                    ▲▲▲▲
-> Expected: bool  -> bool * bool
->                         △     
+> Got:      bool -> bool
+>                   ▲▲▲▲
+> Expected: bool -> bool * bool
+>                        △     
 
 Cons(1, Cons((fun x -> x), Nil))
 
@@ -52,7 +52,7 @@ Cons(1, Cons((fun x -> x), Nil))
 > 49 | Cons(1, Cons((fun x -> x), Nil))
 >           △        ▲▲▲▲▲▲▲▲▲▲        
 > 
-> Got:      'a -> 'a
+> Got:      'a -> 'b
 >              ▲▲   
 > Expected: int
 >           △△△
@@ -72,10 +72,10 @@ let bad_fs =
 >                                    △△△△△△△△△       
 >                                    ▲▲▲▲▲▲▲▲▲       
 > 
-> Got:      bool  -> int
->                    ▲▲▲
-> Expected: bool  -> bool
->                    △△△△
+> Got:      bool -> int
+>                   ▲▲▲
+> Expected: bool -> bool
+>                   △△△△
 
 let bool_not3 b =
   match b with

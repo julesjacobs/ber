@@ -8,6 +8,6 @@ let choose b x =
   | true -> Cons (x, Nil)
   | false -> x
 
-> Would require self-referential type ∞ = list ∞
+> Would require self-referential type ∞ = ∞ list
 > 9 |   | false -> x
 >                  ▲

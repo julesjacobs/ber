@@ -7,14 +7,18 @@ WEB_DIR="$ROOT/web"
 WEB_DIST="$WEB_DIR/dist"
 WEB_PORT=8000
 DO_WEB=false
+DO_DEPLOY=false
+DEPLOY_TARGET_DEFAULT="$ROOT/../julesjacobs.github.io/misc/ber"
+DEPLOY_TARGET="$DEPLOY_TARGET_DEFAULT"
 SERVER_PID=""
 
 usage() {
   cat <<'EOF'
-Usage: ./ber.sh [--web] [--web-port PORT]
+Usage: ./ber.sh [--web] [--web-port PORT] [--deploy [TARGET]]
 
 Without flags, rewrites all .ber fixtures (default behavior).
 With --web, also builds the wasm playground and serves web/dist on http://localhost:PORT/ (default 8000) then opens a browser.
+With --deploy, builds the wasm playground, copies web/dist to the deploy target (default: ../julesjacobs.github.io/misc/ber), and pushes the deploy repo.
 EOF
 }
 
@@ -33,6 +37,15 @@ while [[ $# -gt 0 ]]; do
       fi
       WEB_PORT="$1"
       shift
+      ;;
+    --deploy)
+      DO_DEPLOY=true
+      if [[ $# -ge 2 && "$2" != --* ]]; then
+        DEPLOY_TARGET="$2"
+        shift 2
+      else
+        shift
+      fi
       ;;
     -h|--help)
       usage
@@ -81,6 +94,39 @@ build_web() {
   (cd "$WEB_DIR" && npm run build)
 }
 
+deploy_web() {
+  local target="$1"
+  mkdir -p "$target"
+  rsync -a --delete "$WEB_DIST"/ "$target"/
+  echo "Deployed web UI to $target"
+}
+
+push_deploy_repo() {
+  local target="$1"
+
+  if ! command -v git >/dev/null 2>&1; then
+    echo "git not found; skipping deploy push." >&2
+    return
+  fi
+
+  if ! git -C "$target" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "Deploy target $target is not a git repository; skipping push." >&2
+    return
+  fi
+
+  local status_output
+  status_output="$(git -C "$target" status --porcelain .)"
+  if [[ -n "$status_output" ]]; then
+    git -C "$target" add -A .
+    git -C "$target" commit -m "Deploy ber web ($(date -u '+%Y-%m-%d %H:%M:%SZ'))" -- .
+  else
+    echo "No changes to commit in $target"
+  fi
+
+  git -C "$target" push
+  echo "Pushed deploy repo at $target"
+}
+
 start_server() {
   local port="$1"
   local dist="$2"
@@ -110,9 +156,17 @@ open_browser() {
   fi
 }
 
-if [[ "$DO_WEB" == true ]]; then
+if [[ "$DO_WEB" == true || "$DO_DEPLOY" == true ]]; then
   ensure_web_dependencies
   build_web
+fi
+
+if [[ "$DO_DEPLOY" == true ]]; then
+  deploy_web "$DEPLOY_TARGET"
+  push_deploy_repo "$DEPLOY_TARGET"
+fi
+
+if [[ "$DO_WEB" == true ]]; then
   start_server "$WEB_PORT" "$WEB_DIST"
   open_browser "http://localhost:${WEB_PORT}/"
   wait "$SERVER_PID"

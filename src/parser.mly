@@ -28,17 +28,27 @@ let build_tuple_type elems =
   L.with_loc (list_span elems) (TyTuple elems)
 
 let build_type_app parts =
-  match List.rev parts with
+  match parts with
   | [] -> invalid_arg "build_type_app"
-  | ({ node = TyConstr (ctor, ctor_args); _ } as ctor_ty) :: rev_args ->
-    let args = List.rev rev_args in
-    let loc = L.span (List.hd parts).loc.start ctor_ty.loc.stop in
-    L.with_loc loc (TyConstr (ctor, ctor_args @ args))
-  | [single] -> single
-  | last :: _ ->
-    let first = List.hd parts in
-    let loc = L.span first.loc.start last.loc.stop in
-    raise (Syntax_error.Syntax_error (loc, "type application must end in a constructor"))
+  | first :: _ ->
+    let rec loop args remaining =
+      match remaining with
+      | [] ->
+        (match List.rev args with
+         | [last] -> last
+         | _ ->
+           let last = List.hd (List.rev args) in
+           let loc = L.span first.loc.start last.loc.stop in
+           raise (Syntax_error.Syntax_error (loc, "type application must end in a constructor")))
+      | ({ node = TyConstr (ctor, ctor_args); _ } as ctor_ty) :: rest when ctor_args = [] ->
+        let loc = L.span first.loc.start ctor_ty.loc.stop in
+        let applied = L.with_loc loc (TyConstr (ctor, List.rev args)) in
+        (match rest with
+         | [] -> applied
+         | _ -> loop [ applied ] rest)
+      | t :: rest -> loop (t :: args) rest
+    in
+    loop [] parts
 
 let last_exn = function
   | [] -> invalid_arg "last_exn"
@@ -345,12 +355,19 @@ type_app_parts:
   | p=type_atom rest=type_app_parts { p :: rest }
   | p=type_atom { [p] }
 
+type_app_arg_list:
+  | t=type_expr COMMA rest=type_app_arg_list { t :: rest }
+  | t=type_expr { [t] }
+
 type_atom:
   | tv=tyvar {
       with_loc $startpos $endpos (TyVar tv)
     }
   | ctor=type_ctor {
       with_loc $startpos $endpos (TyConstr (ctor, []))
+    }
+  | LPAREN args=type_app_arg_list RPAREN ctor=type_ctor {
+      with_loc $startpos $endpos (TyConstr (ctor, args))
     }
   | LPAREN t=type_expr RPAREN { t }
 

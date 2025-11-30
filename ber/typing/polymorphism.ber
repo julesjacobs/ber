@@ -17,8 +17,8 @@ let compose = fun f g x -> f (g x)
 
 let pair_id = fun x -> Pair (x, x)
 
-> val pair_id : 'a -> pair 'a 'a
+> val pair_id : 'a -> ('a, 'a) pair
 
 let use_poly = let f = fun x -> x in let a = f 1 in let b = f true in Pair (a, b)
 
-> val use_poly : pair int bool
+> val use_poly : (int, bool) pair

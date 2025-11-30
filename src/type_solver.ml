@@ -170,8 +170,11 @@ let string_of_ty ?generalized ty =
       let s = String.concat " * " (List.map (aux 0) elems) in
       if prec > 1 then "(" ^ s ^ ")" else s
     | TCon (name, [], _) -> name
+    | TCon (name, [arg], _) ->
+      let s = Printf.sprintf "%s %s" (aux 2 arg) name in
+      if prec > 1 then "(" ^ s ^ ")" else s
     | TCon (name, args, _) ->
-      let s = Printf.sprintf "%s %s" name (String.concat " " (List.map (aux 2) args)) in
+      let s = Printf.sprintf "(%s) %s" (String.concat ", " (List.map (aux 0) args)) name in
       if prec > 1 then "(" ^ s ^ ")" else s
   in
   aux 0 ty

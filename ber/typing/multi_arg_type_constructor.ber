@@ -1,0 +1,58 @@
+#type
+type ('ok, 'err) result = Ok of 'ok | Err of 'err
+
+> type declaration
+
+let inferred_ok = Ok 1
+
+> val inferred_ok : (int, 'a) result
+
+let annotated_ok : (int, string) result = Ok 1
+
+> val annotated_ok : (int, string) result
+
+let annotated_err : (int, string) result = Err "oops"
+
+> val annotated_err : (int, string) result
+
+let expect_result (r : (int, string) result) = r
+
+> val expect_result : (int, string) result -> (int, string) result
+
+let _ = expect_result (Err 123)
+
+> Type mismatch:
+> 22 | let _ = expect_result (Err 123)
+>              △△△△△△△△△△△△△      ▲▲▲ 
+> 
+> Got:      int
+>           ▲▲▲
+> Expected: string
+>           △△△△△△
+
+type ('leaf, 'node) info_tree = Leaf of 'leaf | Node of 'node * ('leaf, 'node) info_tree * ('leaf, 'node) info_tree
+
+> type declaration
+
+let leaf_only = Leaf 1
+
+> val leaf_only : (int, 'a) info_tree
+
+let tree_ok = Node ("root", Leaf 1, Leaf 2)
+
+> val tree_ok : (int, string) info_tree
+
+let tree_annot : (int, string) info_tree = Node ("root", Leaf 1, Leaf 2)
+
+> val tree_annot : (int, string) info_tree
+
+let tree_bad = Node ("root", Leaf 1, Leaf "oops")
+
+> Type mismatch:
+> 49 | let tree_bad = Node ("root", Leaf 1, Leaf "oops")
+>                                        △            ▲ 
+> 
+> Got:      string
+>           ▲▲▲▲▲▲
+> Expected: int
+>           △△△

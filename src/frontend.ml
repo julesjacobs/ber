@@ -159,8 +159,11 @@ let mismatch_detail heading expected_ty got_ty =
         let s = String.concat " * " (List.map (aux 0) elems) in
         if prec > 1 then "(" ^ s ^ ")" else s
       | TCon (name, [], _) -> name
+      | TCon (name, [arg], _) ->
+        let s = Printf.sprintf "%s %s" (aux 2 arg) name in
+        if prec > 1 then "(" ^ s ^ ")" else s
       | TCon (name, args, _) ->
-        let s = Printf.sprintf "%s %s" name (String.concat " " (List.map (aux 2) args)) in
+        let s = Printf.sprintf "(%s) %s" (String.concat ", " (List.map (aux 0) args)) name in
         if prec > 1 then "(" ^ s ^ ")" else s
     in
     aux 0
@@ -199,6 +202,18 @@ let mismatch_detail heading expected_ty got_ty =
         let s, marks, _ = join rendered in
         let need_paren = prec > 1 in
         if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks else s, marks
+      | TCon (name, [], _) ->
+        let s = name in
+        let marks = [ 0, String.length name ] in
+        s, marks
+      | TCon (name, [arg], _) ->
+        let arg_s = render_ty arg in
+        let sep = " " in
+        let s = arg_s ^ sep ^ name in
+        let name_start = String.length arg_s + String.length sep in
+        let marks = [ name_start, String.length name ] in
+        let need_paren = prec > 1 in
+        if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks else s, marks
       | TCon (name, args, _) ->
         let rendered = List.map render_ty args in
         let rec join = function
@@ -206,15 +221,16 @@ let mismatch_detail heading expected_ty got_ty =
           | [ s ] -> s, [], String.length s
           | s :: rest ->
             let tail_s, marks, _ = join rest in
-            let sep = " " in
+            let sep = ", " in
             let s' = s ^ sep ^ tail_s in
             let marks' = List.map (fun (st, l) -> (st + String.length s + String.length sep, l)) marks in
             s', marks', String.length s'
         in
         let args_s, marks, _ = join rendered in
-        let base = if args = [] then name else name ^ " " in
-        let s = base ^ args_s in
-        let marks = (0, String.length name) :: List.map (fun (st, l) -> (st + String.length base, l)) marks in
+        let base = "(" ^ args_s ^ ")" in
+        let s = base ^ " " ^ name in
+        let name_start = String.length base + 1 in
+        let marks = (name_start, String.length name) :: List.map (fun (st, l) -> (st + 1, l)) marks in
         let need_paren = prec > 1 in
         if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks else s, marks
     in

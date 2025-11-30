@@ -9,12 +9,15 @@ and odd n =
   | _ -> even n
 
 > Type mismatch:
+> 4 |   | 0 -> true
+>              △△△△
+> 5 |   | _ -> odd n
+> 6 | and odd n =
+> 7 |   match n with
 > 8 |   | 0 -> 0
->              △
-> 9 |   | _ -> even n
->              ▲▲▲▲  
+>              ▲
 > 
-> Got:      int  -> bool
->                   ▲▲▲▲
-> Expected: int  -> int
->                   △△△
+> Got:      int
+>           ▲▲▲
+> Expected: bool
+>           △△△△

@@ -6,7 +6,7 @@ type 'a option = None | Some of 'a
 let option_default = fun def opt -> match opt with | None -> def
 | Some x -> x
 
-> val option_default : 'a -> option 'a -> 'a
+> val option_default : 'a -> 'a option -> 'a
 
 let guard_non_bool = match None with | None when 1 -> true
 | Some _ -> false

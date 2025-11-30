@@ -267,8 +267,8 @@ and check_expr env expected expr =
     let fn_ty =
       List.fold_right (fun arg acc -> t_arrow ~loc:expr.loc arg acc) param_tys result_ty
     in
-    let* () = check_expr env'' result_ty fn_body in
     let* () = unify_types expr.loc ~got:fn_ty ~expected in
+    let* () = check_expr env'' result_ty fn_body in
     Ok ()
   | EApp (fn, args) ->
     let* fn_ty = infer_expr env fn in

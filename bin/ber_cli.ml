@@ -245,8 +245,11 @@ let format_type_error (err : Type_infer.type_error) =
         let s = String.concat " * " (List.map (aux 0) elems) in
         if prec > 1 then "(" ^ s ^ ")" else s
       | TCon (name, [], _) -> name
+      | TCon (name, [arg], _) ->
+        let s = Printf.sprintf "%s %s" (aux 2 arg) name in
+        if prec > 1 then "(" ^ s ^ ")" else s
       | TCon (name, args, _) ->
-        let s = Printf.sprintf "%s %s" name (String.concat " " (List.map (aux 2) args)) in
+        let s = Printf.sprintf "(%s) %s" (String.concat ", " (List.map (aux 0) args)) name in
         if prec > 1 then "(" ^ s ^ ")" else s
     in
     aux 0
@@ -291,6 +294,20 @@ let format_type_error (err : Type_infer.type_error) =
         let locs = match loc with None -> [] | Some l -> [ l ] in
         let need_paren = prec > 1 in
         if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks, locs else s, marks, locs)
+      | TCon (name, [], loc) ->
+        let s = name in
+        let marks = [ 0, String.length name ] in
+        let locs = match loc with None -> [] | Some l -> [ l ] in
+        s, marks, locs
+      | TCon (name, [arg], loc) ->
+        let arg_s = render_ty arg in
+        let sep = " " in
+        let s = arg_s ^ sep ^ name in
+        let name_start = String.length arg_s + String.length sep in
+        let marks = [ name_start, String.length name ] in
+        let locs = match loc with None -> [] | Some l -> [ l ] in
+        let need_paren = prec > 1 in
+        if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks, locs else s, marks, locs
       | TCon (name, args, loc) ->
         let rendered = List.map render_ty args in
         let rec join = function
@@ -298,15 +315,16 @@ let format_type_error (err : Type_infer.type_error) =
           | [ s ] -> s, [], String.length s
           | s :: rest ->
             let tail_s, marks, _ = join rest in
-            let sep = " " in
+            let sep = ", " in
             let s' = s ^ sep ^ tail_s in
             let marks' = List.map (fun (st, l) -> (st + String.length s + String.length sep, l)) marks in
             s', marks', String.length s'
         in
         let args_s, marks, _ = join rendered in
-        let base = if args = [] then name else name ^ " " in
-        let s = base ^ args_s in
-        let marks = (0, String.length name) :: List.map (fun (st, l) -> (st + String.length base, l)) marks in
+        let base = "(" ^ args_s ^ ")" in
+        let s = base ^ " " ^ name in
+        let name_start = String.length base + 1 in
+        let marks = (name_start, String.length name) :: List.map (fun (st, l) -> (st + 1, l)) marks in
         let locs = match loc with None -> [] | Some l -> [ l ] in
         let need_paren = prec > 1 in
         if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks, locs else s, marks, locs
@@ -352,13 +370,13 @@ let format_type_error (err : Type_infer.type_error) =
            let sg, mg = wrap sg mg in
            se, sg, me, mg, le, lg
          | _, _, _ ->
-           let parts = List.map2 (go 2) args_a args_b in
+           let parts = List.map2 (go 0) args_a args_b in
            let rec join = function
              | [] -> "", [], "", [], [], []
              | [ (se, sg, me, mg, le, lg) ] -> se, me, sg, mg, le, lg
              | (se, sg, me, mg, le, lg) :: ps ->
                let rest_se, rest_me, rest_sg, rest_mg, rest_le, rest_lg = join ps in
-               let sep = " " in
+               let sep = ", " in
                let se' = se ^ sep ^ rest_se in
                let sg' = sg ^ sep ^ rest_sg in
                let off = String.length se + String.length sep in
@@ -368,17 +386,37 @@ let format_type_error (err : Type_infer.type_error) =
                se', me', sg', mg', le @ rest_le, lg @ rest_lg
            in
            let args_se, args_me, args_sg, args_mg, le_args, lg_args = join parts in
-           let base = na ^ " " in
-           let se = base ^ args_se in
-           let sg = base ^ args_sg in
-           let shift m = List.map (fun (st, l) -> (st + String.length base, l)) m in
-           let me = shift args_me in
-           let mg = shift args_mg in
            let need_paren = prec > 1 in
-           let wrap s m = if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) m else s, m in
-           let se, me = wrap se me in
-           let sg, mg = wrap sg mg in
-           se, sg, me, mg, le_args, lg_args)
+           (match args_a with
+            | [] ->
+              let se = na in
+              let sg = na in
+              let me = [] in
+              let mg = [] in
+              let wrap s m = if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) m else s, m in
+              let se, me = wrap se me in
+              let sg, mg = wrap sg mg in
+              se, sg, me, mg, le_args, lg_args
+            | [ _ ] ->
+              let sep = " " in
+              let se = args_se ^ sep ^ na in
+              let sg = args_sg ^ sep ^ na in
+              let wrap s m = if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) m else s, m in
+              let se, me = wrap se args_me in
+              let sg, mg = wrap sg args_mg in
+              se, sg, me, mg, le_args, lg_args
+            | _ ->
+              let base_e = "(" ^ args_se ^ ")" in
+              let base_g = "(" ^ args_sg ^ ")" in
+              let se = base_e ^ " " ^ na in
+              let sg = base_g ^ " " ^ na in
+              let shift m = List.map (fun (st, l) -> (st + 1, l)) m in
+              let me = shift args_me in
+              let mg = shift args_mg in
+              let wrap s m = if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) m else s, m in
+              let se, me = wrap se me in
+              let sg, mg = wrap sg mg in
+              se, sg, me, mg, le_args, lg_args))
       | TVar va, TVar vb when va.id = vb.id ->
         let s = render_ty a in
         s, s, [], [], [], []

@@ -6,7 +6,7 @@ type ('a, 'b) either = Left of 'a | Right of 'b
 let map_either = fun f g e -> match e with | Left x -> Left (f x)
 | Right y -> Right (g y)
 
-> val map_either : ('c -> 'a) -> ('d -> 'b) -> either 'c 'd -> either 'a 'b
+> val map_either : ('c -> 'a) -> ('d -> 'b) -> ('c, 'd) either -> ('a, 'b) either
 
 let compose3 = fun f g h x -> f (g (h x))
 

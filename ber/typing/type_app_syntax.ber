@@ -1,0 +1,66 @@
+#type
+type 'a box = Box of 'a
+type ('a, 'b) pair = Pair of 'a * 'b
+type ('a, 'b) wrap = Wrap of ('a, 'b) pair box
+
+> type declaration
+> type declaration
+> type declaration
+
+let infer_box = Box 1
+
+> val infer_box : int box
+
+let infer_pair_left = Pair (1, true)
+
+> val infer_pair_left : (int, bool) pair
+
+let infer_nested = Wrap (Box (Pair (1, true)))
+
+> val infer_nested : (int, bool) wrap
+
+let annot_pair : (int, bool) pair = Pair (1, true)
+
+> val annot_pair : (int, bool) pair
+
+let annot_nested : ((int, bool) pair) box = Box (Pair (1, true))
+
+> val annot_nested : ((int, bool) pair) box
+
+let arrow_param : (int -> bool) box = Box (fun _ -> true)
+
+> val arrow_param : (int -> bool) box
+
+let arrow_right_assoc : int -> bool box = fun _ -> Box true
+
+> val arrow_right_assoc : int -> bool box
+
+let arrow_multi : ((int -> bool), string) pair = Pair ((fun _ -> true), "ok")
+
+> val arrow_multi : (int -> bool, string) pair
+
+let arrow_multi_right : int -> (bool, string) pair = fun _ -> Pair (true, "ok")
+
+> val arrow_multi_right : int -> (bool, string) pair
+
+let bad_pair_arg : (int, bool) pair = Pair ("oops", 2)
+
+> Type mismatch:
+> 46 | let bad_pair_arg : (int, bool) pair = Pair ("oops", 2)
+>                          ▲▲▲  ▲▲▲▲                    △  △ 
+> 
+> Got:      (int, bool) pair
+>            ▲▲▲     ▲▲▲▲   
+> Expected: (string, int) pair
+>            △△△△△△  △△△      
+
+let bad_wrap : (int, bool) wrap = Wrap (Box (Pair (true, "ok")))
+
+> Type mismatch:
+> 57 | let bad_wrap : (int, bool) wrap = Wrap (Box (Pair (true, "ok")))
+>                      ▲▲▲  ▲▲▲▲                          △△△△     △   
+> 
+> Got:      (int, bool) wrap
+>            ▲▲▲   ▲▲▲▲     
+> Expected: (bool, string) wrap
+>            △△△△  △△△△△△      
