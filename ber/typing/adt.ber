@@ -3,16 +3,21 @@ type tree = Leaf | Node of tree * tree
 
 > type declaration
 
-let make_node = Node
+let make_node = Node ()
 
-> Constructor arity mismatch
-> 6 | let make_node = Node
->                     ▲▲▲▲
+> Type mismatch:
+> 6 | let make_node = Node ()
+>                     △△△△ ▲▲
+> 
+> Got:      unit
+>           ▲▲▲▲
+> Expected: tree * tree
+>                △     
 
 let wrong_ctor_arity = Node 1
 
 > Type mismatch:
-> 12 | let wrong_ctor_arity = Node 1
+> 10 | let wrong_ctor_arity = Node 1
 >                             △△△△ ▲
 > 
 > Got:      int
@@ -23,5 +28,5 @@ let wrong_ctor_arity = Node 1
 let unknown_ctor = Foo 1
 
 > Unknown constructor Foo
-> 23 | let unknown_ctor = Foo 1
+> 21 | let unknown_ctor = Foo 1
 >                         ▲▲▲▲▲

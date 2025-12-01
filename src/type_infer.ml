@@ -187,7 +187,36 @@ let rec infer_expr env expr =
   let expected = fresh_ty env.gen_level in
   let* () = check_expr env expected expr in
   Ok expected
-and check_expr env expected expr =
+and check_expr (env : env) (expected : ty) (expr : expr) : (unit, type_error) result =
+  let check_application ~fn_loc ~fn_ty ~(args : expr list) ~expected =
+    (*
+    let arg_tys = List.map (fun _ -> fresh_ty env.gen_level) args in
+    let res_ty = fresh_ty env.gen_level in
+    let app_ty = List.fold_right (fun arg acc -> t_arrow ~loc:expr.loc arg acc) arg_tys res_ty in
+    let* () = unify_types fn_loc ~got:fn_ty ~expected:app_ty in
+    let* _ =
+      map_result2
+        (fun e t ->
+           let* () = check_expr env t e in
+           Ok t)
+        args
+        arg_tys
+    in
+    let* () = unify_types expr.loc ~got:res_ty ~expected in
+    *)
+    let arg_tys = List.map (fun _ -> fresh_ty env.gen_level) args in
+    let app_ty = List.fold_right (fun arg acc -> t_arrow ~loc:expr.loc arg acc) arg_tys expected in
+    let* () = unify_types fn_loc ~got:fn_ty ~expected:app_ty in
+    let* _ =
+      map_result2
+        (fun e t ->
+           let* () = check_expr env t e in
+           Ok t)
+        args
+        arg_tys
+    in
+    Ok ()
+  in
   match expr.node with
   | EInt _ ->
     let* () = unify_types expr.loc ~got:(t_int ~loc:expr.loc ()) ~expected in
@@ -210,25 +239,7 @@ and check_expr env expected expr =
      | None -> error_msg expr.loc ("Unknown constructor " ^ ctor.node)
      | Some scheme ->
        let ctor_ty = instantiate ~loc:ctor.loc env scheme in
-       let rec collect ty acc =
-         match prune ty with
-         | TCon ("->", [ a; b ], _) -> collect b (a :: acc)
-         | result -> List.rev acc, result
-       in
-       let arg_tys, res_ty = collect ctor_ty [] in
-        if List.length arg_tys <> List.length args then
-          error_msg expr.loc "Constructor arity mismatch"
-        else
-            let* () = unify_types expr.loc ~got:res_ty ~expected in
-            let* _ =
-              map_result2
-                (fun e t ->
-                    let* () = check_expr env t e in
-                    Ok t)
-                args
-                arg_tys
-            in
-            Ok ())
+       check_application ~fn_loc:ctor.loc ~fn_ty:ctor_ty ~args ~expected)
   | ETuple elems ->
     let elem_tys = List.map (fun _ -> fresh_ty env.gen_level) elems in
     let tuple_ty = t_tuple ~loc:expr.loc elem_tys in
@@ -272,18 +283,7 @@ and check_expr env expected expr =
     Ok ()
   | EApp (fn, args) ->
     let* fn_ty = infer_expr env fn in
-    let arg_tys = List.map (fun _ -> fresh_ty env.gen_level) args in
-    let app_ty = List.fold_right (fun arg acc -> t_arrow ~loc:expr.loc arg acc) arg_tys expected in
-    let* () = unify_types fn.loc ~got:fn_ty ~expected:app_ty in
-    let* _ =
-      map_result2
-        (fun e t ->
-           let* () = check_expr env t e in
-           Ok t)
-        args
-        arg_tys
-    in
-    Ok ()
+    check_application ~fn_loc:fn.loc ~fn_ty ~args ~expected
   | ELet { rec_flag; bindings; in_expr } ->
     let* env_after, _infos = infer_let_bindings env rec_flag bindings in
     let* () = check_expr env_after expected in_expr in
