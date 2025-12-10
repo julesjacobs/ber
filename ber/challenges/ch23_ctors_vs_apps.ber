@@ -13,11 +13,11 @@ let constructor =
 >                               △△△△                   
 >                               ▲▲▲▲                   
 > 
-> Got:      int -> 'a
->               ▲▲   
-> Expected: bool option
->                △△△△△△
-> Reason: Constructor argument mismatch
+> Got:      'c option
+>              ▲▲▲▲▲▲
+> Expected: 'a -> 'b
+>              △△   
+> Reason: Too many arguments; calling non-function
 
 let cons (a,b) = Cons (a,b)
 

@@ -10,11 +10,11 @@ let bad_app = 3 4
 >                   △  
 >                   ▲  
 > 
-> Got:      int -> 'a
->               ▲▲   
-> Expected: int
->           △△△
-> Reason: Function argument mismatch
+> Got:      int
+>           ▲▲▲
+> Expected: 'a -> 'b
+>              △△   
+> Reason: Too many arguments; calling non-function
 
 let ascr_mismatch = 1 : bool
 

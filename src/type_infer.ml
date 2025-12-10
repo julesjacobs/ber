@@ -190,16 +190,23 @@ let rec infer_pattern env (pat : pattern) =
     let* () = unify_types pat.loc ~got:pat_ty ~expected:t ~reason:"annotated pattern" in
     Ok (t, binds)
 
-let infer_application env ~reason call_loc fn_loc fn_ty arg_tys =
+let infer_application env function_or_constructor call_loc fn_loc fn_ty arg_tys =
   let result_ty = fresh_ty env.gen_level in
+  let arg_tys_fresh = List.map (fun _ -> fresh_ty env.gen_level) arg_tys in
   let app_ty =
     let fn_ty' = fresh_ty env.gen_level in
     let typed_loc = { loc = fn_loc; ty = fn_ty' } in
-    let ty = List.fold_right (fun arg acc -> t_arrow_typed_loc ~typed_loc arg acc) arg_tys result_ty in
+    let ty = List.fold_right (fun arg acc -> t_arrow_typed_loc ~typed_loc arg acc) arg_tys_fresh result_ty in
     unify fn_ty' ty;
     ty
   in
-  let* () = unify_types call_loc ~got:app_ty ~expected:fn_ty ~reason in
+  let* () = unify_types call_loc ~got:fn_ty ~expected:app_ty ~reason:"Too many arguments; calling non-function" in
+  (* Unify the actual arguments with the fresh arguments *)
+  let reason = match function_or_constructor with
+    | `Function -> "Function argument mismatch"
+    | `Constructor -> "Constructor argument mismatch"
+  in
+  let* _ = map_result2 (fun arg arg_fresh -> unify_types call_loc ~got:arg ~expected:arg_fresh ~reason) arg_tys arg_tys_fresh in
   Ok result_ty
 
 let rec infer_expr (env : env) (expr : expr) : (ty, type_error) result =
@@ -244,14 +251,14 @@ let rec infer_expr (env : env) (expr : expr) : (ty, type_error) result =
   | EApp (fn, args) ->
     let* fn_ty = infer_expr env fn in
     let* arg_tys = map_result (fun arg -> infer_expr env arg) args in
-    infer_application env ~reason:"Function argument mismatch" expr.loc fn.loc fn_ty arg_tys
+    infer_application env `Function expr.loc fn.loc fn_ty arg_tys
   | EConstr (ctor, args) ->
     (match SMap.find_opt ctor.node env.vars with
      | None -> error_msg expr.loc ("Unknown constructor " ^ ctor.node)
      | Some scheme ->
        let ctor_ty = instantiate ~loc:ctor.loc env scheme in
        let* arg_tys = map_result (fun arg -> infer_expr env arg) args in
-       infer_application env ~reason:"Constructor argument mismatch" expr.loc ctor.loc ctor_ty arg_tys)
+       infer_application env `Constructor expr.loc ctor.loc ctor_ty arg_tys)
   | ELet { rec_flag; bindings; in_expr } ->
     let* env_after, _infos = infer_let_bindings env rec_flag bindings in
     infer_expr env_after in_expr

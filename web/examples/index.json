@@ -10,6 +10,11 @@
     "file": "function_argument_indirect.ml"
   },
   {
+    "id": "too_many_arguments",
+    "name": "Too many arguments",
+    "file": "too_many_arguments.ml"
+  },
+  {
     "id": "match_patterns",
     "name": "Match pattern mismatch",
     "file": "match_patterns.ml"

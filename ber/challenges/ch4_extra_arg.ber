@@ -7,10 +7,10 @@ let _ = negate 1 2
 
 > Type mismatch:
 > 6 | let _ = negate 1 2
->             ▲▲▲▲▲▲ △  
+>             △△△△△△ ▲  
 > 
-> Got:      int -> 'a
->               ▲▲   
-> Expected: int
->           △△△
+> Got:      int
+>           ▲▲▲
+> Expected: 'a -> 'b
+>              △△   
 > Reason: Function argument mismatch

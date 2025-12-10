@@ -13,6 +13,6 @@ let _ = add_pair 1 2
 > 
 > Got:      int
 >           ▲▲▲
-> Expected: 'a * 'b
->              △   
+> Expected: 'b -> 'a * 'c
+>                    △   
 > Reason: Function argument mismatch

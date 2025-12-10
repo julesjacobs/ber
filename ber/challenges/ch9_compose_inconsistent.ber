@@ -49,10 +49,10 @@ compose h g 0 0
 
 > Type mismatch:
 > 48 | compose h g 0 0
->              △ ▲    
+>      △△△△△△△ ▲      
 > 
-> Got:      bool
->           ▲▲▲▲
-> Expected: int
->           △△△
+> Got:      int
+>           ▲▲▲
+> Expected: 'a -> 'b
+>              △△   
 > Reason: Function argument mismatch
