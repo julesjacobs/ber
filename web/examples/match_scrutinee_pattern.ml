@@ -1,4 +1,8 @@
+type 'a option = None | Some of 'a
+
+let x = Some 3
+
 let bad =
-  match 1 with 
+  match x with 
   | true -> false
-  | true -> true
+  | false -> true

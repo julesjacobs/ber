@@ -201,7 +201,11 @@ const renderTypeView = (
   if (!view || !view.tree) return `<span class="type-text unknown">unknown</span>`;
   const buildSpan = (content: string, node: TypeTree, loc: Span | null) => {
     const classes = ["type-frag"];
-    if (highlightIds.has(node.id)) classes.push("type-frag-mismatch");
+    if (side) classes.push(`type-frag-${side}`);
+    if (highlightIds.has(node.id)) {
+      classes.push("type-frag-mismatch");
+      if (side) classes.push(`type-frag-mismatch-${side}`);
+    }
     const idx = loc ? hoverLocs.push(loc) - 1 : -1;
     const attrs: string[] = [`class="${classes.join(" ")}"`, `data-type-id="${node.id}"`];
     if (side) attrs.push(`data-type-side="${side}"`);
@@ -269,8 +273,11 @@ const renderTypeView = (
     return { text: needParen ? `(${baseText})` : baseText, html: needParen ? `(${baseHtml})` : baseHtml };
   };
   const rendered = render(view.tree, 0);
-  const attrs = side ? ` data-type-side="${side}"` : "";
-  return `<span class="type-text"${attrs}>${rendered.html}</span>`;
+  const rootClasses = ["type-text"];
+  if (side) rootClasses.push(side);
+  const attrs = [`class="${rootClasses.join(" ")}"`];
+  if (side) attrs.push(`data-type-side="${side}"`);
+  return `<span ${attrs.join(" ")}">${rendered.html}</span>`;
 };
 
 const attachHoverHandlers = (container: HTMLElement, hoverLocs: Span[]) => {
@@ -341,53 +348,9 @@ const renderMismatchArrow = (detail: Detail | null | undefined) => {
     const endTargetY = endRect.top - containerRect.top;
     const endY = endTargetY - endOffset;
     const midY = (startY + endY) / 2;
-    const p0 = { x: startX, y: startY };
-    const p1 = { x: startX, y: midY };
-    const p2 = { x: endX, y: midY };
-    const p3 = { x: endX, y: endY };
-    const pointOnCurve = (t: number) => {
-      const inv = 1 - t;
-      const x =
-        inv * inv * inv * p0.x +
-        3 * inv * inv * t * p1.x +
-        3 * inv * t * t * p2.x +
-        t * t * t * p3.x;
-      const y =
-        inv * inv * inv * p0.y +
-        3 * inv * inv * t * p1.y +
-        3 * inv * t * t * p2.y +
-        t * t * t * p3.y;
-      return { x, y };
-    };
-    const tangentAt = (t: number) => {
-      const inv = 1 - t;
-      const dx =
-        3 * ((p1.x - p0.x) * inv * inv + 2 * (p2.x - p1.x) * inv * t + (p3.x - p2.x) * t * t);
-      const dy =
-        3 * ((p1.y - p0.y) * inv * inv + 2 * (p2.y - p1.y) * inv * t + (p3.y - p2.y) * t * t);
-      return { x: dx, y: dy };
-    };
-    const labelT = 0.76;
-    const labelPos = pointOnCurve(labelT);
-    const tangent = tangentAt(labelT);
-    const tangentLen = Math.hypot(tangent.x, tangent.y) || 1;
-    const tangentDir = { x: tangent.x / tangentLen, y: tangent.y / tangentLen };
-    const normals = [
-      { x: tangent.y / tangentLen, y: -tangent.x / tangentLen },
-      { x: -tangent.y / tangentLen, y: tangent.x / tangentLen },
-    ];
-    const labelOffset = 12;
-    const labelForward = 10;
-    // Pick the side that keeps the label closest to the end dot.
-    let bestLabel = { x: labelPos.x, y: labelPos.y, dist: Number.POSITIVE_INFINITY };
-    for (const normal of normals) {
-      const candidateX = labelPos.x + normal.x * labelOffset + tangentDir.x * labelForward;
-      const candidateY = labelPos.y + normal.y * labelOffset + tangentDir.y * labelForward;
-      const dist = Math.hypot(candidateX - endX, candidateY - endY);
-      if (dist < bestLabel.dist) bestLabel = { x: candidateX, y: candidateY, dist };
-    }
-    const labelX = bestLabel.x;
-    const labelY = bestLabel.y;
+    const slantsRight = endX >= startX;
+    const labelX = endX + (slantsRight ? 10 : 15);
+    const labelY = endY - (slantsRight ? 10 : 5);
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.classList.add("type-arrow-layer");
     svg.setAttribute("viewBox", `0 0 ${containerRect.width} ${containerRect.height}`);
@@ -461,8 +424,16 @@ const renderOutput = (result: BerResult, headingInfo?: ParsedHeading) => {
       const mismatchExpectedIds = new Set<number>(detail.mismatchExpectedIds || []);
       const typeLeft = renderTypeView(detail.got, hoverLocs, mismatchGotIds, "got");
       const typeRight = renderTypeView(detail.expected, hoverLocs, mismatchExpectedIds, "expected");
-      const exprLeft = escapeHtml(detail.exprLeft?.expr ?? "<unknown>");
-      const exprRight = escapeHtml(detail.exprRight?.expr ?? "<unknown>");
+      const exprLeft = renderMarkedText(
+        detail.exprLeft?.expr ?? "<unknown>",
+        detail.marksGot ?? [],
+        "expr-mark expr-mark-got"
+      );
+      const exprRight = renderMarkedText(
+        detail.exprRight?.expr ?? "<unknown>",
+        detail.marksExpected ?? [],
+        "expr-mark expr-mark-expected"
+      );
       output.innerHTML = `
         <div class="type-heading">${headingHtml}</div>
         <div class="type-rows">
