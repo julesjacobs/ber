@@ -17,7 +17,7 @@ let constructor =
 >              ▲▲▲▲▲▲
 > Expected: 'a -> 'b
 >              △△   
-> Reason: Too many arguments; calling non-function
+> Reason: Too many arguments
 
 let cons (a,b) = Cons (a,b)
 

@@ -191,6 +191,17 @@ let rec infer_pattern env (pat : pattern) =
     Ok (t, binds)
 
 let infer_application env function_or_constructor call_loc fn_loc fn_ty arg_tys =
+  (* First do one argument to get a better error message for applying non-function *)
+  let* () = begin
+    if List.length arg_tys > 0 then
+      let arg_ty = fresh_ty env.gen_level in
+      let ret_ty = fresh_ty env.gen_level in
+      let ty = t_arrow ~loc:fn_loc arg_ty ret_ty in
+      let* () = unify_types call_loc ~got:fn_ty ~expected:ty ~reason:"Calling non-function" in
+      Ok ()
+    else
+      Ok ()
+  end in
   let result_ty = fresh_ty env.gen_level in
   let arg_tys_fresh = List.map (fun _ -> fresh_ty env.gen_level) arg_tys in
   let app_ty =
@@ -200,7 +211,8 @@ let infer_application env function_or_constructor call_loc fn_loc fn_ty arg_tys 
     unify fn_ty' ty;
     ty
   in
-  let* () = unify_types call_loc ~got:fn_ty ~expected:app_ty ~reason:"Too many arguments; calling non-function" in
+
+  let* () = unify_types call_loc ~got:fn_ty ~expected:app_ty ~reason:"Too many arguments" in
   (* Unify the actual arguments with the fresh arguments *)
   let reason = match function_or_constructor with
     | `Function -> "Function argument mismatch"

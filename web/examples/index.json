@@ -15,6 +15,11 @@
     "file": "too_many_arguments.ml"
   },
   {
+    "id": "calling_non_function",
+    "name": "Calling non-function",
+    "file": "calling_non_function.ml"
+  },
+  {
     "id": "match_patterns",
     "name": "Match pattern mismatch",
     "file": "match_patterns.ml"

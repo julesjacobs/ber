@@ -14,7 +14,7 @@ let bad_app = 3 4
 >           ▲▲▲
 > Expected: 'a -> 'b
 >              △△   
-> Reason: Too many arguments; calling non-function
+> Reason: Calling non-function
 
 let ascr_mismatch = 1 : bool
 

@@ -5,6 +5,10 @@ let bool_not b =
   | true -> false
   | false -> true
 
-let int_id (x : int) = x
+let bool_to_int b = 
+  match b with
+  | false -> 0
+  | true -> 1
 
-let bad = compose bool_not int_id
+let good = compose bool_to_int bool_not
+let bad = compose bool_not bool_to_int
