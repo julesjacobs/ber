@@ -15,12 +15,18 @@ type type_tree =
   | TConNode of
       { name : string
       ; loc : Location.t option
+      ; id : int
       ; args : type_tree list
       }
 
+type type_mark =
+  { loc : Location.t
+  ; id : int
+  }
+
 type type_view =
   { text : string
-  ; marks : (int * int * Location.t) list
+  ; marks : type_mark list
   ; tree : type_tree
   }
 
@@ -44,6 +50,8 @@ and mismatch_detail =
   ; marks_expected : (int * int) list
   ; expr_left : expr_info option
   ; expr_right : expr_info option
+  ; mismatch_got_ids : int list
+  ; mismatch_expected_ids : int list
   }
 
 and detail =
@@ -76,7 +84,7 @@ let format_type_error (err : Type_infer.type_error) =
       (Type_infer.string_of_ty got)
       (Type_infer.string_of_ty expected)
   | Type_infer.Occurs_check (tv, ty) ->
-    let inf = TCon ("∞", [], None) in
+    let inf = mk_con "∞" [] in
     let ty_infinite =
       let save = tv.instance in
       tv.instance <- Some inf;
@@ -115,7 +123,7 @@ let make_type_renderer () =
     in
     if i < 26 then "'" ^ base else "'" ^ base ^ string_of_int (i / 26)
   in
-  let name_of_tv tv =
+  let name_of_tv (tv : tvar) =
     match Hashtbl.find_opt names tv.id with
     | Some n -> n
     | None ->
@@ -123,20 +131,19 @@ let make_type_renderer () =
       Hashtbl.add names tv.id n;
       n
   in
-  let add_mark start len loc acc =
+  let add_mark loc id acc =
     match loc with
-    | Some loc when not (is_dummy_loc loc) -> (start, len, loc) :: acc
+    | Some loc when not (is_dummy_loc loc) -> { loc; id } :: acc
     | _ -> acc
   in
-  let rec shift delta parts =
-    List.map (fun (s, l, loc) -> s + delta, l, loc) parts
-  and render prec ty =
+  let rec shift (_delta : int) (parts : type_mark list) = parts
+  and render (prec : int) (ty : ty) : string * type_mark list * type_tree =
     match prune ty with
     | TVar tv ->
       let name = name_of_tv tv in
       let tree = TVarNode { name; loc = None } in
       name, [], tree
-    | TCon ("->", [ a; b ], loc) ->
+    | TCon ("->", [ a; b ], meta) ->
       let sa, ma, ta = render 1 a in
       let sb, mb, tb = render 0 b in
       let op = " -> " in
@@ -150,16 +157,15 @@ let make_type_renderer () =
         else
           s0, marks
       in
-      let arrow_pos = String.length sa + 1 in
-      let marks = add_mark arrow_pos 2 loc marks in
-      let tree = TConNode { name = "->"; loc; args = [ ta; tb ] } in
+      let marks = add_mark meta.loc meta.id marks in
+      let tree = TConNode { name = "->"; loc = meta.loc; id = meta.id; args = [ ta; tb ] } in
       s, marks, tree
-    | TCon ("*", elems, loc) ->
+    | TCon ("*", elems, meta) ->
       (match elems with
        | [] ->
          let s = "unit" in
-         let tree = TConNode { name = "*"; loc; args = [] } in
-         let marks = add_mark 0 (String.length s) loc [] in
+         let tree = TConNode { name = "*"; loc = meta.loc; id = meta.id; args = [] } in
+         let marks = add_mark meta.loc meta.id [] in
          s, marks, tree
        | _ ->
          let rendered = List.map (render 0) elems in
@@ -182,18 +188,15 @@ let make_type_renderer () =
            else
              s0, marks
          in
-         let star_pos =
-           try String.index s '*' with Not_found -> 0
-         in
-         let marks = add_mark star_pos 1 loc marks in
-         let tree = TConNode { name = "*"; loc; args = trees } in
+         let marks = add_mark meta.loc meta.id marks in
+         let tree = TConNode { name = "*"; loc = meta.loc; id = meta.id; args = trees } in
          s, marks, tree)
-    | TCon (name, [], loc) ->
+    | TCon (name, [], meta) ->
       let s = name in
-      let marks = add_mark 0 (String.length s) loc [] in
-      let tree = TConNode { name; loc; args = [] } in
+      let marks = add_mark meta.loc meta.id [] in
+      let tree = TConNode { name; loc = meta.loc; id = meta.id; args = [] } in
       s, marks, tree
-    | TCon (name, [ arg ], loc) ->
+    | TCon (name, [ arg ], meta) ->
       let sa, ma, ta = render 2 arg in
       let sep = " " in
       let s0 = sa ^ sep ^ name in
@@ -206,11 +209,10 @@ let make_type_renderer () =
         else
           s0, marks
       in
-      let start = String.length s - String.length name in
-      let marks = add_mark start (String.length name) loc marks in
-      let tree = TConNode { name; loc; args = [ ta ] } in
+      let marks = add_mark meta.loc meta.id marks in
+      let tree = TConNode { name; loc = meta.loc; id = meta.id; args = [ ta ] } in
       s, marks, tree
-    | TCon (name, args, loc) ->
+    | TCon (name, args, meta) ->
       let rendered = List.map (render 0) args in
       let rec join = function
         | [] -> "", [], [], 0
@@ -233,9 +235,8 @@ let make_type_renderer () =
         else
           s0, marks
       in
-      let start = max 0 (String.length s - String.length name) in
-      let marks = add_mark start (String.length name) loc marks in
-      let tree = TConNode { name; loc; args = trees } in
+      let marks = add_mark meta.loc meta.id marks in
+      let tree = TConNode { name; loc = meta.loc; id = meta.id; args = trees } in
       s, marks, tree
   in
   let render_view ty =
@@ -251,7 +252,10 @@ let make_type_renderer () =
 let mismatch_locs expected got =
   let head_loc ty =
     match prune ty with
-    | TCon (_, _, Some loc) when not (is_dummy_loc loc) -> [ loc ]
+    | TCon (_, _, meta) ->
+      (match meta.loc with
+       | Some loc when not (is_dummy_loc loc) -> [ loc ]
+       | _ -> [])
     | _ -> []
   in
   let rec go a b =
@@ -306,6 +310,25 @@ let spans_for_error (err : Type_infer.type_error) =
 
 let mismatch_detail heading expected_ty got_ty ~source ~expected_locs ~got_locs =
   let render_view, render_text = make_type_renderer () in
+  let rec mismatch_ids a b =
+    match prune a, prune b with
+    | TCon (na, args_a, meta_a), TCon (nb, args_b, meta_b) ->
+      if na = nb && List.length args_a = List.length args_b then
+        let es, gs =
+          List.fold_left2
+            (fun (ea, ga) x y ->
+               let ea', ga' = mismatch_ids x y in
+               ea @ ea', ga @ ga')
+            ([], [])
+            args_a
+            args_b
+        in
+        es, gs
+      else [ meta_a.id ], [ meta_b.id ]
+    | TCon (_, _, meta_a), _ -> [ meta_a.id ], []
+    | _, TCon (_, _, meta_b) -> [], [ meta_b.id ]
+    | _ -> [], []
+  in
   let diff_mismatch expected got =
     let render_with_head prec ty =
       match prune ty with
@@ -514,7 +537,17 @@ let mismatch_detail heading expected_ty got_ty ~source ~expected_locs ~got_locs 
        | None -> got_view_fallback)
     | _ -> got_view_fallback
   in
-  { heading; got = got_view; expected = expected_view; marks_got; marks_expected; expr_left; expr_right }
+  let mismatch_expected_ids, mismatch_got_ids = mismatch_ids expected_ty got_ty in
+  { heading
+  ; got = got_view
+  ; expected = expected_view
+  ; marks_got
+  ; marks_expected
+  ; expr_left
+  ; expr_right
+  ; mismatch_got_ids
+  ; mismatch_expected_ids
+  }
 
 let typecheck_string ?(filename = "repl") source =
   reset_tracked_locs ();
@@ -540,7 +573,7 @@ let typecheck_string ?(filename = "repl") source =
                let locs_e, locs_g = mismatch_locs expected got in
                Some (Mismatch (mismatch_detail (format_location err.loc) expected got ~source ~expected_locs:locs_e ~got_locs:locs_g))
              | Type_infer.Occurs_check (tv, ty) ->
-               let inf = TCon ("∞", [], None) in
+               let inf = mk_con "∞" [] in
                let ty_infinite =
                  let save = tv.instance in
                  tv.instance <- Some inf;

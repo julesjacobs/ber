@@ -65,7 +65,10 @@ let format_error (err : Parse.parse_error) =
 let mismatch_locs expected got =
   let head_loc ty =
     match prune ty with
-    | TCon (_, _, Some loc) when loc.file <> "" -> [ loc ]
+    | TCon (_, _, meta) ->
+      (match meta.loc with
+       | Some loc when loc.file <> "" -> [ loc ]
+       | _ -> [])
     | _ -> []
   in
   let rec go a b =
@@ -298,25 +301,25 @@ let format_type_error (err : Type_infer.type_error) =
       | TVar _ ->
         let s = render_ty ty in
         s, [ 0, String.length s ], []
-      | TCon ("->", [ a; b ], loc) ->
+      | TCon ("->", [ a; b ], meta) ->
         let sa = render_ty a in
         let sb = render_ty b in
         let op = " -> " in
         let s = sa ^ op ^ sb in
         let pos = String.length sa + 1 in
         let marks = [ pos, 2 ] in
-        let locs = match loc with None -> [] | Some l -> [ l ] in
+        let locs = match meta.loc with None -> [] | Some l -> [ l ] in
         let need_paren = prec > 0 in
         if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks, locs else s, marks, locs
-      | TCon ("*", elems, loc) ->
+      | TCon ("*", elems, meta) ->
         (match elems with
          | [] ->
            let s = "unit" in
            let marks = [ 0, String.length s ] in
-           let locs = match loc with None -> [] | Some l -> [ l ] in
+           let locs = match meta.loc with None -> [] | Some l -> [ l ] in
            s, marks, locs
          | _ ->
-          let rendered = List.map render_ty elems in
+        let rendered = List.map render_ty elems in
           let rec join = function
             | [] -> "", [], 0
             | [ s ] -> s, [], String.length s
@@ -329,24 +332,24 @@ let format_type_error (err : Type_infer.type_error) =
             s', marks', String.length s'
         in
         let s, marks, _ = join rendered in
-        let locs = match loc with None -> [] | Some l -> [ l ] in
+        let locs = match meta.loc with None -> [] | Some l -> [ l ] in
         let need_paren = prec > 1 in
         if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks, locs else s, marks, locs)
-      | TCon (name, [], loc) ->
+      | TCon (name, [], meta) ->
         let s = name in
         let marks = [ 0, String.length name ] in
-        let locs = match loc with None -> [] | Some l -> [ l ] in
+        let locs = match meta.loc with None -> [] | Some l -> [ l ] in
         s, marks, locs
-      | TCon (name, [arg], loc) ->
+      | TCon (name, [arg], meta) ->
         let arg_s = render_ty arg in
         let sep = " " in
         let s = arg_s ^ sep ^ name in
         let name_start = String.length arg_s + String.length sep in
         let marks = [ name_start, String.length name ] in
-        let locs = match loc with None -> [] | Some l -> [ l ] in
+        let locs = match meta.loc with None -> [] | Some l -> [ l ] in
         let need_paren = prec > 1 in
         if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks, locs else s, marks, locs
-      | TCon (name, args, loc) ->
+      | TCon (name, args, meta) ->
         let rendered = List.map render_ty args in
         let rec join = function
           | [] -> "", [], 0
@@ -363,7 +366,7 @@ let format_type_error (err : Type_infer.type_error) =
         let s = base ^ " " ^ name in
         let name_start = String.length base + 1 in
         let marks = (name_start, String.length name) :: List.map (fun (st, l) -> (st + 1, l)) marks in
-        let locs = match loc with None -> [] | Some l -> [ l ] in
+        let locs = match meta.loc with None -> [] | Some l -> [ l ] in
         let need_paren = prec > 1 in
         if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks, locs else s, marks, locs
     in
@@ -507,7 +510,7 @@ let format_type_error (err : Type_infer.type_error) =
       in
       "Type mismatch:\n" ^ loc_block ^ "\n" ^ String.concat "\n" lines
     | Type_infer.Occurs_check (tv, ty) ->
-      let inf = TCon ("∞", [], None) in
+      let inf = mk_con "∞" [] in
       let ty_infinite =
         let save = tv.instance in
         tv.instance <- Some inf;

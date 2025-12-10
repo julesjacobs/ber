@@ -14,11 +14,11 @@ let trees =
 > 11 |   Cons (Leaf 1, Cons (Leaf (Cons (2, Nil)), Nil))
 >                   △              ▲▲▲▲                 
 >                                  |
->                                  got: 'a * 'a list -> 'a list
+>                                  got: 'a * 'a list -> int
 >                   |
 >                   expected: int
 > 
-> Got:      'a * 'a list -> 'a list
->                              ▲▲▲▲
-> Expected: 'a * 'a list -> int
->                           △△△
+> Got:      'a list
+>              ▲▲▲▲
+> Expected: int
+>           △△△

@@ -29,10 +29,10 @@ let _ = sum_bool_list xs
 >              |
 >              expected: int list -> int
 > 
-> Got:      bool list
->           ▲▲▲▲     
-> Expected: int list
->           △△△     
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△
 
 let add (x : int) (y : int) = x
 

@@ -83,7 +83,7 @@ let initial_env =
 let unify_types loc ~got ~expected =
   try Type_solver.unify got expected; Ok ()
   with
-  | Type_solver.TypeMismatch -> Error { loc; kind = Type_mismatch (got, expected) }
+  | Type_solver.TypeMismatch (a, b) -> Error { loc; kind = Type_mismatch (a, b) }
   | Type_solver.Occurs (tv, ty) -> Error { loc; kind = Occurs_check (tv, ty) }
   | Type_solver.Compiler_bug msg -> error_msg loc ("Compiler bug: " ^ msg)
 
@@ -198,6 +198,7 @@ let rec infer_expr env expr =
 and check_expr (env : env) (expected : ty) (expr : expr) : (unit, type_error) result =
   track_loc_type expr.loc expected;
   let check_application ~call_loc ~fn_loc ~fn_ty ~(args : expr list) ~expected =
+    ignore call_loc;
     (*
     let arg_tys = List.map (fun _ -> fresh_ty env.gen_level) args in
     let res_ty = fresh_ty env.gen_level in
@@ -214,7 +215,7 @@ and check_expr (env : env) (expected : ty) (expr : expr) : (unit, type_error) re
     let* () = unify_types expr.loc ~got:res_ty ~expected in
     *)
     let arg_tys = List.map (fun _ -> fresh_ty env.gen_level) args in
-    let app_ty = List.fold_right (fun arg acc -> t_arrow ~loc:call_loc arg acc) arg_tys expected in
+    let app_ty = List.fold_right (fun arg acc -> t_arrow ~loc:fn_loc arg acc) arg_tys expected in
     let* () = unify_types fn_loc ~got:fn_ty ~expected:app_ty in
     let* _ =
       map_result2

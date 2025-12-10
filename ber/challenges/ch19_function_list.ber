@@ -15,36 +15,32 @@ let bad_fs =
 
 > Type mismatch:
 > 14 |   Cons ((fun (x : int) -> x), Cons (bool_not, Nil))
->                        △△△     △         ▲▲▲▲▲▲▲▲       
+>                        △△△               ▲▲▲▲▲▲▲▲       
 >                                          |
 >                                          got: bool -> bool
 >                        |
 >                        expected: int
->                                |
->                                expected: int
 > 
-> Got:      bool -> bool
->           ▲▲▲▲    ▲▲▲▲
-> Expected: int -> int
->           △△△    △△△
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△
 
 let bad_fs =
   Cons ((fun (x : int) -> (x,x)), Cons (bool_not, Nil))
 
 > Type mismatch:
 > 32 |   Cons ((fun (x : int) -> (x,x)), Cons (bool_not, Nil))
->                        △△△      △△△          ▲▲▲▲▲▲▲▲       
+>                        △△△                   ▲▲▲▲▲▲▲▲       
 >                                              |
 >                                              got: bool -> bool
 >                        |
 >                        expected: int
->                                 |
->                                 expected: int * int
 > 
-> Got:      bool -> bool
->           ▲▲▲▲    ▲▲▲▲
-> Expected: int -> int * int
->           △△△        △    
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△
 
 let bad_fs =
   Cons ((fun x -> (x,x)), Cons (bool_not, Nil))
@@ -57,10 +53,10 @@ let bad_fs =
 >                         |
 >                         expected: bool * bool
 > 
-> Got:      bool -> bool
->                   ▲▲▲▲
-> Expected: bool -> bool * bool
->                        △     
+> Got:      bool
+>           ▲▲▲▲
+> Expected: bool * bool
+>                △     
 
 Cons(1, Cons((fun x -> x), Nil))
 
@@ -96,10 +92,10 @@ let bad_fs =
 >                                    |
 >                                    expected: bool -> int
 > 
-> Got:      bool -> int
->                   ▲▲▲
-> Expected: bool -> bool
->                   △△△△
+> Got:      int
+>           ▲▲▲
+> Expected: bool
+>           △△△△
 
 let bool_not3 b =
   match b with

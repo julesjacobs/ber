@@ -31,10 +31,10 @@ compose h g
 >              |
 >              expected: int -> int
 > 
-> Got:      bool -> bool
->                   ▲▲▲▲
-> Expected: bool -> int
->                   △△△
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△
 
 compose h g 0
 
@@ -46,23 +46,22 @@ compose h g 0
 >              |
 >              expected: int -> int
 > 
-> Got:      bool -> bool
->                   ▲▲▲▲
-> Expected: bool -> int
->                   △△△
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△
 
 compose h g 0 0
 
 > Type mismatch:
 > 54 | compose h g 0 0
->              ▲      
->      △△△△△△△△△△△△△△△
+>      △△△△△△△ ▲      
 >              |
 >              got: int -> int
 >      |
 >      expected: (int -> 'b -> 'a) -> ('c -> int) -> 'c -> 'b -> 'a
 > 
-> Got:      int -> int
->                  ▲▲▲
-> Expected: int -> 'a -> 'b
->                     △△   
+> Got:      int
+>           ▲▲▲
+> Expected: 'a -> 'b
+>              △△   

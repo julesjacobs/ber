@@ -152,7 +152,14 @@
     }
     .ber-twiddle-got { text-decoration-color: var(--error); }
     .ber-twiddle-expected { text-decoration-color: var(--accent); }
+    .ber-twiddle-hover { text-decoration-color: var(--accent-2); }
     .ber-twiddle-generic { text-decoration-color: var(--warn); }
+    .ber-hover-mark {
+      outline: 2px dashed var(--accent-2);
+      outline-offset: 2px;
+      border-radius: 4px;
+      background: rgba(34, 197, 94, 0.12);
+    }
     .type-heading {
       color: var(--muted);
       margin-bottom: 8px;
@@ -181,6 +188,11 @@
     }
     .type-text.got { border-color: rgba(248, 113, 113, 0.4); }
     .type-text.expected { border-color: rgba(34, 197, 94, 0.4); }
+    .type-frag { padding: 0 2px; border-radius: 6px; }
+    .type-frag-mismatch { background: rgba(248, 113, 113, 0.18); border-bottom: 1px solid rgba(248, 113, 113, 0.5); }
+    .type-frag-hovered { background: rgba(34, 197, 94, 0.12); outline: 1px dashed rgba(34, 197, 94, 0.6); }
+    .expr-snippet.got { text-decoration: underline dashed var(--error); text-underline-offset: 4px; }
+    .expr-snippet.expected { text-decoration: underline dashed var(--accent); text-underline-offset: 4px; }
     .type-mark {
       text-decoration: underline dashed;
       text-decoration-thickness: 2px;
@@ -196,6 +208,34 @@
       color: var(--text);
       font-family: "JetBrains Mono", "Fira Code", monospace;
       display: inline-block;
+    }
+    .debug-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .debug-panel {
+      padding: 12px 16px;
+      background: rgba(0, 0, 0, 0.3);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      max-height: 240px;
+      overflow: auto;
+      font-size: 12px;
+      line-height: 1.4;
+      white-space: pre;
+      font-family: "JetBrains Mono", "Fira Code", monospace;
+    }
+    .debug-panel.hidden { display: none; }
+    .debug-checkbox {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -215,11 +255,18 @@
         <div id="editor"></div>
       </section>
       <section class="pane">
+        <div class="debug-bar">
+          <label class="debug-checkbox">
+            <input type="checkbox" id="debug-toggle">
+            <span>Debug mode</span>
+          </label>
+        </div>
         <div class="pane-header">
           <div class="pane-title">Typecheck Output</div>
           <div id="status" class="status" data-state="pending">Waiting…</div>
         </div>
         <pre id="output" class="output" data-state="pending"></pre>
+        <pre id="debug-panel" class="debug-panel hidden"></pre>
       </section>
     </div>
   </div>

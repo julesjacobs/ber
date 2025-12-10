@@ -7,10 +7,10 @@ let bad_app = 3 4
 
 > Type mismatch:
 > 6 | let bad_app = 3 4
->                   △△△
+>                   △  
 >                   ▲  
 >                   |
->                   got: int
+>                   got: 'b -> 'a
 >                   |
 >                   expected: 'b -> 'a
 > 

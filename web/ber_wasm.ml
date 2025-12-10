@@ -41,22 +41,23 @@ let rec js_type_tree = function
       val kind = Js.string "var"
       val name = Js.string name
       val loc = js_loc_opt loc
+      val id = 0
       val args = Js.array [||]
     end
-  | Ber.Frontend.TConNode { name; loc; args } ->
+  | Ber.Frontend.TConNode { name; loc; id; args } ->
     let args = List.map js_type_tree args |> Array.of_list |> Js.array in
     object%js
       val kind = Js.string "con"
       val name = Js.string name
       val loc = js_loc_opt loc
+      val id = id
       val args = args
     end
 
-let js_loc_mark (s, l, loc) =
+let js_loc_mark (m : Ber.Frontend.type_mark) =
   object%js
-    val start = s
-    val len = l
-    val loc = js_loc loc
+    val loc = js_loc m.loc
+    val id = m.id
   end
 
 let js_type_view (v : Ber.Frontend.type_view) =
@@ -90,21 +91,16 @@ let wrap_result (res : Ber.Frontend.check_result) =
     match res.detail with
     | None -> Js.null
     | Some (Ber.Frontend.Mismatch d) ->
-      let marks arr =
-        Js.array (Array.of_list (List.map (fun (s, l) ->
-            object%js
-              val start = s
-              val len = l
-            end) arr))
-      in
       Js.some
         (object%js
           val kind = Js.string "type_mismatch"
           val heading = Js.some (Js.string d.heading)
           val got = Js.some (js_type_view d.got)
           val expected = Js.some (js_type_view d.expected)
-          val marksGot = Js.some (marks d.marks_got)
-          val marksExpected = Js.some (marks d.marks_expected)
+          val marksGot = Js.null
+          val marksExpected = Js.null
+          val mismatchGotIds = Js.array (Array.of_list d.mismatch_got_ids)
+          val mismatchExpectedIds = Js.array (Array.of_list d.mismatch_expected_ids)
           val exprLeft = js_expr_info d.expr_left
           val exprRight = js_expr_info d.expr_right
           val occursTy = Js.null
@@ -118,6 +114,8 @@ let wrap_result (res : Ber.Frontend.check_result) =
           val expected = Js.null
           val marksGot = Js.null
           val marksExpected = Js.null
+          val mismatchGotIds = Js.array [||]
+          val mismatchExpectedIds = Js.array [||]
           val exprLeft = Js.null
           val exprRight = Js.null
           val occursTy = Js.some (Js.string ty_s.ty)

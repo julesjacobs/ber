@@ -1,6 +1,6 @@
-module IMap = Map.Make (Int)
-
 open Location
+
+module IMap = Map.Make (Int)
 
 let default_loc = Location.span Lexing.dummy_pos Lexing.dummy_pos
 
@@ -10,17 +10,28 @@ type tvar =
   ; mutable level : int
   }
 
+and con_meta =
+  { loc : Location.t option
+  ; id : int
+  }
+
 and ty =
   | TVar of tvar
-  | TCon of string * ty list * Location.t option
+  | TCon of string * ty list * con_meta
 
 and scheme = Forall of tvar list * ty
 
 let counter = ref 0
+let con_counter = ref 0
 
 let fresh_id () =
   let v = !counter in
   incr counter;
+  v
+
+let fresh_con_id () =
+  let v = !con_counter in
+  incr con_counter;
   v
 
 let fresh_tvar level = { id = fresh_id (); instance = None; level }
@@ -64,7 +75,8 @@ let type_of_loc = Loc_table.find
 
 let mk_con ?loc name args =
   let loc = match loc with None -> Some default_loc | Some _ as l -> l in
-  let ty = TCon (name, args, loc) in
+  let meta = { loc; id = fresh_con_id () } in
+  let ty = TCon (name, args, meta) in
   (match loc with
    | None -> ()
    | Some loc -> track_loc_type loc ty);
@@ -96,7 +108,7 @@ let ftv_scheme (Forall (tvs, ty)) =
 
 exception Occurs_check_failed
 exception Occurs of tvar * ty
-exception TypeMismatch
+exception TypeMismatch of ty * ty
 exception Compiler_bug of string
 
 let rec occurs_check_adjust_levels tv ty =
@@ -125,7 +137,7 @@ and unify a b =
     va.instance <- Some ty
   | TCon (na, args_a, _), TCon (nb, args_b, _) ->
     if na <> nb || List.length args_a <> List.length args_b then
-      raise TypeMismatch
+      raise (TypeMismatch (a, b))
     else
       match unify_list args_a args_b with
       | Ok () -> ()
@@ -155,10 +167,10 @@ let instantiate ?loc ~level (Forall (vars, ty)) =
       (match IMap.find_opt tv.id subst with
        | Some t -> t
        | None -> ty)
-    | TCon (n, args, loc') ->
+    | TCon (n, args, meta) ->
       let use_loc =
         match loc with
-        | None -> loc'
+        | None -> meta.loc
         | some -> some
       in
       mk_con ?loc:use_loc n (List.map aux args)
