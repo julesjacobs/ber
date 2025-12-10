@@ -4,6 +4,29 @@ open Type_solver
 type span =
   { loc : Location.t
   ; label : string option
+  ; ty : string option
+  }
+
+type type_tree =
+  | TVarNode of
+      { name : string
+      ; loc : Location.t option
+      }
+  | TConNode of
+      { name : string
+      ; loc : Location.t option
+      ; args : type_tree list
+      }
+
+type type_view =
+  { text : string
+  ; marks : (int * int * Location.t) list
+  ; tree : type_tree
+  }
+
+type expr_info =
+  { expr : string
+  ; ty : type_view option
   }
 
 type check_result =
@@ -15,10 +38,12 @@ type check_result =
 
 and mismatch_detail =
   { heading : string
-  ; got : string
-  ; expected : string
+  ; got : type_view
+  ; expected : type_view
   ; marks_got : (int * int) list
   ; marks_expected : (int * int) list
+  ; expr_left : expr_info option
+  ; expr_right : expr_info option
   }
 
 and detail =
@@ -27,6 +52,11 @@ and detail =
       { heading : string
       ; ty : string
       }
+
+let ty_for_loc loc =
+  match type_of_loc loc with
+  | None -> None
+  | Some ty -> Some (string_of_ty ty)
 
 let format_location (loc : Location.t) =
   let start_line = loc.start.Lexing.pos_lnum in
@@ -72,6 +102,151 @@ let is_dummy_loc (loc : Location.t) =
   loc.file = ""
   && loc.start.Lexing.pos_cnum = 0
   && loc.stop.Lexing.pos_cnum = 0
+
+let make_type_renderer () =
+  let names = Hashtbl.create 16 in
+  let counter = ref 0 in
+  let fresh_name () =
+    let i = !counter in
+    incr counter;
+    let base =
+      let n = i mod 26 in
+      String.make 1 (Char.chr (97 + n))
+    in
+    if i < 26 then "'" ^ base else "'" ^ base ^ string_of_int (i / 26)
+  in
+  let name_of_tv tv =
+    match Hashtbl.find_opt names tv.id with
+    | Some n -> n
+    | None ->
+      let n = fresh_name () in
+      Hashtbl.add names tv.id n;
+      n
+  in
+  let add_mark start len loc acc =
+    match loc with
+    | Some loc when not (is_dummy_loc loc) -> (start, len, loc) :: acc
+    | _ -> acc
+  in
+  let rec shift delta parts =
+    List.map (fun (s, l, loc) -> s + delta, l, loc) parts
+  and render prec ty =
+    match prune ty with
+    | TVar tv ->
+      let name = name_of_tv tv in
+      let tree = TVarNode { name; loc = None } in
+      name, [], tree
+    | TCon ("->", [ a; b ], loc) ->
+      let sa, ma, ta = render 1 a in
+      let sb, mb, tb = render 0 b in
+      let op = " -> " in
+      let s0 = sa ^ op ^ sb in
+      let marks = ma @ shift (String.length sa + String.length op) mb in
+      let need_paren = prec > 0 in
+      let s, marks =
+        if need_paren then
+          let s = "(" ^ s0 ^ ")" in
+          s, shift 1 marks
+        else
+          s0, marks
+      in
+      let arrow_pos = String.length sa + 1 in
+      let marks = add_mark arrow_pos 2 loc marks in
+      let tree = TConNode { name = "->"; loc; args = [ ta; tb ] } in
+      s, marks, tree
+    | TCon ("*", elems, loc) ->
+      (match elems with
+       | [] ->
+         let s = "unit" in
+         let tree = TConNode { name = "*"; loc; args = [] } in
+         let marks = add_mark 0 (String.length s) loc [] in
+         s, marks, tree
+       | _ ->
+         let rendered = List.map (render 0) elems in
+         let rec join = function
+           | [] -> "", [], [], 0
+           | [ (s, marks, tree) ] -> s, marks, [ tree ], String.length s
+           | (s, marks, tree) :: rest ->
+             let tail_s, tail_marks, tail_trees, _ = join rest in
+             let sep = " * " in
+             let s' = s ^ sep ^ tail_s in
+             let marks' = marks @ shift (String.length s + String.length sep) tail_marks in
+             s', marks', tree :: tail_trees, String.length s'
+         in
+         let s0, marks, trees, _ = join rendered in
+         let need_paren = prec > 1 in
+         let s, marks =
+           if need_paren then
+             let s = "(" ^ s0 ^ ")" in
+             s, shift 1 marks
+           else
+             s0, marks
+         in
+         let star_pos =
+           try String.index s '*' with Not_found -> 0
+         in
+         let marks = add_mark star_pos 1 loc marks in
+         let tree = TConNode { name = "*"; loc; args = trees } in
+         s, marks, tree)
+    | TCon (name, [], loc) ->
+      let s = name in
+      let marks = add_mark 0 (String.length s) loc [] in
+      let tree = TConNode { name; loc; args = [] } in
+      s, marks, tree
+    | TCon (name, [ arg ], loc) ->
+      let sa, ma, ta = render 2 arg in
+      let sep = " " in
+      let s0 = sa ^ sep ^ name in
+      let marks = ma in
+      let need_paren = prec > 1 in
+      let s, marks =
+        if need_paren then
+          let s = "(" ^ s0 ^ ")" in
+          s, shift 1 marks
+        else
+          s0, marks
+      in
+      let start = String.length s - String.length name in
+      let marks = add_mark start (String.length name) loc marks in
+      let tree = TConNode { name; loc; args = [ ta ] } in
+      s, marks, tree
+    | TCon (name, args, loc) ->
+      let rendered = List.map (render 0) args in
+      let rec join = function
+        | [] -> "", [], [], 0
+        | [ (s, marks, tree) ] -> s, marks, [ tree ], String.length s
+        | (s, marks, tree) :: rest ->
+          let tail_s, tail_marks, tail_trees, _ = join rest in
+          let sep = ", " in
+          let s' = s ^ sep ^ tail_s in
+          let marks' = marks @ shift (String.length s + String.length sep) tail_marks in
+          s', marks', tree :: tail_trees, String.length s'
+      in
+      let args_s, marks, trees, _ = join rendered in
+      let base = "(" ^ args_s ^ ")" in
+      let s0 = base ^ " " ^ name in
+      let need_paren = prec > 1 in
+      let s, marks =
+        if need_paren then
+          let s = "(" ^ s0 ^ ")" in
+          s, shift 1 marks
+        else
+          s0, marks
+      in
+      let start = max 0 (String.length s - String.length name) in
+      let marks = add_mark start (String.length name) loc marks in
+      let tree = TConNode { name; loc; args = trees } in
+      s, marks, tree
+  in
+  let render_view ty =
+    let text, marks, tree = render 0 ty in
+    { text; marks; tree }
+  in
+  let render_text ty =
+    let text, _, _ = render 0 ty in
+    text
+  in
+  render_view, render_text
 
 let mismatch_locs expected got =
   let head_loc ty =
@@ -120,63 +295,26 @@ let spans_for_error (err : Type_infer.type_error) =
   | Type_infer.Type_mismatch (got, expected) ->
     let locs_e, locs_g = mismatch_locs expected got in
     let expected_spans =
-      dedup_locs locs_e |> List.map (fun loc -> { loc; label = Some "expected" })
+      dedup_locs locs_e |> List.map (fun loc -> { loc; label = Some "expected"; ty = ty_for_loc loc })
     in
     let got_spans =
-      dedup_locs locs_g |> List.map (fun loc -> { loc; label = Some "got" })
+      dedup_locs locs_g |> List.map (fun loc -> { loc; label = Some "got"; ty = ty_for_loc loc })
     in
     let spans = got_spans @ expected_spans in
-    if spans = [] then [ { loc = err.loc; label = Some "error" } ] else spans
-  | _ -> [ { loc = err.loc; label = Some "error" } ]
+    if spans = [] then [ { loc = err.loc; label = Some "error"; ty = ty_for_loc err.loc } ] else spans
+  | _ -> [ { loc = err.loc; label = Some "error"; ty = ty_for_loc err.loc } ]
 
-let mismatch_detail heading expected_ty got_ty =
-  let render_ty =
-    let names = Hashtbl.create 16 in
-    let counter = ref 0 in
-    let fresh_name () =
-      let i = !counter in
-      incr counter;
-      let base =
-        let n = i mod 26 in
-        String.make 1 (Char.chr (97 + n))
-      in
-      if i < 26 then "'" ^ base else "'" ^ base ^ string_of_int (i / 26)
-    in
-    let rec aux prec ty =
-      match prune ty with
-      | TVar tv ->
-        (match Hashtbl.find_opt names tv.id with
-         | Some n -> n
-         | None ->
-           let n = fresh_name () in
-           Hashtbl.add names tv.id n;
-           n)
-      | TCon ("*", [], _) -> "unit"
-      | TCon ("->", [ a; b ], _) ->
-        let s = Printf.sprintf "%s -> %s" (aux 1 a) (aux 0 b) in
-        if prec > 0 then "(" ^ s ^ ")" else s
-      | TCon ("*", elems, _) ->
-        let s = String.concat " * " (List.map (aux 0) elems) in
-        if prec > 1 then "(" ^ s ^ ")" else s
-      | TCon (name, [], _) -> name
-      | TCon (name, [arg], _) ->
-        let s = Printf.sprintf "%s %s" (aux 2 arg) name in
-        if prec > 1 then "(" ^ s ^ ")" else s
-      | TCon (name, args, _) ->
-        let s = Printf.sprintf "(%s) %s" (String.concat ", " (List.map (aux 0) args)) name in
-        if prec > 1 then "(" ^ s ^ ")" else s
-    in
-    aux 0
-  in
+let mismatch_detail heading expected_ty got_ty ~source ~expected_locs ~got_locs =
+  let render_view, render_text = make_type_renderer () in
   let diff_mismatch expected got =
     let render_with_head prec ty =
       match prune ty with
       | TVar _ ->
-        let s = render_ty ty in
+        let s = render_text ty in
         s, [ 0, String.length s ]
       | TCon ("->", [ a; b ], _) ->
-        let sa = render_ty a in
-        let sb = render_ty b in
+        let sa = render_text a in
+        let sb = render_text b in
         let op = " -> " in
         let s = sa ^ op ^ sb in
         let pos = String.length sa + 1 in
@@ -187,7 +325,7 @@ let mismatch_detail heading expected_ty got_ty =
         let s = "unit" in
         s, [ 0, String.length s ]
       | TCon ("*", elems, _) ->
-        let rendered = List.map render_ty elems in
+        let rendered = List.map render_text elems in
         let rec join = function
           | [] -> "", [], 0
           | [ s ] -> s, [], String.length s
@@ -207,7 +345,7 @@ let mismatch_detail heading expected_ty got_ty =
         let marks = [ 0, String.length name ] in
         s, marks
       | TCon (name, [arg], _) ->
-        let arg_s = render_ty arg in
+        let arg_s = render_text arg in
         let sep = " " in
         let s = arg_s ^ sep ^ name in
         let name_start = String.length arg_s + String.length sep in
@@ -215,7 +353,7 @@ let mismatch_detail heading expected_ty got_ty =
         let need_paren = prec > 1 in
         if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks else s, marks
       | TCon (name, args, _) ->
-        let rendered = List.map render_ty args in
+        let rendered = List.map render_text args in
         let rec join = function
           | [] -> "", [], 0
           | [ s ] -> s, [], String.length s
@@ -325,7 +463,7 @@ let mismatch_detail heading expected_ty got_ty =
               let sg, mg = wrap sg mg in
               se, me, sg, mg))
       | TVar va, TVar vb when va.id = vb.id ->
-        let s = render_ty a in
+        let s = render_text a in
         s, [], s, []
       | _ ->
         let se, me = render_with_head prec a in
@@ -334,15 +472,57 @@ let mismatch_detail heading expected_ty got_ty =
     in
     go 0 expected got
   in
-  let expected_s, marks_expected, got_s, marks_got = diff_mismatch expected_ty got_ty in
-  { heading; got = got_s; expected = expected_s; marks_got; marks_expected }
+  let _, marks_expected, _, marks_got = diff_mismatch expected_ty got_ty in
+  let expected_view_fallback = render_view expected_ty in
+  let got_view_fallback = render_view got_ty in
+  let snippet loc =
+    let len = String.length source in
+    let start = max 0 (min len loc.start.Lexing.pos_cnum) in
+    let stop = max start (min len loc.stop.Lexing.pos_cnum) in
+    String.sub source start (stop - start)
+  in
+  let type_view_for_loc loc =
+    match type_of_loc loc with
+    | None -> None
+    | Some ty ->
+      let view, _ = make_type_renderer () in
+      Some (view ty)
+  in
+  let expr_left =
+    match got_locs with
+    | loc :: _ -> Some { expr = snippet loc; ty = type_view_for_loc loc }
+    | _ -> None
+  in
+  let expr_right =
+    match expected_locs with
+    | loc :: _ -> Some { expr = snippet loc; ty = type_view_for_loc loc }
+    | _ -> None
+  in
+  let expected_view =
+    match expected_locs with
+    | loc :: _ ->
+      (match type_view_for_loc loc with
+       | Some v -> v
+       | None -> expected_view_fallback)
+    | _ -> expected_view_fallback
+  in
+  let got_view =
+    match got_locs with
+    | loc :: _ ->
+      (match type_view_for_loc loc with
+       | Some v -> v
+       | None -> got_view_fallback)
+    | _ -> got_view_fallback
+  in
+  { heading; got = got_view; expected = expected_view; marks_got; marks_expected; expr_left; expr_right }
 
 let typecheck_string ?(filename = "repl") source =
+  reset_tracked_locs ();
   let lexbuf = Lexing.from_string source in
   Parse.set_initial_pos ~filename lexbuf;
   match Parse.parse_program_lexbuf lexbuf with
   | Error err ->
-    let spans = [ { loc = err.loc; label = Some "error" } ] in
+    let spans = [ { loc = err.loc; label = Some "error"; ty = ty_for_loc err.loc } ] in
     { ok = false; output_lines = [ format_parse_error err ]; spans; detail = None }
   | Ok prog ->
     let rec loop env acc = function
@@ -357,7 +537,8 @@ let typecheck_string ?(filename = "repl") source =
            let detail =
              match err.kind with
              | Type_infer.Type_mismatch (got, expected) ->
-               Some (Mismatch (mismatch_detail (format_location err.loc) expected got))
+               let locs_e, locs_g = mismatch_locs expected got in
+               Some (Mismatch (mismatch_detail (format_location err.loc) expected got ~source ~expected_locs:locs_e ~got_locs:locs_g))
              | Type_infer.Occurs_check (tv, ty) ->
                let inf = TCon ("∞", [], None) in
                let ty_infinite =

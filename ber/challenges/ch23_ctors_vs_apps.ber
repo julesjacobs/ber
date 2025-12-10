@@ -1,0 +1,63 @@
+#type
+type 'a list = Nil | Cons of 'a * 'a list
+type 'a option = None | Some of 'a 
+
+> type declaration
+> type declaration
+
+let constructor =
+  Cons (1, Cons (2, Cons (Some true 1, Nil)))    
+
+> Type mismatch:
+> 9 |   Cons (1, Cons (2, Cons (Some true 1, Nil)))    
+>                               △△△△△△△△△△△            
+>                               ▲▲▲▲                   
+>                               |
+>                               got: 'a -> 'a option
+>                               |
+>                               expected: 'b -> 'a -> int
+> 
+> Got:      'a -> 'a option
+>                    ▲▲▲▲▲▲
+> Expected: 'a -> 'b -> int
+>                    △△    
+
+let cons (a,b) = Cons (a,b)
+
+> val cons : 'a * 'a list -> 'a list
+
+let pair_fn =
+  cons (1, cons (2, cons (Some true, Nil)))   
+
+> Type mismatch:
+> 30 |   cons (1, cons (2, cons (Some true, Nil)))   
+>              △                 ▲▲▲▲                
+>                                |
+>                                got: 'a -> 'a option
+>              |
+>              expected: int
+> 
+> Got:      'a -> 'a option
+>                    ▲▲▲▲▲▲
+> Expected: 'a -> int
+>                 △△△
+
+let cons a b = Cons (a,b)
+
+> val cons : 'a -> 'a list -> 'a list
+
+let multi_arg_fn =
+  cons 1 (cons 2 (cons (Some true) Nil))
+
+> Type mismatch:
+> 50 |   cons 1 (cons 2 (cons (Some true) Nil))
+>             △                ▲▲▲▲            
+>                              |
+>                              got: 'a -> 'a option
+>             |
+>             expected: int
+> 
+> Got:      'a -> 'a option
+>                    ▲▲▲▲▲▲
+> Expected: 'a -> int
+>                 △△△

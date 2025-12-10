@@ -15,3 +15,5 @@ let rec size t =
 > Constructor arity mismatch
 > 12 |   | Leaf -> 1
 >          ▲▲▲▲     
+>          |
+>          error: 'a -> 'a tree

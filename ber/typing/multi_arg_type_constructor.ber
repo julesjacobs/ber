@@ -24,6 +24,10 @@ let _ = expect_result (Err 123)
 > Type mismatch:
 > 22 | let _ = expect_result (Err 123)
 >              △△△△△△△△△△△△△      ▲▲▲ 
+>                                 |
+>                                 got: int
+>              |
+>              expected: (int, string) result -> (int, string) result
 > 
 > Got:      int
 >           ▲▲▲
@@ -49,8 +53,12 @@ let tree_annot : (int, string) info_tree = Node ("root", Leaf 1, Leaf 2)
 let tree_bad = Node ("root", Leaf 1, Leaf "oops")
 
 > Type mismatch:
-> 49 | let tree_bad = Node ("root", Leaf 1, Leaf "oops")
+> 53 | let tree_bad = Node ("root", Leaf 1, Leaf "oops")
 >                                        △       ▲▲▲▲▲▲ 
+>                                                |
+>                                                got: string
+>                                        |
+>                                        expected: int
 > 
 > Got:      string
 >           ▲▲▲▲▲▲

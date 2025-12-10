@@ -15,6 +15,10 @@ let guard_non_bool = match None with | None when 1 -> true
 > 11 | let guard_non_bool = match None with | None when 1 -> true
 >                                                       △        
 >                                                       ▲        
+>                                                       |
+>                                                       got: int
+>                                                       |
+>                                                       expected: int
 > 
 > Got:      int
 >           ▲▲▲

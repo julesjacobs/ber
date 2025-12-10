@@ -9,6 +9,10 @@ let bad_app = 3 4
 > 6 | let bad_app = 3 4
 >                   △△△
 >                   ▲  
+>                   |
+>                   got: int
+>                   |
+>                   expected: 'b -> 'a
 > 
 > Got:      int
 >           ▲▲▲
@@ -18,8 +22,12 @@ let bad_app = 3 4
 let ascr_mismatch = 1 : bool
 
 > Type mismatch:
-> 18 | let ascr_mismatch = 1 : bool
+> 22 | let ascr_mismatch = 1 : bool
 >                          ▲   △△△△
+>                          |
+>                          got: int
+>                              |
+>                              expected: bool
 > 
 > Got:      int
 >           ▲▲▲
@@ -30,10 +38,14 @@ let match_mismatch = match Some 1 with | Some x -> x
 | None -> true
 
 > Type mismatch:
-> 29 | let match_mismatch = match Some 1 with | Some x -> x
+> 37 | let match_mismatch = match Some 1 with | Some x -> x
 >                                                         △
-> 30 | | None -> true
+>                                                         |
+>                                                         expected: int
+> 38 | | None -> true
 >                ▲▲▲▲
+>                |
+>                got: bool
 > 
 > Got:      bool
 >           ▲▲▲▲
@@ -44,9 +56,13 @@ let guard_non_bool2 = match Some 1 with | Some x when x -> x
 | None -> 0
 
 > Type mismatch:
-> 43 | let guard_non_bool2 = match Some 1 with | Some x when x -> x
+> 55 | let guard_non_bool2 = match Some 1 with | Some x when x -> x
 >                                                            △     
 >                                                            ▲     
+>                                                            |
+>                                                            got: int
+>                                                            |
+>                                                            expected: int
 > 
 > Got:      int
 >           ▲▲▲
@@ -57,5 +73,7 @@ let ctor_unknown_pat = match None with | Foo x -> x
 | _ -> 0
 
 > Unknown constructor Foo
-> 56 | let ctor_unknown_pat = match None with | Foo x -> x
+> 72 | let ctor_unknown_pat = match None with | Foo x -> x
 >                                               ▲▲▲▲▲     
+>                                               |
+>                                               error: 'a option

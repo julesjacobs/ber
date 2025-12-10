@@ -20,6 +20,10 @@ let add1_to_length xs =
 > Type mismatch:
 > 18 |   add 1 length
 >        △△△   ▲▲▲▲▲▲
+>              |
+>              got: 'a list -> int
+>        |
+>        expected: int -> int -> int
 > 
 > Got:      'a list -> int
 >                   ▲▲    

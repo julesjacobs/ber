@@ -9,6 +9,10 @@ let rec bad t =
 > Type mismatch:
 > 7 |   Node (t, bad)
 >       △△△△     ▲▲▲ 
+>                |
+>                got: 'a tree -> 'a tree
+>       |
+>       expected: 'a tree * 'a tree -> 'a tree
 > 
 > Got:      'a tree -> 'a tree
 >                   ▲▲        

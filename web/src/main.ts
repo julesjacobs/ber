@@ -11,17 +11,40 @@ type Span = {
   endLine: number;
   endCol: number;
   label?: string | null;
+  ty?: string | null;
 };
 
 type Mark = { start: number; len: number };
 
+type LocMark = { start: number; len: number; loc: Span };
+
+type TypeTree = {
+  kind: "var" | "con";
+  name: string;
+  loc?: Span | null;
+  args?: TypeTree[];
+};
+
+type TypeView = {
+  text: string;
+  marks: LocMark[];
+  tree: TypeTree;
+};
+
+type ExprInfo = {
+  expr: string;
+  ty?: TypeView | null;
+};
+
 type Detail = {
   kind: "type_mismatch" | "occurs";
   heading?: string | null;
-  got?: string | null;
-  expected?: string | null;
+  got?: TypeView | null;
+  expected?: TypeView | null;
   marksGot?: Mark[] | null;
   marksExpected?: Mark[] | null;
+  exprLeft?: ExprInfo | null;
+  exprRight?: ExprInfo | null;
   occursTy?: string | null;
 };
 
@@ -107,6 +130,61 @@ const renderMarkedText = (text: string, marks: Mark[], cls: string) => {
   return html;
 };
 
+let currentSpans: Span[] = [];
+
+const renderTypeView = (
+  view: TypeView | null | undefined,
+  hoverLocs: Span[],
+  highlights: Mark[] = []
+) => {
+  if (!view) return `<span class="type-text unknown">unknown</span>`;
+  const text = view.text || "";
+  const locMarks = (view.marks || []).filter((m) => m.len > 0);
+  const highlightMarks = (highlights || []).filter((m) => m.len > 0);
+  const bounds = new Set<number>();
+  bounds.add(0);
+  bounds.add(text.length);
+  for (const m of locMarks) {
+    bounds.add(Math.max(0, Math.min(text.length, m.start)));
+    bounds.add(Math.max(0, Math.min(text.length, m.start + m.len)));
+  }
+  for (const m of highlightMarks) {
+    bounds.add(Math.max(0, Math.min(text.length, m.start)));
+    bounds.add(Math.max(0, Math.min(text.length, m.start + m.len)));
+  }
+  const sorted = Array.from(bounds).sort((a, b) => a - b);
+  let html = "";
+  for (let i = 0; i + 1 < sorted.length; i++) {
+    const start = sorted[i];
+    const end = sorted[i + 1];
+    if (start === end) continue;
+    const slice = escapeHtml(text.slice(start, end));
+    const loc = locMarks.find((m) => start >= m.start && end <= m.start + m.len);
+    const highlight = highlightMarks.some((m) => start >= m.start && end <= m.start + m.len);
+    const classes = ["type-frag"];
+    if (highlight) classes.push("type-frag-mismatch");
+    if (loc) classes.push("type-frag-hover");
+    if (loc) {
+      const idx = hoverLocs.push(loc.loc) - 1;
+      html += `<span class="${classes.join(" ")}" data-loc-idx="${idx}">${slice}</span>`;
+    } else {
+      html += `<span class="${classes.join(" ")}">${slice}</span>`;
+    }
+  }
+  return `<span class="type-text">${html}</span>`;
+};
+
+const attachHoverHandlers = (container: HTMLElement, hoverLocs: Span[]) => {
+  const nodes = container.querySelectorAll<HTMLElement>("[data-loc-idx]");
+  nodes.forEach((el) => {
+    const idx = Number(el.dataset.locIdx ?? "-1");
+    if (!Number.isFinite(idx) || idx < 0 || idx >= hoverLocs.length) return;
+    const loc = hoverLocs[idx];
+    el.addEventListener("mouseenter", () => updateHighlights([loc]));
+    el.addEventListener("mouseleave", () => updateHighlights(currentSpans));
+  });
+};
+
 const renderOutput = (result: BerResult) => {
   const ok = result.ok;
   output.dataset.state = ok ? "ok" : "error";
@@ -115,28 +193,26 @@ const renderOutput = (result: BerResult) => {
   const detail = result.detail;
   if (!ok || detail) {
     if (detail && detail.kind === "type_mismatch") {
-      const got = renderMarkedText(
-        detail.got || "",
-        detail.marksGot || [],
-        "type-mark type-mark-got"
-      );
-      const expected = renderMarkedText(
-        detail.expected || "",
-        detail.marksExpected || [],
-        "type-mark type-mark-expected"
-      );
       const heading = escapeHtml(detail.heading || "");
+      const hoverLocs: Span[] = [];
+      const typeLeft = renderTypeView(detail.got, hoverLocs, detail.marksGot || []);
+      const typeRight = renderTypeView(detail.expected, hoverLocs, detail.marksExpected || []);
+      const exprLeft = escapeHtml(detail.exprLeft?.expr ?? "<unknown>");
+      const exprRight = escapeHtml(detail.exprRight?.expr ?? "<unknown>");
       output.innerHTML = `
         <div class="type-heading">Type mismatch at ${heading}</div>
-        <div class="type-row">
-          <span class="type-label">Got:</span>
-          <span class="type-text got">${got}</span>
+        <div class="type-row compact">
+          <code class="expr-snippet">${exprLeft}</code>
+          <span class="type-sep">:</span>
+          ${typeLeft}
         </div>
-        <div class="type-row">
-          <span class="type-label">Expected:</span>
-          <span class="type-text expected">${expected}</span>
+        <div class="type-row compact">
+          <code class="expr-snippet">${exprRight}</code>
+          <span class="type-sep">:</span>
+          ${typeRight}
         </div>
       `;
+      attachHoverHandlers(output, hoverLocs);
       return;
     }
     if (detail && detail.kind === "occurs") {
@@ -254,12 +330,18 @@ const decorateSpans = (spans: Span[]) => {
         : span.label === "expected"
           ? "ber-twiddle ber-twiddle-expected"
           : "ber-twiddle ber-twiddle-generic";
-    marks.push(Decoration.mark({ class: cls }).range(from, to));
+    const parts: string[] = [];
+    if (span.label) parts.push(String(span.label));
+    if (span.ty) parts.push(String(span.ty));
+    const attributes = parts.length ? { title: parts.join(": ") } : undefined;
+    const spec = attributes ? { class: cls, attributes } : { class: cls };
+    marks.push(Decoration.mark(spec).range(from, to));
   }
   return Decoration.set(marks, true);
 };
 
 const updateHighlights = (spans: Span[]) => {
+  currentSpans = spans;
   const deco = spans.length ? decorateSpans(spans) : Decoration.none;
   view.dispatch({ effects: errorMarks.of(deco) });
 };

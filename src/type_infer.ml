@@ -100,30 +100,38 @@ let lookup_type env name loc =
 
 let rec ty_of_type_expr env (tyvars : (string * tvar) list ref) (te : type_expr) =
   let lookup name = List.assoc_opt name !tyvars in
-  match te.node with
-  | TyVar id ->
-    (match lookup id.node with
-     | Some tv -> Ok (TVar tv)
-     | None ->
-       let tv = fresh_tvar env.gen_level in
-       tyvars := (id.node, tv) :: !tyvars;
-       Ok (TVar tv))
-  | TyConstr (name, args) ->
-    let* type_info = lookup_type env name.node te.loc in
-    if List.length args <> List.length type_info.params then
-      error_msg te.loc ("type " ^ name.node ^ " expects " ^ string_of_int (List.length type_info.params) ^ " arguments")
-    else
-      let* args' = map_result (ty_of_type_expr env tyvars) args in
-      Ok (mk_con ~loc:te.loc name.node args')
-  | TyArrow (a, b) ->
-    let* ta = ty_of_type_expr env tyvars a in
-    let* tb = ty_of_type_expr env tyvars b in
-    Ok (t_arrow ~loc:te.loc ta tb)
-  | TyTuple elems ->
-    let* elems' = map_result (ty_of_type_expr env tyvars) elems in
-    Ok (t_tuple ~loc:te.loc elems')
+  let res =
+    match te.node with
+    | TyVar id ->
+      (match lookup id.node with
+       | Some tv -> Ok (TVar tv)
+       | None ->
+         let tv = fresh_tvar env.gen_level in
+         tyvars := (id.node, tv) :: !tyvars;
+         Ok (TVar tv))
+    | TyConstr (name, args) ->
+      let* type_info = lookup_type env name.node te.loc in
+      if List.length args <> List.length type_info.params then
+        error_msg te.loc ("type " ^ name.node ^ " expects " ^ string_of_int (List.length type_info.params) ^ " arguments")
+      else
+        let* args' = map_result (ty_of_type_expr env tyvars) args in
+        Ok (mk_con ~loc:te.loc name.node args')
+    | TyArrow (a, b) ->
+      let* ta = ty_of_type_expr env tyvars a in
+      let* tb = ty_of_type_expr env tyvars b in
+      Ok (t_arrow ~loc:te.loc ta tb)
+    | TyTuple elems ->
+      let* elems' = map_result (ty_of_type_expr env tyvars) elems in
+      Ok (t_tuple ~loc:te.loc elems')
+  in
+  match res with
+  | Ok ty ->
+    track_loc_type te.loc ty;
+    Ok ty
+  | Error _ as e -> e
 
-let rec infer_pattern env pat expected =
+let rec infer_pattern env (pat : pattern) expected =
+  track_loc_type pat.loc expected;
   match pat.node with
   | PWildcard -> Ok []
   | PVar id ->
@@ -188,7 +196,8 @@ let rec infer_expr env expr =
   let* () = check_expr env expected expr in
   Ok expected
 and check_expr (env : env) (expected : ty) (expr : expr) : (unit, type_error) result =
-  let check_application ~fn_loc ~fn_ty ~(args : expr list) ~expected =
+  track_loc_type expr.loc expected;
+  let check_application ~call_loc ~fn_loc ~fn_ty ~(args : expr list) ~expected =
     (*
     let arg_tys = List.map (fun _ -> fresh_ty env.gen_level) args in
     let res_ty = fresh_ty env.gen_level in
@@ -205,7 +214,7 @@ and check_expr (env : env) (expected : ty) (expr : expr) : (unit, type_error) re
     let* () = unify_types expr.loc ~got:res_ty ~expected in
     *)
     let arg_tys = List.map (fun _ -> fresh_ty env.gen_level) args in
-    let app_ty = List.fold_right (fun arg acc -> t_arrow ~loc:expr.loc arg acc) arg_tys expected in
+    let app_ty = List.fold_right (fun arg acc -> t_arrow ~loc:call_loc arg acc) arg_tys expected in
     let* () = unify_types fn_loc ~got:fn_ty ~expected:app_ty in
     let* _ =
       map_result2
@@ -239,7 +248,7 @@ and check_expr (env : env) (expected : ty) (expr : expr) : (unit, type_error) re
      | None -> error_msg expr.loc ("Unknown constructor " ^ ctor.node)
      | Some scheme ->
        let ctor_ty = instantiate ~loc:ctor.loc env scheme in
-       check_application ~fn_loc:ctor.loc ~fn_ty:ctor_ty ~args ~expected)
+       check_application ~call_loc:expr.loc ~fn_loc:ctor.loc ~fn_ty:ctor_ty ~args ~expected)
   | ETuple elems ->
     let elem_tys = List.map (fun _ -> fresh_ty env.gen_level) elems in
     let tuple_ty = t_tuple ~loc:expr.loc elem_tys in
@@ -283,7 +292,7 @@ and check_expr (env : env) (expected : ty) (expr : expr) : (unit, type_error) re
     Ok ()
   | EApp (fn, args) ->
     let* fn_ty = infer_expr env fn in
-    check_application ~fn_loc:fn.loc ~fn_ty ~args ~expected
+    check_application ~call_loc:expr.loc ~fn_loc:fn.loc ~fn_ty ~args ~expected
   | ELet { rec_flag; bindings; in_expr } ->
     let* env_after, _infos = infer_let_bindings env rec_flag bindings in
     let* () = check_expr env_after expected in_expr in

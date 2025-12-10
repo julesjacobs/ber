@@ -1,5 +1,7 @@
 module IMap = Map.Make (Int)
 
+open Location
+
 let default_loc = Location.span Lexing.dummy_pos Lexing.dummy_pos
 
 type tvar =
@@ -24,9 +26,49 @@ let fresh_id () =
 let fresh_tvar level = { id = fresh_id (); instance = None; level }
 let fresh_ty level = TVar (fresh_tvar level)
 
+module Loc_table = struct
+  module H = Hashtbl.Make (struct
+      type t = Location.t
+      let hash (loc : t) =
+        Hashtbl.hash
+          ( loc.file
+          , loc.start.Lexing.pos_lnum
+          , loc.start.Lexing.pos_cnum
+          , loc.start.Lexing.pos_bol
+          , loc.stop.Lexing.pos_lnum
+          , loc.stop.Lexing.pos_cnum
+          , loc.stop.Lexing.pos_bol )
+      let equal a b =
+        a.file = b.file
+        && a.start.Lexing.pos_lnum = b.start.Lexing.pos_lnum
+        && a.start.Lexing.pos_cnum = b.start.Lexing.pos_cnum
+        && a.start.Lexing.pos_bol = b.start.Lexing.pos_bol
+        && a.stop.Lexing.pos_lnum = b.stop.Lexing.pos_lnum
+        && a.stop.Lexing.pos_cnum = b.stop.Lexing.pos_cnum
+        && a.stop.Lexing.pos_bol = b.stop.Lexing.pos_bol
+    end)
+
+  let table = H.create 256
+
+  let reset () = H.reset table
+
+  let track (loc : Location.t) (ty : ty) =
+    if loc.file <> "" then H.replace table loc ty
+
+  let find (loc : Location.t) = H.find_opt table loc
+end
+
+let reset_tracked_locs = Loc_table.reset
+let track_loc_type = Loc_table.track
+let type_of_loc = Loc_table.find
+
 let mk_con ?loc name args =
   let loc = match loc with None -> Some default_loc | Some _ as l -> l in
-  TCon (name, args, loc)
+  let ty = TCon (name, args, loc) in
+  (match loc with
+   | None -> ()
+   | Some loc -> track_loc_type loc ty);
+  ty
 
 let t_int ?loc () = mk_con ?loc "int" []
 let t_bool ?loc () = mk_con ?loc "bool" []

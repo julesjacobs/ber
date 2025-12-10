@@ -16,6 +16,12 @@ let bad_fs =
 > Type mismatch:
 > 14 |   Cons ((fun (x : int) -> x), Cons (bool_not, Nil))
 >                        △△△     △         ▲▲▲▲▲▲▲▲       
+>                                          |
+>                                          got: bool -> bool
+>                        |
+>                        expected: int
+>                                |
+>                                expected: int
 > 
 > Got:      bool -> bool
 >           ▲▲▲▲    ▲▲▲▲
@@ -26,8 +32,14 @@ let bad_fs =
   Cons ((fun (x : int) -> (x,x)), Cons (bool_not, Nil))
 
 > Type mismatch:
-> 26 |   Cons ((fun (x : int) -> (x,x)), Cons (bool_not, Nil))
+> 32 |   Cons ((fun (x : int) -> (x,x)), Cons (bool_not, Nil))
 >                        △△△      △△△          ▲▲▲▲▲▲▲▲       
+>                                              |
+>                                              got: bool -> bool
+>                        |
+>                        expected: int
+>                                 |
+>                                 expected: int * int
 > 
 > Got:      bool -> bool
 >           ▲▲▲▲    ▲▲▲▲
@@ -38,8 +50,12 @@ let bad_fs =
   Cons ((fun x -> (x,x)), Cons (bool_not, Nil))
 
 > Type mismatch:
-> 38 |   Cons ((fun x -> (x,x)), Cons (bool_not, Nil))
+> 50 |   Cons ((fun x -> (x,x)), Cons (bool_not, Nil))
 >                         △△△          ▲▲▲▲▲▲▲▲       
+>                                      |
+>                                      got: bool -> bool
+>                         |
+>                         expected: bool * bool
 > 
 > Got:      bool -> bool
 >                   ▲▲▲▲
@@ -49,8 +65,12 @@ let bad_fs =
 Cons(1, Cons((fun x -> x), Nil))
 
 > Type mismatch:
-> 49 | Cons(1, Cons((fun x -> x), Nil))
+> 65 | Cons(1, Cons((fun x -> x), Nil))
 >           △        ▲▲▲▲▲▲▲▲▲▲        
+>                    |
+>                    got: 'b -> 'a
+>           |
+>           expected: int
 > 
 > Got:      'a -> 'b
 >              ▲▲   
@@ -68,9 +88,13 @@ let bad_fs =
   Cons ((fun (x) -> x), Cons (bool_not2, Nil))
 
 > Type mismatch:
-> 68 |   Cons ((fun (x) -> x), Cons (bool_not2, Nil))
+> 88 |   Cons ((fun (x) -> x), Cons (bool_not2, Nil))
 >                                    △△△△△△△△△       
 >                                    ▲▲▲▲▲▲▲▲▲       
+>                                    |
+>                                    got: bool -> int
+>                                    |
+>                                    expected: bool -> int
 > 
 > Got:      bool -> int
 >                   ▲▲▲
@@ -83,10 +107,14 @@ let bool_not3 b =
   | false -> ()
 
 > Type mismatch:
-> 82 |   | true -> false
->                  △△△△△
-> 83 |   | false -> ()
->                   ▲▲
+> 106 |   | true -> false
+>                   △△△△△
+>                   |
+>                   expected: bool
+> 107 |   | false -> ()
+>                    ▲▲
+>                    |
+>                    got: unit
 > 
 > Got:      unit
 >           ▲▲▲▲

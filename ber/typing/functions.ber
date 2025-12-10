@@ -20,6 +20,10 @@ let bad_annot = fun (x : int) -> x : bool
 > Type mismatch:
 > 18 | let bad_annot = fun (x : int) -> x : bool
 >                                       ▲   △△△△
+>                                       |
+>                                       got: int
+>                                           |
+>                                           expected: bool
 > 
 > Got:      int
 >           ▲▲▲

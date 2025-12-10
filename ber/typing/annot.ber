@@ -8,6 +8,10 @@ let bad_annot = (fun x -> x) : int -> bool
 > Type mismatch:
 > 6 | let bad_annot = (fun x -> x) : int -> bool
 >                               ▲           △△△△
+>                               |
+>                               got: int
+>                                           |
+>                                           expected: bool
 > 
 > Got:      int
 >           ▲▲▲

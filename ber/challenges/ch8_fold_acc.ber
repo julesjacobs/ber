@@ -24,6 +24,10 @@ let _ = sum_bool_list xs
 > Type mismatch:
 > 22 | let _ = sum_bool_list xs
 >              △△△△△△△△△△△△△ ▲▲
+>                            |
+>                            got: bool list
+>              |
+>              expected: int list -> int
 > 
 > Got:      bool list
 >           ▲▲▲▲     
@@ -45,8 +49,12 @@ fold_left add 0 lst
 fold_left 0 add lst
 
 > Type mismatch:
-> 45 | fold_left 0 add lst
+> 49 | fold_left 0 add lst
 >      △△△△△△△△△ ▲        
+>                |
+>                got: int
+>      |
+>      expected: ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
 > 
 > Got:      int
 >           ▲▲▲
@@ -56,8 +64,12 @@ fold_left 0 add lst
 fold_left 0 add
 
 > Type mismatch:
-> 56 | fold_left 0 add
+> 64 | fold_left 0 add
 >      △△△△△△△△△ ▲    
+>                |
+>                got: int
+>      |
+>      expected: ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
 > 
 > Got:      int
 >           ▲▲▲
@@ -67,8 +79,12 @@ fold_left 0 add
 fold_left add lst 0
 
 > Type mismatch:
-> 67 | fold_left add lst 0
+> 79 | fold_left add lst 0
 >                △△△ ▲▲▲  
+>                    |
+>                    got: int list
+>                |
+>                expected: int -> int -> int
 > 
 > Got:      int list
 >               ▲▲▲▲
@@ -78,8 +94,12 @@ fold_left add lst 0
 fold_left add lst
 
 > Type mismatch:
-> 78 | fold_left add lst
+> 94 | fold_left add lst
 >                △△△ ▲▲▲
+>                    |
+>                    got: int list
+>                |
+>                expected: int -> int -> int
 > 
 > Got:      int list
 >               ▲▲▲▲

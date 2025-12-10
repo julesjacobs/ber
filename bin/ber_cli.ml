@@ -91,6 +91,15 @@ let mismatch_locs expected got =
   in
   go expected got
 
+let label_for_loc ?prefix loc =
+  match type_of_loc loc with
+  | None -> None
+  | Some ty ->
+    let ty_s = string_of_ty ty in
+    (match prefix with
+     | None -> Some ty_s
+     | Some p -> Some (p ^ ": " ^ ty_s))
+
 type highlight =
   { loc : Location.t
   ; ch : string
@@ -484,11 +493,11 @@ let format_type_error (err : Type_infer.type_error) =
       in
       let loc_block =
         let highlights =
-          List.map (fun loc -> { loc; ch = got_ch; label = None }) locs_g
-          @ List.map (fun loc -> { loc; ch = expected_ch; label = None }) locs_e
+          List.map (fun loc -> { loc; ch = got_ch; label = label_for_loc ~prefix:"got" loc }) locs_g
+          @ List.map (fun loc -> { loc; ch = expected_ch; label = label_for_loc ~prefix:"expected" loc }) locs_e
         in
         let highlights =
-          if !print_error_span then { loc = err.loc; ch = "-"; label = None } :: highlights else highlights
+          if !print_error_span then { loc = err.loc; ch = "-"; label = label_for_loc ~prefix:"error" err.loc } :: highlights else highlights
         in
         format_highlights highlights
       in
@@ -507,10 +516,16 @@ let format_type_error (err : Type_infer.type_error) =
         s
       in
       let msg = "Would require self-referential type ∞ = " ^ ty_infinite in
-      let loc_block = format_highlights [ { loc = err.loc; ch = got_ch; label = None } ] in
+      let loc_block =
+        format_highlights
+          [ { loc = err.loc; ch = got_ch; label = label_for_loc ~prefix:"error" err.loc } ]
+      in
       msg ^ "\n" ^ loc_block
     | Type_infer.Message msg ->
-      let loc_block = format_highlights [ { loc = err.loc; ch = got_ch; label = None } ] in
+      let loc_block =
+        format_highlights
+          [ { loc = err.loc; ch = got_ch; label = label_for_loc ~prefix:"error" err.loc } ]
+      in
       msg ^ "\n" ^ loc_block
   in
   kind_msg
@@ -588,6 +603,7 @@ let process_block filename pragmas (block : File_format.block) =
     combined
 
 let rewrite_file filename =
+  reset_tracked_locs ();
   let input =
     let ic = open_in_bin filename in
     let len = in_channel_length ic in

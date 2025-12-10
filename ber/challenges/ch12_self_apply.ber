@@ -4,3 +4,5 @@ let self_apply f = f f
 > Would require self-referential type ∞ = ∞ -> 'a
 > 2 | let self_apply f = f f
 >                          ▲
+>                          |
+>                          error: 'b -> 'a

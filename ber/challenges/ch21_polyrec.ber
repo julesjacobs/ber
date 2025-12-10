@@ -11,6 +11,10 @@ let rec g x =
 > Type mismatch:
 > 9 |   | _ -> g (Cons (x, Nil))
 >              △  ▲▲▲▲          
+>                 |
+>                 got: 'a * 'a list -> 'a list
+>              |
+>              expected: int -> 'a list
 > 
 > Got:      'a * 'a list -> 'a list
 >                              ▲▲▲▲

@@ -8,6 +8,10 @@ let make_node = Node ()
 > Type mismatch:
 > 6 | let make_node = Node ()
 >                     △△△△ ▲▲
+>                          |
+>                          got: unit
+>                     |
+>                     expected: tree * tree -> tree
 > 
 > Got:      unit
 >           ▲▲▲▲
@@ -17,8 +21,12 @@ let make_node = Node ()
 let wrong_ctor_arity = Node 1
 
 > Type mismatch:
-> 10 | let wrong_ctor_arity = Node 1
+> 21 | let wrong_ctor_arity = Node 1
 >                             △△△△ ▲
+>                                  |
+>                                  got: int
+>                             |
+>                             expected: tree * tree -> tree
 > 
 > Got:      int
 >           ▲▲▲
@@ -28,5 +36,7 @@ let wrong_ctor_arity = Node 1
 let unknown_ctor = Foo 1
 
 > Unknown constructor Foo
-> 21 | let unknown_ctor = Foo 1
+> 36 | let unknown_ctor = Foo 1
 >                         ▲▲▲▲▲
+>                         |
+>                         error: 'a

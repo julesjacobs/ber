@@ -9,6 +9,10 @@ let _ = negate 1 2
 > 6 | let _ = negate 1 2
 >                    ▲  
 >             △△△△△△△△△△
+>                    |
+>                    got: int
+>             |
+>             expected: ('b -> 'a) -> 'b -> 'a
 > 
 > Got:      int
 >           ▲▲▲

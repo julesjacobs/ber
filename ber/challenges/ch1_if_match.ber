@@ -11,8 +11,12 @@ let f b =
 > Type mismatch:
 > 6 |     | true -> 0
 >                   △
+>                   |
+>                   expected: int
 > 7 |     | false -> false
 >                    ▲▲▲▲▲
+>                    |
+>                    got: bool
 > 
 > Got:      bool
 >           ▲▲▲▲

@@ -11,11 +11,15 @@ and odd n =
 > Type mismatch:
 > 4 |   | 0 -> true
 >              △△△△
+>              |
+>              expected: bool
 > 5 |   | _ -> odd n
 > 6 | and odd n =
 > 7 |   match n with
 > 8 |   | 0 -> 0
 >              ▲
+>              |
+>              got: int
 > 
 > Got:      int
 >           ▲▲▲
