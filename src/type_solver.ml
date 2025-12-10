@@ -9,7 +9,8 @@ type tvar =
   }
 
 and typed_loc =
-  { loc : Location.t
+  { loc_far : Location.t
+  ; mutable loc_near : Location.t
   ; mutable ty : ty
   }
 
@@ -42,16 +43,18 @@ let fresh_ty level = TVar (fresh_tvar level)
 
 let reset_tracked_locs () = ()
 let track_typed_loc (_ : typed_loc) = ()
-let track_loc_type loc ty = { loc; ty }
+let track_loc_type loc ty = { loc_far = loc; loc_near = loc; ty }
 
-let mk_con_typed_loc ~typed_loc name args =
+let mk_con_typed_loc ~loc_far ~loc_near name args =
   let id = fresh_con_id () in
-  TCon (name, args, { loc = typed_loc; id })
+  let rec ty = TCon (name, args, { loc = typed_loc; id })
+  and typed_loc = { loc_far; loc_near; ty } in
+  ty
 
 let mk_con loc name args =
   let id = fresh_con_id () in
   let rec ty = TCon (name, args, { loc = typed_loc; id })
-  and typed_loc = { loc; ty } in
+  and typed_loc = { loc_far = loc; loc_near = loc; ty } in
   ty
 
 let t_int ~loc () = mk_con loc "int" []
@@ -61,7 +64,7 @@ let t_string ~loc () = mk_con loc "string" []
 let t_arrow ~loc a b = mk_con loc "->" [ a; b ]
 let t_tuple ~loc ts = mk_con loc "*" ts
 
-let t_arrow_typed_loc ~typed_loc a b = mk_con_typed_loc ~typed_loc "->" [ a; b ]
+let t_arrow_typed_loc ~loc_far ~loc_near a b = mk_con_typed_loc ~loc_far ~loc_near "->" [ a; b ]
 
 let rec prune = function
   | TVar ({ instance = Some ty; _ } as tv) ->
@@ -141,8 +144,8 @@ let instantiate ~typed_loc ~level (Forall (vars, ty)) =
       (match IMap.find_opt tv.id subst with
        | Some t -> t
        | None -> ty)
-    | TCon (n, args, _meta) ->
-      mk_con_typed_loc ~typed_loc n (List.map aux args)
+    | TCon (n, args, meta) ->
+      mk_con_typed_loc ~loc_far:meta.loc.loc_far ~loc_near:typed_loc.loc_near n (List.map aux args)
   in
   aux ty
 

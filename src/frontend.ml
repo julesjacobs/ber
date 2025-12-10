@@ -131,7 +131,7 @@ let make_type_renderer () =
       n
   in
   let add_mark (loc : typed_loc) id acc =
-    if is_dummy_loc loc.loc then acc else { loc = loc.loc; id } :: acc
+    if is_dummy_loc loc.loc_near then acc else { loc = loc.loc_near; id } :: acc
   in
   let rec shift (_delta : int) (parts : type_mark list) = parts
   and render (prec : int) (ty : ty) : string * type_mark list * type_tree =
@@ -155,13 +155,13 @@ let make_type_renderer () =
           s0, marks
       in
       let marks = add_mark meta.loc meta.id marks in
-      let tree = TConNode { name = "->"; loc = Some meta.loc.loc; id = meta.id; args = [ ta; tb ] } in
+      let tree = TConNode { name = "->"; loc = Some meta.loc.loc_near; id = meta.id; args = [ ta; tb ] } in
       s, marks, tree
     | TCon ("*", elems, meta) ->
       (match elems with
        | [] ->
         let s = "unit" in
-        let tree = TConNode { name = "*"; loc = Some meta.loc.loc; id = meta.id; args = [] } in
+        let tree = TConNode { name = "*"; loc = Some meta.loc.loc_near; id = meta.id; args = [] } in
         let marks = add_mark meta.loc meta.id [] in
         s, marks, tree
        | _ ->
@@ -186,12 +186,12 @@ let make_type_renderer () =
              s0, marks
          in
          let marks = add_mark meta.loc meta.id marks in
-         let tree = TConNode { name = "*"; loc = Some meta.loc.loc; id = meta.id; args = trees } in
+         let tree = TConNode { name = "*"; loc = Some meta.loc.loc_near; id = meta.id; args = trees } in
          s, marks, tree)
     | TCon (name, [], meta) ->
       let s = name in
       let marks = add_mark meta.loc meta.id [] in
-      let tree = TConNode { name; loc = Some meta.loc.loc; id = meta.id; args = [] } in
+      let tree = TConNode { name; loc = Some meta.loc.loc_near; id = meta.id; args = [] } in
       s, marks, tree
     | TCon (name, [ arg ], meta) ->
       let sa, ma, ta = render 2 arg in
@@ -207,7 +207,7 @@ let make_type_renderer () =
           s0, marks
       in
       let marks = add_mark meta.loc meta.id marks in
-      let tree = TConNode { name; loc = Some meta.loc.loc; id = meta.id; args = [ ta ] } in
+      let tree = TConNode { name; loc = Some meta.loc.loc_near; id = meta.id; args = [ ta ] } in
       s, marks, tree
     | TCon (name, args, meta) ->
       let rendered = List.map (render 0) args in
@@ -233,7 +233,7 @@ let make_type_renderer () =
           s0, marks
       in
       let marks = add_mark meta.loc meta.id marks in
-      let tree = TConNode { name; loc = Some meta.loc.loc; id = meta.id; args = trees } in
+      let tree = TConNode { name; loc = Some meta.loc.loc_near; id = meta.id; args = trees } in
       s, marks, tree
   in
   let render_view ty =
@@ -250,7 +250,7 @@ let mismatch_locs expected got =
   let head_loc ty =
     match prune ty with
     | TCon (_, _, meta) ->
-      if is_dummy_loc meta.loc.loc then [] else [ meta.loc.loc ]
+      if is_dummy_loc meta.loc.loc_near then [] else [ meta.loc.loc_near ]
     | _ -> []
   in
   let rec go a b =

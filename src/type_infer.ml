@@ -206,8 +206,13 @@ let infer_application env function_or_constructor call_loc fn_loc fn_ty arg_tys 
   let arg_tys_fresh = List.map (fun _ -> fresh_ty env.gen_level) arg_tys in
   let app_ty =
     let fn_ty' = fresh_ty env.gen_level in
-    let typed_loc = { loc = fn_loc; ty = fn_ty' } in
-    let ty = List.fold_right (fun arg acc -> t_arrow_typed_loc ~typed_loc arg acc) arg_tys_fresh result_ty in
+    let typed_loc = { loc_far = fn_loc; loc_near = fn_loc; ty = fn_ty' } in
+    let ty =
+      List.fold_right
+        (fun arg acc -> t_arrow_typed_loc ~loc_far:typed_loc.loc_far ~loc_near:typed_loc.loc_near arg acc)
+        arg_tys_fresh
+        result_ty
+    in
     unify fn_ty' ty;
     ty
   in
