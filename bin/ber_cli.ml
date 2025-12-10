@@ -66,9 +66,7 @@ let mismatch_locs expected got =
   let head_loc ty =
     match prune ty with
     | TCon (_, _, meta) ->
-      (match meta.loc with
-       | Some tl when tl.loc.file <> "" -> [ tl.loc ]
-       | _ -> [])
+      if meta.loc.loc.file <> "" then [ meta.loc.loc ] else []
     | _ -> []
   in
   let rec go a b =
@@ -306,7 +304,7 @@ let format_type_error (err : Type_infer.type_error) =
         let s = sa ^ op ^ sb in
         let pos = String.length sa + 1 in
         let marks = [ pos, 2 ] in
-        let locs = match meta.loc with None -> [] | Some tl -> [ tl.loc ] in
+        let locs = [ meta.loc.loc ] in
         let need_paren = prec > 0 in
         if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks, locs else s, marks, locs
       | TCon ("*", elems, meta) ->
@@ -314,7 +312,7 @@ let format_type_error (err : Type_infer.type_error) =
          | [] ->
            let s = "unit" in
            let marks = [ 0, String.length s ] in
-           let locs = match meta.loc with None -> [] | Some tl -> [ tl.loc ] in
+           let locs = [ meta.loc.loc ] in
            s, marks, locs
          | _ ->
         let rendered = List.map render_ty elems in
@@ -330,13 +328,13 @@ let format_type_error (err : Type_infer.type_error) =
             s', marks', String.length s'
         in
         let s, marks, _ = join rendered in
-        let locs = match meta.loc with None -> [] | Some tl -> [ tl.loc ] in
+        let locs = [ meta.loc.loc ] in
         let need_paren = prec > 1 in
         if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks, locs else s, marks, locs)
       | TCon (name, [], meta) ->
         let s = name in
         let marks = [ 0, String.length name ] in
-        let locs = match meta.loc with None -> [] | Some tl -> [ tl.loc ] in
+        let locs = [ meta.loc.loc ] in
         s, marks, locs
       | TCon (name, [arg], meta) ->
         let arg_s = render_ty arg in
@@ -344,7 +342,7 @@ let format_type_error (err : Type_infer.type_error) =
         let s = arg_s ^ sep ^ name in
         let name_start = String.length arg_s + String.length sep in
         let marks = [ name_start, String.length name ] in
-        let locs = match meta.loc with None -> [] | Some tl -> [ tl.loc ] in
+        let locs = [ meta.loc.loc ] in
         let need_paren = prec > 1 in
         if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks, locs else s, marks, locs
       | TCon (name, args, meta) ->
@@ -364,7 +362,7 @@ let format_type_error (err : Type_infer.type_error) =
         let s = base ^ " " ^ name in
         let name_start = String.length base + 1 in
         let marks = (name_start, String.length name) :: List.map (fun (st, l) -> (st + 1, l)) marks in
-        let locs = match meta.loc with None -> [] | Some tl -> [ tl.loc ] in
+        let locs = [ meta.loc.loc ] in
         let need_paren = prec > 1 in
         if need_paren then "(" ^ s ^ ")", List.map (fun (st, l) -> (st + 1, l)) marks, locs else s, marks, locs
     in
@@ -509,7 +507,7 @@ let format_type_error (err : Type_infer.type_error) =
       let reason_line = if reason = "" then "" else "\nReason: " ^ reason in
       "Type mismatch:\n" ^ loc_block ^ "\n" ^ String.concat "\n" lines ^ reason_line
     | Type_infer.Occurs_check (tv, ty) ->
-      let inf = mk_con "∞" [] in
+      let inf = mk_con default_loc "∞" [] in
       let ty_infinite =
         let save = tv.instance in
         tv.instance <- Some inf;

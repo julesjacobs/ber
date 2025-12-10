@@ -15,51 +15,51 @@ let bad_fs =
 
 > Type mismatch:
 > 14 |   Cons ((fun (x : int) -> x), Cons (bool_not, Nil))
->                        △△△               ▲▲▲▲▲▲▲▲       
+>                        ▲▲▲               △△△△△△△△       
 > 
-> Got:      bool
->           ▲▲▲▲
-> Expected: int
->           △△△
-> Reason: constructor arg
+> Got:      int
+>           ▲▲▲
+> Expected: bool
+>           △△△△
+> Reason: function application
 
 let bad_fs =
   Cons ((fun (x : int) -> (x,x)), Cons (bool_not, Nil))
 
 > Type mismatch:
 > 27 |   Cons ((fun (x : int) -> (x,x)), Cons (bool_not, Nil))
->                        △△△                   ▲▲▲▲▲▲▲▲       
+>                        ▲▲▲                   △△△△△△△△       
 > 
-> Got:      bool
->           ▲▲▲▲
-> Expected: int
->           △△△
-> Reason: constructor arg
+> Got:      int
+>           ▲▲▲
+> Expected: bool
+>           △△△△
+> Reason: function application
 
 let bad_fs =
   Cons ((fun x -> (x,x)), Cons (bool_not, Nil))
 
 > Type mismatch:
 > 40 |   Cons ((fun x -> (x,x)), Cons (bool_not, Nil))
->                         △△△          ▲▲▲▲▲▲▲▲       
+>                         ▲▲▲          △△△△△△△△       
 > 
-> Got:      bool
->           ▲▲▲▲
-> Expected: bool * bool
->                △     
-> Reason: constructor arg
+> Got:      bool * bool
+>                ▲     
+> Expected: bool
+>           △△△△
+> Reason: function application
 
 Cons(1, Cons((fun x -> x), Nil))
 
 > Type mismatch:
 > 52 | Cons(1, Cons((fun x -> x), Nil))
->           △        ▲▲▲▲▲▲▲▲▲▲        
+>           ▲        △△△△△△△△△△        
 > 
-> Got:      'a -> 'a
->              ▲▲   
-> Expected: int
->           △△△
-> Reason: constructor arg
+> Got:      int
+>           ▲▲▲
+> Expected: 'a -> 'a
+>              △△   
+> Reason: function application
 
 let bool_not2 b =
   match b with
@@ -76,11 +76,11 @@ let bad_fs =
 >                                    △△△△△△△△△       
 >                                    ▲▲▲▲▲▲▲▲▲       
 > 
-> Got:      int
->           ▲▲▲
-> Expected: bool
->           △△△△
-> Reason: constructor arg
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△
+> Reason: function application
 
 let bool_not3 b =
   match b with

@@ -11,6 +11,6 @@ let _ = negate 1 2
 > 
 > Got:      int
 >           ▲▲▲
-> Expected: 'a -> 'b
->              △△   
-> Reason: argument
+> Expected: int -> 'a
+>               △△   
+> Reason: function application

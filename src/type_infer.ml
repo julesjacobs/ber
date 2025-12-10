@@ -121,7 +121,7 @@ let rec ty_of_type_expr env (tyvars : (string * tvar) list ref) (te : type_expr)
         error_msg te.loc ("type " ^ name.node ^ " expects " ^ string_of_int (List.length type_info.params) ^ " arguments")
       else
         let* args' = map_result (ty_of_type_expr env tyvars) args in
-        Ok (mk_con ~loc:te.loc name.node args')
+        Ok (mk_con te.loc name.node args')
     | TyArrow (a, b) ->
       let* ta = ty_of_type_expr env tyvars a in
       let* tb = ty_of_type_expr env tyvars b in
@@ -196,6 +196,18 @@ let rec infer_pattern env (pat : pattern) expected =
     let* () = unify_types pat.loc ~got:t ~expected ~reason:"annotated pattern" in
     infer_pattern env p t
 
+let infer_application env fn_loc fn_ty arg_tys =
+  let result_ty = fresh_ty env.gen_level in
+  let app_ty =
+    let fn_ty' = fresh_ty env.gen_level in
+    let typed_loc = { loc = fn_loc; ty = fn_ty' } in
+    let ty = List.fold_right (fun arg acc -> t_arrow_typed_loc ~typed_loc arg acc) arg_tys result_ty in
+    unify fn_ty' ty;
+    ty
+  in
+  let* () = unify_types fn_loc ~got:fn_ty ~expected:app_ty ~reason:"function application" in
+  Ok result_ty
+
 let rec infer_expr (env : env) (expr : expr) : (ty, type_error) result =
   match expr.node with
   | EInt _ ->
@@ -208,30 +220,11 @@ let rec infer_expr (env : env) (expr : expr) : (ty, type_error) result =
     (match SMap.find_opt id.node env.vars with
      | None -> error_msg expr.loc ("Unbound variable " ^ id.node)
      | Some s ->
-      (* Create a fresh type for putting in the location *)
        let t = instantiate ~loc:id.loc env s in
        Ok t)
-  | EConstr (ctor, args) ->
-    (match SMap.find_opt ctor.node env.vars with
-     | None -> error_msg expr.loc ("Unknown constructor " ^ ctor.node)
-     | Some scheme ->
-       let ctor_ty = instantiate ~loc:ctor.loc env scheme in
-       let arg_tys = List.map (fun _ -> fresh_ty env.gen_level) args in
-       let fn_tl = track_loc_type ctor.loc expr_tl.ty in
-       let fn_type = List.fold_right (fun arg acc -> t_arrow ~loc:ctor.loc ~typed_loc:fn_tl arg acc) arg_tys expr_tl.ty in
-       let* () = unify_types ctor.loc ~got:ctor_ty ~expected:fn_type ~reason:"constructor application" in
-       let* _ =
-         map_result2
-           (fun e t ->
-              let* ety = infer_expr env e in
-              unify_types e.loc ~got:ety ~expected:t ~reason:"constructor arg" )
-           args
-           arg_tys
-       in
-       Ok expr_tl.ty)
   | ETuple elems ->
     let* elem_tys = map_result (infer_expr env) elems in
-    return_with (t_tuple ~loc:expr.loc ~typed_loc:expr_tl elem_tys)
+    Ok (t_tuple ~loc:expr.loc elem_tys)
   | ELambda { params; fn_body } ->
     let env' = push_level env in
     let param_tys = List.map (fun _ -> fresh_ty env'.gen_level) params in
@@ -252,33 +245,28 @@ let rec infer_expr (env : env) (expr : expr) : (ty, type_error) result =
         env'
         binds
     in
-    let result_ty = fresh_ty env'.gen_level in
     let* body_ty = infer_expr env'' fn_body in
-    let* () = unify_types fn_body.loc ~got:body_ty ~expected:result_ty ~reason:"lambda body" in
     let fn_ty =
-      List.fold_right (fun arg acc -> t_arrow ~loc:expr.loc ~typed_loc:expr_tl arg acc) param_tys result_ty
+      List.fold_right (fun arg acc -> t_arrow ~loc:expr.loc arg acc) param_tys body_ty
     in
-    return_with fn_ty
+    Ok fn_ty
   | EApp (fn, args) ->
     let* fn_ty = infer_expr env fn in
-    let arg_tys = List.map (fun _ -> fresh_ty env.gen_level) args in
-    let fn_tl = track_loc_type fn.loc expr_tl.ty in
-    let app_ty = List.fold_right (fun arg acc -> t_arrow ~loc:fn.loc ~typed_loc:fn_tl arg acc) arg_tys expr_tl.ty in
-    let* () = unify_types fn.loc ~got:fn_ty ~expected:app_ty ~reason:"function application" in
-    let* _ =
-      map_result2
-        (fun e t ->
-           let* ety = infer_expr env e in
-           unify_types e.loc ~got:ety ~expected:t ~reason:"argument")
-        args
-        arg_tys
-    in
-    Ok expr_tl.ty
+    let* arg_tys = map_result (fun arg -> infer_expr env arg) args in
+    infer_application env fn.loc fn_ty arg_tys
+  | EConstr (ctor, args) ->
+    (match SMap.find_opt ctor.node env.vars with
+     | None -> error_msg expr.loc ("Unknown constructor " ^ ctor.node)
+     | Some scheme ->
+       let ctor_ty = instantiate ~loc:ctor.loc env scheme in
+       let* arg_tys = map_result (fun arg -> infer_expr env arg) args in
+       infer_application env ctor.loc ctor_ty arg_tys)
   | ELet { rec_flag; bindings; in_expr } ->
     let* env_after, _infos = infer_let_bindings env rec_flag bindings in
     infer_expr env_after in_expr
   | EMatch (scrut, cases) ->
     let* scrut_ty = infer_expr env scrut in
+    let result_ty = fresh_ty env.gen_level in
     let env_case_level = push_level env in
     let* () =
       let rec loop = function
@@ -293,24 +281,23 @@ let rec infer_expr (env : env) (expr : expr) : (ty, type_error) result =
           in
           (match c.node.guard with
            | None -> Ok ()
-           | Some g ->
-             let* g_ty = infer_expr env_with_binds g in
-             unify_types g.loc ~got:g_ty ~expected:(t_bool ~loc:g.loc ()) ~reason:"guard" )
+            | Some g ->
+              let* g_ty = infer_expr env_with_binds g in
+              unify_types g.loc ~got:g_ty ~expected:(t_bool ~loc:g.loc ()) ~reason:"guard" )
           >>= fun () ->
           let* body_ty = infer_expr env_with_binds c.node.body in
-          let* () = unify_types c.node.body.loc ~got:body_ty ~expected:expr_tl.ty ~reason:"match branch" in
+          let* () = unify_types c.node.body.loc ~got:body_ty ~expected:result_ty ~reason:"match branch" in
           loop rest
       in
       loop cases
     in
-    Ok expr_tl.ty
+    Ok result_ty
   | EAnnot (e, texpr) ->
     let tyvars = ref [] in
     let* t_expected = ty_of_type_expr env tyvars texpr in
     let* ety = infer_expr env e in
     let* () = unify_types texpr.loc ~got:t_expected ~expected:ety ~reason:"type annotation" in
-    let* () = unify_types expr.loc ~got:t_expected ~expected:expr_tl.ty ~reason:"annotation result" in
-    Ok expr_tl.ty
+    Ok t_expected
 
 and infer_let_bindings env rec_flag bindings =
   let env_level = push_level env in
@@ -394,7 +381,7 @@ let register_type_decl env (decl : type_decl) =
   let param_vars = List.map (fun _ -> fresh_tvar (env.gen_level + 1)) params in
   let param_env = ref [] in
   List.iter2 (fun name tv -> param_env := (name, tv) :: !param_env) params param_vars;
-  let type_body = mk_con ~loc:decl.loc decl.node.tname.node (List.map (fun tv -> TVar tv) param_vars) in
+  let type_body = mk_con decl.loc decl.node.tname.node (List.map (fun tv -> TVar tv) param_vars) in
   let pre_type_info = { params; ctors = [] } in
   let env_with_type = { env with types = SMap.add decl.node.tname.node pre_type_info env.types } in
   let* ctor_schemes =

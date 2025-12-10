@@ -21,10 +21,10 @@ let capture_list x =
 
 > Type mismatch:
 > 20 |   (prepend 1, prepend true)
->                    △△△△△△△ ▲▲▲▲ 
+>                    ▲▲▲▲▲▲▲ △△△△ 
 > 
-> Got:      bool
->           ▲▲▲▲
-> Expected: int
->           △△△
-> Reason: argument
+> Got:      int
+>           ▲▲▲
+> Expected: bool
+>           △△△△
+> Reason: function application

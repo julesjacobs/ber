@@ -12,8 +12,8 @@ let bad_app = 3 4
 > 
 > Got:      int
 >           ▲▲▲
-> Expected: 'a -> 'b
->              △△   
+> Expected: int -> 'a
+>               △△   
 > Reason: function application
 
 let ascr_mismatch = 1 : bool

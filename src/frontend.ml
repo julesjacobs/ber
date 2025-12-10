@@ -82,7 +82,7 @@ let format_type_error (err : Type_infer.type_error) =
       (Type_infer.string_of_ty expected)
       reason
   | Type_infer.Occurs_check (tv, ty) ->
-    let inf = mk_con "∞" [] in
+    let inf = mk_con default_loc "∞" [] in
     let ty_infinite =
       let save = tv.instance in
       tv.instance <- Some inf;
@@ -129,10 +129,8 @@ let make_type_renderer () =
       Hashtbl.add names tv.id n;
       n
   in
-  let add_mark (loc_opt : typed_loc option) id acc =
-    match loc_opt with
-    | Some (tl : typed_loc) when not (is_dummy_loc tl.loc) -> { loc = tl.loc; id } :: acc
-    | _ -> acc
+  let add_mark (loc : typed_loc) id acc =
+    if is_dummy_loc loc.loc then acc else { loc = loc.loc; id } :: acc
   in
   let rec shift (_delta : int) (parts : type_mark list) = parts
   and render (prec : int) (ty : ty) : string * type_mark list * type_tree =
@@ -156,15 +154,15 @@ let make_type_renderer () =
           s0, marks
       in
       let marks = add_mark meta.loc meta.id marks in
-      let tree = TConNode { name = "->"; loc = Option.map (fun (tl : typed_loc) -> tl.loc) meta.loc; id = meta.id; args = [ ta; tb ] } in
+      let tree = TConNode { name = "->"; loc = Some meta.loc.loc; id = meta.id; args = [ ta; tb ] } in
       s, marks, tree
     | TCon ("*", elems, meta) ->
       (match elems with
        | [] ->
-         let s = "unit" in
-         let tree = TConNode { name = "*"; loc = Option.map (fun (tl : typed_loc) -> tl.loc) meta.loc; id = meta.id; args = [] } in
-         let marks = add_mark meta.loc meta.id [] in
-         s, marks, tree
+        let s = "unit" in
+        let tree = TConNode { name = "*"; loc = Some meta.loc.loc; id = meta.id; args = [] } in
+        let marks = add_mark meta.loc meta.id [] in
+        s, marks, tree
        | _ ->
          let rendered = List.map (render 0) elems in
          let rec join = function
@@ -187,12 +185,12 @@ let make_type_renderer () =
              s0, marks
          in
          let marks = add_mark meta.loc meta.id marks in
-         let tree = TConNode { name = "*"; loc = Option.map (fun (tl : typed_loc) -> tl.loc) meta.loc; id = meta.id; args = trees } in
+         let tree = TConNode { name = "*"; loc = Some meta.loc.loc; id = meta.id; args = trees } in
          s, marks, tree)
     | TCon (name, [], meta) ->
       let s = name in
       let marks = add_mark meta.loc meta.id [] in
-      let tree = TConNode { name; loc = Option.map (fun (tl : typed_loc) -> tl.loc) meta.loc; id = meta.id; args = [] } in
+      let tree = TConNode { name; loc = Some meta.loc.loc; id = meta.id; args = [] } in
       s, marks, tree
     | TCon (name, [ arg ], meta) ->
       let sa, ma, ta = render 2 arg in
@@ -208,7 +206,7 @@ let make_type_renderer () =
           s0, marks
       in
       let marks = add_mark meta.loc meta.id marks in
-      let tree = TConNode { name; loc = Option.map (fun (tl : typed_loc) -> tl.loc) meta.loc; id = meta.id; args = [ ta ] } in
+      let tree = TConNode { name; loc = Some meta.loc.loc; id = meta.id; args = [ ta ] } in
       s, marks, tree
     | TCon (name, args, meta) ->
       let rendered = List.map (render 0) args in
@@ -234,7 +232,7 @@ let make_type_renderer () =
           s0, marks
       in
       let marks = add_mark meta.loc meta.id marks in
-      let tree = TConNode { name; loc = Option.map (fun (tl : typed_loc) -> tl.loc) meta.loc; id = meta.id; args = trees } in
+      let tree = TConNode { name; loc = Some meta.loc.loc; id = meta.id; args = trees } in
       s, marks, tree
   in
   let render_view ty =
@@ -251,9 +249,7 @@ let mismatch_locs expected got =
   let head_loc ty =
     match prune ty with
     | TCon (_, _, meta) ->
-      (match meta.loc with
-       | Some tl when not (is_dummy_loc tl.loc) -> [ tl.loc ]
-       | _ -> [])
+      if is_dummy_loc meta.loc.loc then [] else [ meta.loc.loc ]
     | _ -> []
   in
   let rec go a b =
@@ -398,7 +394,7 @@ let typecheck_string ?(filename = "repl") source =
                let locs_e, locs_g = mismatch_locs expected got in
                Some (Mismatch (mismatch_detail (format_location err.loc) expected got ~source ~expected_locs:locs_e ~got_locs:locs_g))
              | Type_infer.Occurs_check (tv, ty) ->
-               let inf = mk_con "∞" [] in
+               let inf = mk_con default_loc "∞" [] in
                let ty_infinite =
                  let save = tv.instance in
                  tv.instance <- Some inf;
