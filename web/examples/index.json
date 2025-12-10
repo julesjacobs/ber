@@ -1,0 +1,17 @@
+[
+  {
+    "id": "intro",
+    "name": "Intro: lists and bool_not",
+    "file": "intro.ml"
+  },
+  {
+    "id": "map",
+    "name": "Polymorphic map",
+    "file": "map.ml"
+  },
+  {
+    "id": "mismatch",
+    "name": "Type mismatch demo",
+    "file": "mismatch.ml"
+  }
+]

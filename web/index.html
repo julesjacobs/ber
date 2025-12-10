@@ -112,6 +112,21 @@
       gap: 12px;
       margin-left: auto;
     }
+    .example-picker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .example-select {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-family: "JetBrains Mono", "Fira Code", monospace;
+    }
     button {
       background: linear-gradient(135deg, var(--accent), var(--accent-2));
       color: #0b1020;
@@ -214,7 +229,7 @@
       align-items: center;
       gap: 10px;
       padding: 8px 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
       background: rgba(255, 255, 255, 0.03);
       color: var(--muted);
       font-size: 13px;
@@ -251,22 +266,28 @@
       <section class="pane">
         <div class="pane-header">
           <div class="pane-title">Editor</div>
+          <div class="pane-controls">
+            <label class="example-picker">
+              <span>Examples</span>
+              <select id="example-select" class="example-select"></select>
+            </label>
+          </div>
         </div>
         <div id="editor"></div>
       </section>
       <section class="pane">
-        <div class="debug-bar">
-          <label class="debug-checkbox">
-            <input type="checkbox" id="debug-toggle">
-            <span>Debug mode</span>
-          </label>
-        </div>
         <div class="pane-header">
           <div class="pane-title">Typecheck Output</div>
           <div id="status" class="status" data-state="pending">Waiting…</div>
         </div>
         <pre id="output" class="output" data-state="pending"></pre>
         <pre id="debug-panel" class="debug-panel hidden"></pre>
+        <div class="debug-bar">
+          <label class="debug-checkbox">
+            <input type="checkbox" id="debug-toggle">
+            <span>Debug mode</span>
+          </label>
+        </div>
       </section>
     </div>
   </div>

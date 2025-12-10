@@ -29,6 +29,15 @@ const copyStatic = async () => {
   await fs.copyFile(path.join(webDir, "index.html"), path.join(distDir, "index.html"));
   await fs.copyFile(path.join(buildDir, "ber_wasm.bc.wasm.js"), path.join(distDir, "ber_wasm.bc.wasm.js"));
   await copyDir(path.join(buildDir, "ber_wasm.bc.wasm.assets"), path.join(distDir, "ber_wasm.bc.wasm.assets"));
+  const examplesDir = path.join(webDir, "examples");
+  try {
+    const stat = await fs.stat(examplesDir);
+    if (stat.isDirectory()) {
+      await copyDir(examplesDir, path.join(distDir, "examples"));
+    }
+  } catch {
+    /* ignore missing examples */
+  }
 };
 
 const main = async () => {

@@ -44,6 +44,12 @@ type ExprInfo = {
   ty?: TypeView | null;
 };
 
+type ExampleMeta = {
+  id: string;
+  name: string;
+  file: string;
+};
+
 type Detail = {
   kind: "type_mismatch" | "occurs";
   heading?: string | null;
@@ -80,9 +86,10 @@ const output = document.getElementById("output");
 const status = document.getElementById("status");
 const debugToggle = document.getElementById("debug-toggle") as HTMLInputElement | null;
 const debugPanel = document.getElementById("debug-panel");
+const exampleSelect = document.getElementById("example-select") as HTMLSelectElement | null;
 const runBtn = document.getElementById("run-btn");
 
-if (!editorMount || !output || !status || !debugPanel || !debugToggle) {
+if (!editorMount || !output || !status || !debugPanel || !debugToggle || !exampleSelect) {
   throw new Error("Missing editor/output containers in the DOM");
 }
 
@@ -92,7 +99,6 @@ let bool_not b =
   match b with
   | true -> false
   | false -> true
-  
 
 let bad_fs =
   Cons ((fun x -> Cons(x, Nil)), Cons (bool_not, Nil))`;
@@ -101,6 +107,7 @@ let view: EditorView;
 let lastResult: BerResult | null = null;
 const errorMarks = StateEffect.define<DecorationSet>();
 const hoverMarks = StateEffect.define<DecorationSet>();
+let examples: ExampleMeta[] = [];
 const errorField = StateField.define<DecorationSet>({
   create: () => Decoration.none,
   update(value, tr) {
@@ -351,6 +358,48 @@ let pending = false;
 let nextRunId = 0;
 let appliedRunId = 0;
 
+const loadExample = async (id: string) => {
+  if (!examples.length) return;
+  const ex = examples.find((e) => e.id === id) || examples[0];
+  if (!ex) return;
+  try {
+    const res = await fetch(`./examples/${ex.file}`);
+    if (!res.ok) throw new Error(`Failed to load example ${ex.file}`);
+    const text = await res.text();
+    view.dispatch({
+      changes: { from: 0, to: view.state.doc.length, insert: text },
+    });
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const populateExamples = async () => {
+  if (!exampleSelect) return;
+  try {
+    const res = await fetch("./examples/index.json");
+    if (!res.ok) throw new Error(`Failed to load examples index (${res.status})`);
+    examples = (await res.json()) as ExampleMeta[];
+  } catch (err) {
+    console.error(err);
+    examples = [];
+  }
+  if (!examples.length) {
+    exampleSelect.disabled = true;
+    exampleSelect.innerHTML = `<option>Examples unavailable</option>`;
+    return;
+  }
+  exampleSelect.disabled = false;
+  exampleSelect.innerHTML = examples
+    .map((ex) => `<option value="${ex.id}">${ex.name}</option>`)
+    .join("");
+  exampleSelect.addEventListener("change", (ev) => {
+    const target = ev.target as HTMLSelectElement;
+    void loadExample(target.value);
+  });
+  void loadExample(examples[0].id);
+};
+
 const runTypecheck = async () => {
   if (running) {
     pending = true;
@@ -496,3 +545,4 @@ view = new EditorView({
 });
 
 runTypecheck();
+void populateExamples();
