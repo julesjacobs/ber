@@ -358,21 +358,6 @@ const renderMismatchArrow = (detail: Detail | null | undefined) => {
     const labelOffset = 16;
     const labelX = labelPos.x + rightNormal.x * labelOffset;
     const labelY = labelPos.y + rightNormal.y * labelOffset;
-    const endT = 0.98;
-    const endTangent = tangentAt(endT);
-    const endTangentLen = Math.hypot(endTangent.x, endTangent.y) || 1;
-    const endDir = { x: endTangent.x / endTangentLen, y: endTangent.y / endTangentLen };
-    const endNormal = { x: -endDir.y, y: endDir.x };
-    const arrowLength = 10;
-    const arrowWidth = 7;
-    const tipX = endX;
-    const tipY = endY;
-    const baseX = tipX - endDir.x * arrowLength;
-    const baseY = tipY - endDir.y * arrowLength;
-    const leftX = baseX + endNormal.x * (arrowWidth / 2);
-    const leftY = baseY + endNormal.y * (arrowWidth / 2);
-    const rightX = baseX - endNormal.x * (arrowWidth / 2);
-    const rightY = baseY - endNormal.y * (arrowWidth / 2);
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.classList.add("type-arrow-layer");
     svg.setAttribute("viewBox", `0 0 ${containerRect.width} ${containerRect.height}`);
@@ -387,13 +372,12 @@ const renderMismatchArrow = (detail: Detail | null | undefined) => {
     );
     path.setAttribute("class", "type-arrow-path");
     svg.append(path);
-    const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    arrow.setAttribute(
-      "d",
-      `M ${tipX} ${tipY} L ${leftX} ${leftY} L ${rightX} ${rightY} Z`
-    );
-    arrow.setAttribute("class", "type-arrow-head");
-    svg.append(arrow);
+    const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    dot.setAttribute("cx", `${endX}`);
+    dot.setAttribute("cy", `${endY}`);
+    dot.setAttribute("r", "4");
+    dot.setAttribute("class", "type-arrow-dot");
+    svg.append(dot);
     const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
     label.textContent = "expected";
     label.setAttribute("x", `${labelX}`);

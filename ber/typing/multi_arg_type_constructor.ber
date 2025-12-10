@@ -23,12 +23,12 @@ let _ = expect_result (Err 123)
 
 > Type mismatch:
 > 22 | let _ = expect_result (Err 123)
->              ▲▲▲▲▲▲▲▲▲▲▲▲▲      △△△ 
+>              △△△△△△△△△△△△△      ▲▲▲ 
 > 
-> Got:      string
->           ▲▲▲▲▲▲
-> Expected: int
->           △△△
+> Got:      int
+>           ▲▲▲
+> Expected: string
+>           △△△△△△
 > Reason: function application
 
 type ('leaf, 'node) info_tree = Leaf of 'leaf | Node of 'node * ('leaf, 'node) info_tree * ('leaf, 'node) info_tree
@@ -51,10 +51,10 @@ let tree_bad = Node ("root", Leaf 1, Leaf "oops")
 
 > Type mismatch:
 > 50 | let tree_bad = Node ("root", Leaf 1, Leaf "oops")
->                                        ▲       △△△△△△ 
+>                                        △       ▲▲▲▲▲▲ 
 > 
-> Got:      int
->           ▲▲▲
-> Expected: string
->           △△△△△△
+> Got:      string
+>           ▲▲▲▲▲▲
+> Expected: int
+>           △△△
 > Reason: function application

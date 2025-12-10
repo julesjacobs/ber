@@ -9,5 +9,9 @@ let choose b x =
   | false -> x
 
 > Would require self-referential type ∞ = ∞ list
+> 7 |   match b with
+>       ▲▲▲▲▲▲▲▲▲▲▲▲
+> 8 |   | true -> Cons (x, Nil)
+>     ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 > 9 |   | false -> x
->                  ▲
+>     ▲▲▲▲▲▲▲▲▲▲▲▲▲▲

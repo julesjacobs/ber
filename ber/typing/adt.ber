@@ -7,24 +7,24 @@ let make_node = Node ()
 
 > Type mismatch:
 > 6 | let make_node = Node ()
->                     ▲▲▲▲ △△
+>                     △△△△ ▲▲
 > 
-> Got:      tree * tree
->                ▲     
-> Expected: unit
->           △△△△
+> Got:      unit
+>           ▲▲▲▲
+> Expected: tree * tree
+>                △     
 > Reason: function application
 
 let wrong_ctor_arity = Node 1
 
 > Type mismatch:
 > 18 | let wrong_ctor_arity = Node 1
->                             ▲▲▲▲ △
+>                             △△△△ ▲
 > 
-> Got:      tree * tree
->                ▲     
-> Expected: int
->           △△△
+> Got:      int
+>           ▲▲▲
+> Expected: tree * tree
+>                △     
 > Reason: function application
 
 let unknown_ctor = Foo 1

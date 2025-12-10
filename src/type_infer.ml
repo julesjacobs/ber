@@ -199,7 +199,7 @@ let infer_application env call_loc fn_loc fn_ty arg_tys =
     unify fn_ty' ty;
     ty
   in
-  let* () = unify_types call_loc ~got:fn_ty ~expected:app_ty ~reason:"function application" in
+  let* () = unify_types call_loc ~got:app_ty ~expected:fn_ty ~reason:"Function argument mismatch" in
   Ok result_ty
 
 let rec infer_expr (env : env) (expr : expr) : (ty, type_error) result =
@@ -264,7 +264,7 @@ let rec infer_expr (env : env) (expr : expr) : (ty, type_error) result =
         | [] -> Ok ()
         | c :: rest ->
           let* pat_ty, binds = infer_pattern env_case_level c.node.pattern in
-          let* () = unify_types c.node.pattern.loc ~got:pat_ty ~expected:scrut_ty ~reason:"match pattern" in
+          let* () = unify_types expr.loc ~got:pat_ty ~expected:scrut_ty ~reason:"Pattern does not match scrutinee" in
           let env_with_binds =
             List.fold_left
               (fun e (name, ty) -> { e with vars = SMap.add name (Forall ([], ty)) e.vars })
@@ -275,10 +275,10 @@ let rec infer_expr (env : env) (expr : expr) : (ty, type_error) result =
            | None -> Ok ()
             | Some g ->
               let* g_ty = infer_expr env_with_binds g in
-              unify_types g.loc ~got:g_ty ~expected:(t_bool ~loc:g.loc ()) ~reason:"guard" )
+              unify_types expr.loc ~got:g_ty ~expected:(t_bool ~loc:g.loc ()) ~reason:"Match guard is not a bool" )
           >>= fun () ->
           let* body_ty = infer_expr env_with_binds c.node.body in
-          let* () = unify_types c.node.body.loc ~got:body_ty ~expected:result_ty ~reason:"match branch" in
+          let* () = unify_types expr.loc ~got:body_ty ~expected:result_ty ~reason:"Match branches have different types" in
           loop rest
       in
       loop cases
@@ -288,7 +288,7 @@ let rec infer_expr (env : env) (expr : expr) : (ty, type_error) result =
     let tyvars = ref [] in
     let* t_expected = ty_of_type_expr env tyvars texpr in
     let* ety = infer_expr env e in
-    let* () = unify_types texpr.loc ~got:t_expected ~expected:ety ~reason:"type annotation" in
+    let* () = unify_types texpr.loc ~got:t_expected ~expected:ety ~reason:"Type annotation mismatch" in
     Ok t_expected
 
 and infer_let_bindings env rec_flag bindings =
@@ -305,15 +305,15 @@ and infer_let_bindings env rec_flag bindings =
             let tyvars = ref [] in
             let* ann_ty = ty_of_type_expr env tyvars texpr in
             let* inferred = infer_expr env_level b.node.rhs in
-            let* () = unify_types b.node.rhs.loc ~got:inferred ~expected:ann_ty ~reason:"let rhs annotation" in
+            let* () = unify_types b.node.rhs.loc ~got:inferred ~expected:ann_ty ~reason:"Let annotation mismatch" in
             Ok (ann_ty, p, inferred)
           | _ ->
             let* inferred = infer_expr env_level b.node.rhs in
             Ok (inferred, b.node.lhs, inferred)
         in
-        let* () = unify_types b.node.rhs.loc ~got:inferred_rhs_ty ~expected:rhs_ty ~reason:"let rhs" in
+        let* () = unify_types b.node.rhs.loc ~got:inferred_rhs_ty ~expected:rhs_ty ~reason:"Let rhs has different type" in
         let* pat_ty, binds = infer_pattern env_level pat in
-        let* () = unify_types pat_loc ~got:pat_ty ~expected:rhs_ty ~reason:"let pattern" in
+        let* () = unify_types pat_loc ~got:pat_ty ~expected:rhs_ty ~reason:"Let pattern type mismatch" in
         let generalized =
           List.map
             (fun (name, ty) -> { name; scheme = generalize env ty })
@@ -354,7 +354,7 @@ and infer_let_bindings env rec_flag bindings =
         | [], [] -> Ok ()
         | b :: bs', (_, ty) :: provs' ->
           let* inferred = infer_expr env_with_prov b.node.rhs in
-          let* () = unify_types b.node.rhs.loc ~got:inferred ~expected:ty ~reason:"let rec rhs" in
+          let* () = unify_types b.node.rhs.loc ~got:inferred ~expected:ty ~reason:"Let rec rhs has different type" in
           loop bs' provs'
         | _ -> error_msg dummy_loc "Arity mismatch in let rec bindings"
       in

@@ -302,8 +302,8 @@ let spans_for_error (err : Type_infer.type_error) =
   match err.kind with
   | Type_infer.Type_mismatch (got, expected, _) ->
     let locs_e, locs_g = mismatch_locs expected got in
-    let locs_e = sort_locs_by_position_asc locs_e in
-    let locs_g = sort_locs_by_position_asc locs_g in
+    (* let locs_e = sort_locs_by_position_asc locs_e in *)
+    (* let locs_g = sort_locs_by_position_asc locs_g in *)
     let expected_spans =
       dedup_locs locs_e |> List.map (fun loc -> { loc; label = Some "expected"; ty = ty_for_loc loc })
     in

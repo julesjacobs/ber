@@ -19,10 +19,10 @@ let add1_to_length xs =
 
 > Type mismatch:
 > 18 |   add 1 length
->        ▲▲▲   △△△△△△
+>        △△△   ▲▲▲▲▲▲
 > 
-> Got:      int
->           ▲▲▲
-> Expected: 'a list -> int
->                   △△    
+> Got:      'a list -> int
+>                   ▲▲    
+> Expected: int
+>           △△△
 > Reason: function application

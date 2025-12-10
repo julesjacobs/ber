@@ -15,12 +15,12 @@ let bad_fs =
 
 > Type mismatch:
 > 14 |   Cons ((fun (x : int) -> x), Cons (bool_not, Nil))
->                        ▲▲▲               △△△△△△△△       
+>                        △△△               ▲▲▲▲▲▲▲▲       
 > 
-> Got:      int
->           ▲▲▲
-> Expected: bool
->           △△△△
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△
 > Reason: function application
 
 let bad_fs =
@@ -28,12 +28,12 @@ let bad_fs =
 
 > Type mismatch:
 > 27 |   Cons ((fun (x : int) -> (x,x)), Cons (bool_not, Nil))
->                        ▲▲▲                   △△△△△△△△       
+>                        △△△                   ▲▲▲▲▲▲▲▲       
 > 
-> Got:      int
->           ▲▲▲
-> Expected: bool
->           △△△△
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△
 > Reason: function application
 
 let bad_fs =
@@ -41,24 +41,24 @@ let bad_fs =
 
 > Type mismatch:
 > 40 |   Cons ((fun x -> (x,x)), Cons (bool_not, Nil))
->                         ▲▲▲          △△△△△△△△       
+>                         △△△          ▲▲▲▲▲▲▲▲       
 > 
-> Got:      bool * bool
->                ▲     
-> Expected: bool
->           △△△△
+> Got:      bool
+>           ▲▲▲▲
+> Expected: bool * bool
+>                △     
 > Reason: function application
 
 Cons(1, Cons((fun x -> x), Nil))
 
 > Type mismatch:
 > 52 | Cons(1, Cons((fun x -> x), Nil))
->           ▲        △△△△△△△△△△        
+>           △        ▲▲▲▲▲▲▲▲▲▲        
 > 
-> Got:      int
->           ▲▲▲
-> Expected: 'a -> 'a
->              △△   
+> Got:      'a -> 'a
+>              ▲▲   
+> Expected: int
+>           △△△
 > Reason: function application
 
 let bool_not2 b =
@@ -76,10 +76,10 @@ let bad_fs =
 >                                    △△△△△△△△△       
 >                                    ▲▲▲▲▲▲▲▲▲       
 > 
-> Got:      bool
->           ▲▲▲▲
-> Expected: int
->           △△△
+> Got:      int
+>           ▲▲▲
+> Expected: bool
+>           △△△△
 > Reason: function application
 
 let bool_not3 b =

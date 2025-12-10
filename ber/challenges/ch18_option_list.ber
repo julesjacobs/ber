@@ -10,10 +10,10 @@ let bad_options =
 
 > Type mismatch:
 > 9 |   Cons (Some 1, Cons (None, Cons (Some true, Nil)))
->                  ▲                         △△△△        
+>                  △                         ▲▲▲▲        
 > 
-> Got:      int
->           ▲▲▲
-> Expected: bool
->           △△△△
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△
 > Reason: function application
