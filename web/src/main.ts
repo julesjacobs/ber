@@ -338,6 +338,26 @@ const renderMismatchArrow = (detail: Detail | null | undefined) => {
   if (!detail || detail.kind !== "type_mismatch") return;
   const gotId = detail.mismatchGotIds?.[0];
   const expectedId = detail.mismatchExpectedIds?.[0];
+  const displayTyName = (name: string) => (name === "->" ? "function" : name);
+  const findTypeName = (view: TypeView | null | undefined, id: number | undefined) => {
+    if (!view || id == null) return null;
+    let found: string | null = null;
+    const walk = (node: TypeTree) => {
+      if (found) return;
+      if (node.id === id && node.kind === "con") {
+        found = displayTyName(node.name);
+        return;
+      }
+      const children = node.args ?? [];
+      for (const child of children) walk(child);
+    };
+    walk(view.tree);
+    return found;
+  };
+  const fallbackName = (view: TypeView | null | undefined) =>
+    view && view.tree.kind === "con" ? displayTyName(view.tree.name) : null;
+  const gotName = findTypeName(detail.got, gotId) ?? fallbackName(detail.got);
+  const expectedName = findTypeName(detail.expected, expectedId) ?? fallbackName(detail.expected);
   if (gotId == null || expectedId == null) return;
   requestAnimationFrame(() => {
     const gotContainer = output.querySelector<HTMLElement>('.type-text[data-type-side="got"]');
@@ -394,7 +414,7 @@ const renderMismatchArrow = (detail: Detail | null | undefined) => {
     dot.setAttribute("class", "type-arrow-dot");
     svg.append(dot);
     const gotLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    gotLabel.textContent = "got";
+    gotLabel.textContent = gotName ? `got ${gotName}` : "got";
     gotLabel.setAttribute("x", `${gotLabelX}`);
     gotLabel.setAttribute("y", `${gotLabelY}`);
     gotLabel.setAttribute("dominant-baseline", "middle");
@@ -402,7 +422,7 @@ const renderMismatchArrow = (detail: Detail | null | undefined) => {
     gotLabel.setAttribute("class", "type-arrow-label");
     svg.append(gotLabel);
     const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    label.textContent = "expected";
+    label.textContent = expectedName ? `expected ${expectedName}` : "expected";
     label.setAttribute("x", `${labelX}`);
     label.setAttribute("y", `${labelY}`);
     label.setAttribute("dominant-baseline", "middle");
