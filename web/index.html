@@ -155,6 +155,7 @@
       line-height: 1.5;
       overflow: auto;
       font-size: 14px;
+      position: relative;
     }
     .output[data-state="ok"] { border-left: 3px solid var(--accent-2); }
     .output[data-state="error"] { border-left: 3px solid var(--error); }
@@ -175,10 +176,28 @@
       border-radius: 4px;
       background: rgba(34, 197, 94, 0.12);
     }
+    .ber-focus-mark {
+      background: rgba(251, 191, 36, 0.16);
+      border-radius: 10px;
+      box-shadow:
+        0 0 0 6px rgba(251, 191, 36, 0.12),
+        0 0 12px rgba(251, 191, 36, 0.25),
+        inset 0 0 0 999px rgba(251, 191, 36, 0.08);
+    }
     .type-heading {
       color: var(--muted);
       margin-bottom: 8px;
       font-weight: 600;
+    }
+    .type-location {
+      background: rgba(251, 191, 36, 0.16);
+      color: var(--text);
+      padding: 2px 6px;
+      border-radius: 10px;
+      box-shadow:
+        0 0 0 6px rgba(251, 191, 36, 0.12),
+        0 0 12px rgba(251, 191, 36, 0.25),
+        inset 0 0 0 999px rgba(251, 191, 36, 0.08);
     }
     .type-row {
       display: flex;
@@ -203,6 +222,33 @@
     }
     .type-text.got { border-color: rgba(248, 113, 113, 0.4); }
     .type-text.expected { border-color: rgba(34, 197, 94, 0.4); }
+    .type-arrow-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: visible;
+    }
+    .type-arrow-path {
+      stroke: var(--warn);
+      stroke-width: 2;
+      fill: none;
+      opacity: 0.9;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+    }
+    .type-arrow-head {
+      fill: var(--warn);
+      opacity: 0.95;
+      filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.35));
+    }
+    .type-arrow-label {
+      fill: var(--warn);
+      font-size: 12px;
+      font-family: "JetBrains Mono", "Fira Code", monospace;
+      paint-order: stroke fill;
+      stroke: rgba(0, 0, 0, 0.6);
+      stroke-width: 2px;
+      letter-spacing: 0.04em;
+    }
     .type-frag { padding: 0 2px; border-radius: 6px; }
     .type-frag-mismatch { background: rgba(248, 113, 113, 0.18); border-bottom: 1px solid rgba(248, 113, 113, 0.5); }
     .type-frag-hovered { background: rgba(34, 197, 94, 0.12); outline: 1px dashed rgba(34, 197, 94, 0.6); }

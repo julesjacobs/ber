@@ -274,6 +274,16 @@ let mismatch_locs expected got =
   in
   go expected got
 
+let sort_locs_by_position_asc locs =
+  let cmp (a : Location.t) (b : Location.t) =
+    match String.compare a.file b.file with
+    | 0 ->
+      let start_cmp = Int.compare a.start.Lexing.pos_cnum b.start.Lexing.pos_cnum in
+      if start_cmp <> 0 then start_cmp else Int.compare a.stop.Lexing.pos_cnum b.stop.Lexing.pos_cnum
+    | n -> n
+  in
+  List.sort cmp locs
+
 let dedup_locs locs =
   let tbl = Hashtbl.create 16 in
   List.filter
@@ -292,6 +302,8 @@ let spans_for_error (err : Type_infer.type_error) =
   match err.kind with
   | Type_infer.Type_mismatch (got, expected, _) ->
     let locs_e, locs_g = mismatch_locs expected got in
+    let locs_e = sort_locs_by_position_asc locs_e in
+    let locs_g = sort_locs_by_position_asc locs_g in
     let expected_spans =
       dedup_locs locs_e |> List.map (fun loc -> { loc; label = Some "expected"; ty = ty_for_loc loc })
     in
@@ -304,61 +316,77 @@ let spans_for_error (err : Type_infer.type_error) =
 
 let mismatch_detail heading expected_ty got_ty ~source ~expected_locs ~got_locs =
   let render_view, _ = make_type_renderer () in
-  let head_id ty =
+  let rec find_typed_loc id ty =
     match prune ty with
-    | TCon (_, _, meta) -> Some meta.id
-    | _ -> None
+    | TVar _ -> None
+    | TCon (_, args, meta) ->
+      if meta.id = id then Some meta.loc
+      else
+        let rec search = function
+          | [] -> None
+          | x :: xs ->
+            (match find_typed_loc id x with
+             | Some tl -> Some tl
+             | None -> search xs)
+        in
+        search args
+  in
+  let render_for_id ids ty =
+    match ids with
+    | id :: _ ->
+      (match find_typed_loc id ty with
+       | Some tl ->
+         let view, _ = make_type_renderer () in
+         Some (view tl.ty)
+       | None -> None)
+    | [] -> None
   in
   let expected_view_fallback = render_view expected_ty in
   let got_view_fallback = render_view got_ty in
+  let mismatch_got_ids =
+    match prune got_ty with
+    | TCon (_, _, meta) -> [ meta.id ]
+    | _ -> []
+  in
+  let mismatch_expected_ids =
+    match prune expected_ty with
+    | TCon (_, _, meta) -> [ meta.id ]
+    | _ -> []
+  in
   let snippet loc =
     let len = String.length source in
     let start = max 0 (min len loc.start.Lexing.pos_cnum) in
     let stop = max start (min len loc.stop.Lexing.pos_cnum) in
     String.sub source start (stop - start)
   in
-  let type_view_for_loc loc =
-    let _ = loc in
-    None
-  in
+  let expected_locs = sort_locs_by_position_asc expected_locs in
+  let got_locs = sort_locs_by_position_asc got_locs in
   let expr_left =
     match got_locs with
-    | loc :: _ -> Some { expr = snippet loc; ty = type_view_for_loc loc }
+    | loc :: _ ->
+      let ty = render_for_id mismatch_got_ids got_ty in
+      Some { expr = snippet loc; ty }
     | _ -> None
   in
   let expr_right =
     match expected_locs with
-    | loc :: _ -> Some { expr = snippet loc; ty = type_view_for_loc loc }
+    | loc :: _ ->
+      let ty = render_for_id mismatch_expected_ids expected_ty in
+      Some { expr = snippet loc; ty }
     | _ -> None
   in
-  let expected_view =
-    match expected_locs with
-    | loc :: _ ->
-      (match type_view_for_loc loc with
-       | Some v -> v
-       | None -> expected_view_fallback)
-    | _ -> expected_view_fallback
-  in
   let got_view =
-    match got_locs with
-    | loc :: _ ->
-      (match type_view_for_loc loc with
-       | Some v -> v
-       | None -> got_view_fallback)
-    | _ -> got_view_fallback
+    match render_for_id mismatch_got_ids got_ty with
+    | Some v -> v
+    | None -> got_view_fallback
+  in
+  let expected_view =
+    match render_for_id mismatch_expected_ids expected_ty with
+    | Some v -> v
+    | None -> expected_view_fallback
   in
   let marks_expected = [ 0, String.length expected_view.text ] in
   let marks_got = [ 0, String.length got_view.text ] in
-  let mismatch_expected_ids =
-    match head_id expected_ty with
-    | Some id -> [ id ]
-    | None -> []
-  in
-  let mismatch_got_ids =
-    match head_id got_ty with
-    | Some id -> [ id ]
-    | None -> []
-  in
   { heading
   ; got = got_view
   ; expected = expected_view

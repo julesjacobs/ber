@@ -11,7 +11,7 @@ let x, y, z = 1, 2
 >              ▲    ▲   
 > Expected: int * int
 >               △    
-> Reason: tuple pattern
+> Reason: let pattern
 
 let _ = x
 

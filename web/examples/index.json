@@ -1,8 +1,18 @@
 [
   {
-    "id": "intro",
-    "name": "Intro: lists and bool_not",
-    "file": "intro.ml"
+    "id": "function_argument",
+    "name": "Function argument mismatch",
+    "file": "function_argument.ml"
+  },
+  {
+    "id": "simple_list",
+    "name": "List element mismatch",
+    "file": "simple_list.ml"
+  },
+  {
+    "id": "bool_not_list",
+    "name": "Complex element mismatch",
+    "file": "bool_not_list.ml"
   },
   {
     "id": "map",

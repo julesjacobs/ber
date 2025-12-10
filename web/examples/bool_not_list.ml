@@ -5,5 +5,5 @@ let bool_not b =
   | true -> false
   | false -> true
   
-let bad_fs =
+let bad =
   Cons ((fun x -> Cons(x, Nil)), Cons (bool_not, Nil))

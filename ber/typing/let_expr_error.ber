@@ -9,4 +9,4 @@
 >           ▲▲▲
 > Expected: bool
 >           △△△△
-> Reason: int pattern
+> Reason: let pattern
