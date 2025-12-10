@@ -61,10 +61,7 @@ and detail =
       ; ty : string
       }
 
-let ty_for_loc loc =
-  match type_of_loc loc with
-  | None -> None
-  | Some ty -> Some (string_of_ty ty)
+let ty_for_loc (_loc : Location.t) = None
 
 let format_location (loc : Location.t) =
   let start_line = loc.start.Lexing.pos_lnum in
@@ -325,11 +322,8 @@ let mismatch_detail heading expected_ty got_ty ~source ~expected_locs ~got_locs 
     String.sub source start (stop - start)
   in
   let type_view_for_loc loc =
-    match type_of_loc loc with
-    | None -> None
-    | Some ty ->
-      let view, _ = make_type_renderer () in
-      Some (view ty)
+    let _ = loc in
+    None
   in
   let expr_left =
     match got_locs with

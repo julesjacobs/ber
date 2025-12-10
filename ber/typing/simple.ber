@@ -20,5 +20,3 @@ let unbound = y
 > Unbound variable y
 > 18 | let unbound = y
 >                    ▲
->                    |
->                    error: 'a

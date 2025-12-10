@@ -48,29 +48,21 @@ let bad_pair_arg : (int, bool) pair = Pair ("oops", 2)
 > Type mismatch:
 > 46 | let bad_pair_arg : (int, bool) pair = Pair ("oops", 2)
 >                          △△△                     ▲▲▲▲▲▲    
->                                                  |
->                                                  got: int
->                          |
->                          expected: int
 > 
 > Got:      string
 >           ▲▲▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: string literal
+> Reason: let rhs annotation
 
 let bad_wrap : (int, bool) wrap = Wrap (Box (Pair (true, "ok")))
 
 > Type mismatch:
-> 62 | let bad_wrap : (int, bool) wrap = Wrap (Box (Pair (true, "ok")))
+> 58 | let bad_wrap : (int, bool) wrap = Wrap (Box (Pair (true, "ok")))
 >                      △△△                                ▲▲▲▲         
->                                                         |
->                                                         got: int
->                      |
->                      expected: int
 > 
 > Got:      bool
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: bool literal
+> Reason: let rhs annotation

@@ -7,15 +7,14 @@ let rec bad t =
   Node (t, bad)
 
 > Type mismatch:
+> 6 | let rec bad t =
+>             ▲▲▲▲▲▲▲
 > 7 |   Node (t, bad)
->       △△△△     ▲▲▲ 
->                |
->                got: 'a tree
->       |
->       expected: 'a tree
+>       △△△△         
+>     ▲▲▲▲▲▲▲▲▲▲▲▲▲▲ 
 > 
 > Got:      'a tree -> 'a tree
 >                   ▲▲        
 > Expected: 'a tree
 >              △△△△
-> Reason: variable use
+> Reason: let rec rhs

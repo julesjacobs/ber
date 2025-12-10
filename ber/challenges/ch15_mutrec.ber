@@ -9,20 +9,13 @@ and odd n =
   | _ -> even n
 
 > Type mismatch:
-> 4 |   | 0 -> true
->              △△△△
->              |
->              expected: bool
-> 5 |   | _ -> odd n
-> 6 | and odd n =
-> 7 |   match n with
 > 8 |   | 0 -> 0
->              ▲
->              |
->              got: bool
+>              △
+> 9 |   | _ -> even n
+>              ▲▲▲▲  
 > 
-> Got:      int
->           ▲▲▲
-> Expected: bool
->           △△△△
-> Reason: int literal
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△
+> Reason: match branch

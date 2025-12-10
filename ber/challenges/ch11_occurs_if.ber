@@ -11,5 +11,3 @@ let choose b x =
 > Would require self-referential type ∞ = ∞ list
 > 9 |   | false -> x
 >                  ▲
->                  |
->                  error: 'a list

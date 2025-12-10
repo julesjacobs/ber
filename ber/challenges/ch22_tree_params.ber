@@ -13,13 +13,9 @@ let trees =
 > Type mismatch:
 > 11 |   Cons (Leaf 1, Cons (Leaf (Cons (2, Nil)), Nil))
 >                   △              ▲▲▲▲                 
->                                  |
->                                  got: 'a list
->                   |
->                   expected: int
 > 
-> Got:      'a list
->              ▲▲▲▲
+> Got:      int list
+>               ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: function application
+> Reason: constructor arg

@@ -16,66 +16,50 @@ let bad_fs =
 > Type mismatch:
 > 14 |   Cons ((fun (x : int) -> x), Cons (bool_not, Nil))
 >                        △△△               ▲▲▲▲▲▲▲▲       
->                                          |
->                                          got: int -> int
->                        |
->                        expected: int
 > 
 > Got:      bool
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: variable use
+> Reason: constructor arg
 
 let bad_fs =
   Cons ((fun (x : int) -> (x,x)), Cons (bool_not, Nil))
 
 > Type mismatch:
-> 31 |   Cons ((fun (x : int) -> (x,x)), Cons (bool_not, Nil))
+> 27 |   Cons ((fun (x : int) -> (x,x)), Cons (bool_not, Nil))
 >                        △△△                   ▲▲▲▲▲▲▲▲       
->                                              |
->                                              got: int -> int * int
->                        |
->                        expected: int
 > 
 > Got:      bool
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: variable use
+> Reason: constructor arg
 
 let bad_fs =
   Cons ((fun x -> (x,x)), Cons (bool_not, Nil))
 
 > Type mismatch:
-> 48 |   Cons ((fun x -> (x,x)), Cons (bool_not, Nil))
+> 40 |   Cons ((fun x -> (x,x)), Cons (bool_not, Nil))
 >                         △△△          ▲▲▲▲▲▲▲▲       
->                                      |
->                                      got: bool -> bool * bool
->                         |
->                         expected: bool * bool
 > 
 > Got:      bool
 >           ▲▲▲▲
 > Expected: bool * bool
 >                △     
-> Reason: variable use
+> Reason: constructor arg
 
 Cons(1, Cons((fun x -> x), Nil))
 
 > Type mismatch:
-> 64 | Cons(1, Cons((fun x -> x), Nil))
+> 52 | Cons(1, Cons((fun x -> x), Nil))
 >           △        ▲▲▲▲▲▲▲▲▲▲        
->                    |
->                    got: int
->           |
->           expected: int
 > 
-> Got:      'a -> 'b
+> Got:      'a -> 'a
 >              ▲▲   
 > Expected: int
 >           △△△
-> Reason: lambda expression
+> Reason: constructor arg
 
 let bool_not2 b =
   match b with
@@ -88,19 +72,15 @@ let bad_fs =
   Cons ((fun (x) -> x), Cons (bool_not2, Nil))
 
 > Type mismatch:
-> 88 |   Cons ((fun (x) -> x), Cons (bool_not2, Nil))
+> 72 |   Cons ((fun (x) -> x), Cons (bool_not2, Nil))
 >                                    △△△△△△△△△       
 >                                    ▲▲▲▲▲▲▲▲▲       
->                                    |
->                                    got: bool -> bool
->                                    |
->                                    expected: bool -> bool
 > 
 > Got:      int
 >           ▲▲▲
 > Expected: bool
 >           △△△△
-> Reason: variable use
+> Reason: constructor arg
 
 let bool_not3 b =
   match b with
@@ -108,17 +88,13 @@ let bool_not3 b =
   | false -> ()
 
 > Type mismatch:
-> 107 |   | true -> false
->                   △△△△△
->                   |
->                   expected: bool
-> 108 |   | false -> ()
->                    ▲▲
->                    |
->                    got: bool
+> 87 |   | true -> false
+>                  △△△△△
+> 88 |   | false -> ()
+>                   ▲▲
 > 
 > Got:      unit
 >           ▲▲▲▲
 > Expected: bool
 >           △△△△
-> Reason: tuple expression
+> Reason: match branch

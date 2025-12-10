@@ -10,13 +10,9 @@ let _ = add_pair 1 2
 > Type mismatch:
 > 8 | let _ = add_pair 1 2
 >             △△△△△△△△ ▲  
->                      |
->                      got: 'b -> 'a * 'c
->             |
->             expected: 'b -> 'a * 'c -> 'b -> 'a
 > 
 > Got:      int
 >           ▲▲▲
 > Expected: 'b -> 'a * 'c
 >                    △   
-> Reason: int literal
+> Reason: argument

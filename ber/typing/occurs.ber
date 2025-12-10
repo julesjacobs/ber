@@ -4,5 +4,3 @@ let rec occurs = fun x -> x x
 > Would require self-referential type ∞ = ∞ -> 'a
 > 2 | let rec occurs = fun x -> x x
 >                                 ▲
->                                 |
->                                 error: 'a

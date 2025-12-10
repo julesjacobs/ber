@@ -20,13 +20,9 @@ let add1_to_length xs =
 > Type mismatch:
 > 18 |   add 1 length
 >        △△△   ▲▲▲▲▲▲
->              |
->              got: int
->        |
->        expected: int -> int -> int
 > 
 > Got:      'a list -> int
 >                   ▲▲    
 > Expected: int
 >           △△△
-> Reason: variable use
+> Reason: argument

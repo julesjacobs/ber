@@ -26,45 +26,33 @@ compose h g
 > Type mismatch:
 > 24 | compose h g
 >              △ ▲
->                |
->                got: bool -> int
->              |
->              expected: int -> int
 > 
 > Got:      bool
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: variable use
+> Reason: argument
 
 compose h g 0
 
 > Type mismatch:
-> 40 | compose h g 0
+> 36 | compose h g 0
 >              △ ▲  
->                |
->                got: bool -> int
->              |
->              expected: int -> int
 > 
 > Got:      bool
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: variable use
+> Reason: argument
 
 compose h g 0 0
 
 > Type mismatch:
-> 56 | compose h g 0 0
+> 48 | compose h g 0 0
 >      △△△△△△△ ▲      
->              |
->              got: int -> 'b -> 'a
->      |
->      expected: (int -> 'b -> 'a) -> ('c -> int) -> 'c -> 'b -> 'a
 > 
 > Got:      int
 >           ▲▲▲
 > Expected: 'a -> 'b
 >              △△   
-> Reason: variable use
+> Reason: argument

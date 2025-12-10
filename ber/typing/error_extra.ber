@@ -9,10 +9,6 @@ let bad_app = 3 4
 > 6 | let bad_app = 3 4
 >                   △  
 >                   ▲  
->                   |
->                   got: int
->                   |
->                   expected: int
 > 
 > Got:      int
 >           ▲▲▲
@@ -23,61 +19,47 @@ let bad_app = 3 4
 let ascr_mismatch = 1 : bool
 
 > Type mismatch:
-> 23 | let ascr_mismatch = 1 : bool
->                          ▲   △△△△
->                          |
->                          got: bool
->                              |
->                              expected: bool
-> 
-> Got:      int
->           ▲▲▲
-> Expected: bool
->           △△△△
-> Reason: int literal
-
-let match_mismatch = match Some 1 with | Some x -> x
-| None -> true
-
-> Type mismatch:
-> 39 | let match_mismatch = match Some 1 with | Some x -> x
->                                                         △
->                                                         |
->                                                         expected: int
-> 40 | | None -> true
->                ▲▲▲▲
->                |
->                got: int
+> 19 | let ascr_mismatch = 1 : bool
+>                          △   ▲▲▲▲
 > 
 > Got:      bool
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: bool literal
+> Reason: type annotation
+
+let match_mismatch = match Some 1 with | Some x -> x
+| None -> true
+
+> Type mismatch:
+> 31 | let match_mismatch = match Some 1 with | Some x -> x
+>                                                         △
+> 32 | | None -> true
+>                ▲▲▲▲
+> 
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△
+> Reason: match branch
 
 let guard_non_bool2 = match Some 1 with | Some x when x -> x
 | None -> 0
 
 > Type mismatch:
-> 58 | let guard_non_bool2 = match Some 1 with | Some x when x -> x
+> 46 | let guard_non_bool2 = match Some 1 with | Some x when x -> x
 >                                                            △     
 >                                                            ▲     
->                                                            |
->                                                            got: bool
->                                                            |
->                                                            expected: bool
 > 
 > Got:      int
 >           ▲▲▲
 > Expected: bool
 >           △△△△
-> Reason: variable use
+> Reason: guard
 
 let ctor_unknown_pat = match None with | Foo x -> x
 | _ -> 0
 
 > Unknown constructor Foo
-> 76 | let ctor_unknown_pat = match None with | Foo x -> x
+> 60 | let ctor_unknown_pat = match None with | Foo x -> x
 >                                               ▲▲▲▲▲     
->                                               |
->                                               error: 'a option

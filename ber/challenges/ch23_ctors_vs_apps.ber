@@ -12,16 +12,12 @@ let constructor =
 > 9 |   Cons (1, Cons (2, Cons (Some true 1, Nil)))    
 >                               △△△△                   
 >                               ▲▲▲▲                   
->                               |
->                               got: 'a option
->                               |
->                               expected: 'a option
 > 
-> Got:      'b option
+> Got:      'c option
 >              ▲▲▲▲▲▲
-> Expected: 'a -> int
->              △△    
-> Reason: function application
+> Expected: 'a -> 'b
+>              △△   
+> Reason: constructor application
 
 let cons (a,b) = Cons (a,b)
 
@@ -31,18 +27,14 @@ let pair_fn =
   cons (1, cons (2, cons (Some true, Nil)))   
 
 > Type mismatch:
-> 31 |   cons (1, cons (2, cons (Some true, Nil)))   
->              △                 ▲▲▲▲                
->                                |
->                                got: 'a option
->              |
->              expected: int
+> 27 |   cons (1, cons (2, cons (Some true, Nil)))   
+>                       △        ▲▲▲▲                
 > 
-> Got:      'a option
->              ▲▲▲▲▲▲
+> Got:      bool option
+>                ▲▲▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: function application
+> Reason: argument
 
 let cons a b = Cons (a,b)
 
@@ -52,15 +44,11 @@ let multi_arg_fn =
   cons 1 (cons 2 (cons (Some true) Nil))
 
 > Type mismatch:
-> 52 |   cons 1 (cons 2 (cons (Some true) Nil))
->             △                ▲▲▲▲            
->                              |
->                              got: 'a option
->             |
->             expected: int
+> 44 |   cons 1 (cons 2 (cons (Some true) Nil))
+>                     △        ▲▲▲▲            
 > 
-> Got:      'a option
->              ▲▲▲▲▲▲
+> Got:      bool option
+>                ▲▲▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: function application
+> Reason: argument

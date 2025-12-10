@@ -8,13 +8,9 @@ let _ = negate 1 2
 > Type mismatch:
 > 6 | let _ = negate 1 2
 >             △△△△△△ ▲  
->                    |
->                    got: 'b -> 'a
->             |
->             expected: ('b -> 'a) -> 'b -> 'a
 > 
 > Got:      int
 >           ▲▲▲
 > Expected: 'a -> 'b
 >              △△   
-> Reason: int literal
+> Reason: argument

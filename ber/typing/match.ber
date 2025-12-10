@@ -15,16 +15,12 @@ let guard_non_bool = match None with | None when 1 -> true
 > 11 | let guard_non_bool = match None with | None when 1 -> true
 >                                                       △        
 >                                                       ▲        
->                                                       |
->                                                       got: bool
->                                                       |
->                                                       expected: bool
 > 
 > Got:      int
 >           ▲▲▲
 > Expected: bool
 >           △△△△
-> Reason: int literal
+> Reason: guard
 
 let tuple_match = fun t -> match t with
 | a, b -> a

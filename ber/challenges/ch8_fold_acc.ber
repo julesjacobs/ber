@@ -24,16 +24,12 @@ let _ = sum_bool_list xs
 > Type mismatch:
 > 22 | let _ = sum_bool_list xs
 >              △△△△△△△△△△△△△ ▲▲
->                            |
->                            got: int list
->              |
->              expected: int list -> int
 > 
 > Got:      bool
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: variable use
+> Reason: argument
 
 let add (x : int) (y : int) = x
 
@@ -50,63 +46,47 @@ fold_left add 0 lst
 fold_left 0 add lst
 
 > Type mismatch:
-> 50 | fold_left 0 add lst
+> 46 | fold_left 0 add lst
 >      △△△△△△△△△ ▲        
->                |
->                got: 'a -> 'b -> 'a
->      |
->      expected: ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
 > 
 > Got:      int
 >           ▲▲▲
 > Expected: 'a -> 'b -> 'a
 >              △△         
-> Reason: int literal
+> Reason: argument
 
 fold_left 0 add
 
 > Type mismatch:
-> 66 | fold_left 0 add
+> 58 | fold_left 0 add
 >      △△△△△△△△△ ▲    
->                |
->                got: 'a -> 'b -> 'a
->      |
->      expected: ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
 > 
 > Got:      int
 >           ▲▲▲
 > Expected: 'a -> 'b -> 'a
 >              △△         
-> Reason: int literal
+> Reason: argument
 
 fold_left add lst 0
 
 > Type mismatch:
-> 82 | fold_left add lst 0
+> 70 | fold_left add lst 0
 >                △△△ ▲▲▲  
->                    |
->                    got: int
->                |
->                expected: int -> int -> int
 > 
 > Got:      int list
 >               ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: variable use
+> Reason: argument
 
 fold_left add lst
 
 > Type mismatch:
-> 98 | fold_left add lst
+> 82 | fold_left add lst
 >                △△△ ▲▲▲
->                    |
->                    got: int
->                |
->                expected: int -> int -> int
 > 
 > Got:      int list
 >               ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: variable use
+> Reason: argument

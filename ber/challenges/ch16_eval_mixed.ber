@@ -24,15 +24,11 @@ let rec eval e =
 > Type mismatch:
 > 19 |   | Int n -> n
 >                   △
->                   |
->                   expected: int
 > 20 |   | Bool b -> b
 >                    ▲
->                    |
->                    got: int
 > 
 > Got:      bool
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: variable use
+> Reason: match branch

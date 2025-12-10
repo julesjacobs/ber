@@ -9,15 +9,13 @@ let rec g x =
   | _ -> g (Cons (x, Nil))
 
 > Type mismatch:
+> 8 |   | 0 -> Nil
+>         ▲       
 > 9 |   | _ -> g (Cons (x, Nil))
->              △  ▲▲▲▲          
->                 |
->                 got: 'a list
->              |
->              expected: int -> 'a list
+>                 △△△△          
 > 
-> Got:      'a list
->              ▲▲▲▲
-> Expected: int
->           △△△
-> Reason: function application
+> Got:      int
+>           ▲▲▲
+> Expected: int list
+>               △△△△
+> Reason: let rec rhs

@@ -8,37 +8,27 @@ let make_node = Node ()
 > Type mismatch:
 > 6 | let make_node = Node ()
 >                     △△△△ ▲▲
->                          |
->                          got: tree * tree
->                     |
->                     expected: tree
 > 
 > Got:      unit
 >           ▲▲▲▲
 > Expected: tree * tree
 >                △     
-> Reason: tuple expression
+> Reason: constructor arg
 
 let wrong_ctor_arity = Node 1
 
 > Type mismatch:
-> 22 | let wrong_ctor_arity = Node 1
+> 18 | let wrong_ctor_arity = Node 1
 >                             △△△△ ▲
->                                  |
->                                  got: tree * tree
->                             |
->                             expected: tree
 > 
 > Got:      int
 >           ▲▲▲
 > Expected: tree * tree
 >                △     
-> Reason: int literal
+> Reason: constructor arg
 
 let unknown_ctor = Foo 1
 
 > Unknown constructor Foo
-> 38 | let unknown_ctor = Foo 1
+> 30 | let unknown_ctor = Foo 1
 >                         ▲▲▲▲▲
->                         |
->                         error: 'a

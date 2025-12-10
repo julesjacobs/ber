@@ -6,10 +6,6 @@ let x, y, z = 1, 2
 > Type mismatch:
 > 2 | let x, y, z = 1, 2
 >         ▲▲▲▲▲▲▲   △△△△
->         |
->         got: int * int
->                   |
->                   expected: int * int
 > 
 > Got:      'a * 'b * 'c
 >              ▲    ▲   
@@ -20,7 +16,5 @@ let x, y, z = 1, 2
 let _ = x
 
 > Unbound variable x
-> 20 | let _ = x
+> 16 | let _ = x
 >              ▲
->              |
->              error: 'a

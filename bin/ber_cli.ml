@@ -94,14 +94,12 @@ let mismatch_locs expected got =
   in
   go expected got
 
-let label_for_loc ?prefix loc =
-  match type_of_loc loc with
-  | None -> None
-  | Some ty ->
-    let ty_s = string_of_ty ty in
-    (match prefix with
-     | None -> Some ty_s
-     | Some p -> Some (p ^ ": " ^ ty_s))
+let label_for_loc ?prefix (_loc : Location.t) =
+  let ty_s = None in
+  match prefix, ty_s with
+  | Some p, Some t -> Some (p ^ ": " ^ t)
+  | None, Some t -> Some t
+  | _ -> None
 
 type highlight =
   { loc : Location.t

@@ -11,15 +11,11 @@ let f b =
 > Type mismatch:
 > 6 |     | true -> 0
 >                   △
->                   |
->                   expected: int
 > 7 |     | false -> false
 >                    ▲▲▲▲▲
->                    |
->                    got: int
 > 
 > Got:      bool
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: bool literal
+> Reason: match branch

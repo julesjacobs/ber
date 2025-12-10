@@ -1,5 +1,3 @@
-open Location
-
 module IMap = Map.Make (Int)
 
 let default_loc = Location.span Lexing.dummy_pos Lexing.dummy_pos
@@ -16,7 +14,7 @@ and typed_loc =
   }
 
 and con_meta =
-  { loc : typed_loc option
+  { loc : typed_loc
   ; id : int
   }
 
@@ -42,82 +40,28 @@ let fresh_con_id () =
 let fresh_tvar level = { id = fresh_id (); instance = None; level }
 let fresh_ty level = TVar (fresh_tvar level)
 
-module Loc_table = struct
-  module H = Hashtbl.Make (struct
-      type t = Location.t
-      let hash (loc : t) =
-        Hashtbl.hash
-          ( loc.file
-          , loc.start.Lexing.pos_lnum
-          , loc.start.Lexing.pos_cnum
-          , loc.start.Lexing.pos_bol
-          , loc.stop.Lexing.pos_lnum
-          , loc.stop.Lexing.pos_cnum
-          , loc.stop.Lexing.pos_bol )
-      let equal a b =
-        a.file = b.file
-        && a.start.Lexing.pos_lnum = b.start.Lexing.pos_lnum
-        && a.start.Lexing.pos_cnum = b.start.Lexing.pos_cnum
-        && a.start.Lexing.pos_bol = b.start.Lexing.pos_bol
-        && a.stop.Lexing.pos_lnum = b.stop.Lexing.pos_lnum
-        && a.stop.Lexing.pos_cnum = b.stop.Lexing.pos_cnum
-        && a.stop.Lexing.pos_bol = b.stop.Lexing.pos_bol
-    end)
+let reset_tracked_locs () = ()
+let track_typed_loc (_ : typed_loc) = ()
+let track_loc_type loc ty = { loc; ty }
 
-  let table = H.create 256
-
-  let reset () = H.reset table
-
-  let track (typed_loc : typed_loc) =
-    if typed_loc.loc.file <> "" then H.replace table typed_loc.loc typed_loc
-
-  let find (loc : Location.t) = H.find_opt table loc
-end
-
-let reset_tracked_locs = Loc_table.reset
-let track_typed_loc = Loc_table.track
-let track_loc_type loc ty =
-  let tl = { loc; ty } in
-  track_typed_loc tl;
-  tl
-let type_of_loc loc =
-  match Loc_table.find loc with
-  | None -> None
-  | Some tl -> Some tl.ty
-
-let typed_loc_of_loc = Loc_table.find
-
-let mk_con ?loc ?typed_loc name args =
+let mk_con_typed_loc ~typed_loc name args =
   let id = fresh_con_id () in
-  let existing_tl =
-    match typed_loc, loc with
-    | Some tl, _ -> Some tl
-    | None, Some l -> typed_loc_of_loc l
-    | _ -> None
-  in
-  let rec ty = TCon (name, args, meta)
-  and meta =
-    let loc_rec =
-      match existing_tl, loc with
-      | Some tl, _ -> Some tl
-      | None, Some l -> Some { loc = l; ty }
-      | _ -> None
-    in
-    { loc = loc_rec; id }
-  in
-  (match meta.loc with
-   | Some tl ->
-     track_typed_loc tl;
-     ()
-   | None -> ());
+  TCon (name, args, { loc = typed_loc; id })
+
+let mk_con loc name args =
+  let id = fresh_con_id () in
+  let rec ty = TCon (name, args, { loc = typed_loc; id })
+  and typed_loc = { loc; ty } in
   ty
 
-let t_int ?loc ?typed_loc () = mk_con ?loc ?typed_loc "int" []
-let t_bool ?loc ?typed_loc () = mk_con ?loc ?typed_loc "bool" []
-let t_string ?loc ?typed_loc () = mk_con ?loc ?typed_loc "string" []
+let t_int ~loc () = mk_con loc "int" []
+let t_bool ~loc () = mk_con loc "bool" []
+let t_string ~loc () = mk_con loc "string" []
 
-let t_arrow ?loc ?typed_loc a b = mk_con ?loc ?typed_loc "->" [ a; b ]
-let t_tuple ?loc ?typed_loc ts = mk_con ?loc ?typed_loc "*" ts
+let t_arrow ~loc a b = mk_con loc "->" [ a; b ]
+let t_tuple ~loc ts = mk_con loc "*" ts
+
+let t_arrow_typed_loc ~typed_loc a b = mk_con_typed_loc ~typed_loc "->" [ a; b ]
 
 let rec prune = function
   | TVar ({ instance = Some ty; _ } as tv) ->
@@ -185,7 +129,7 @@ let generalize ~level ty =
   in
   Forall (vars, ty)
 
-let instantiate ?loc ~level (Forall (vars, ty)) =
+let instantiate ~typed_loc ~level (Forall (vars, ty)) =
   let subst =
     List.fold_left
       (fun m tv -> IMap.add tv.id (fresh_ty level) m)
@@ -197,13 +141,8 @@ let instantiate ?loc ~level (Forall (vars, ty)) =
       (match IMap.find_opt tv.id subst with
        | Some t -> t
        | None -> ty)
-    | TCon (n, args, meta) ->
-      let use_loc =
-        match loc with
-        | None -> Option.map (fun tl -> tl.loc) meta.loc
-        | some -> some
-      in
-      mk_con ?loc:use_loc n (List.map aux args)
+    | TCon (n, args, _meta) ->
+      mk_con_typed_loc ~typed_loc n (List.map aux args)
   in
   aux ty
 

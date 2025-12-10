@@ -19,14 +19,10 @@ let bad_annot = fun (x : int) -> x : bool
 
 > Type mismatch:
 > 18 | let bad_annot = fun (x : int) -> x : bool
->                                       ▲   △△△△
->                                       |
->                                       got: bool
->                                           |
->                                           expected: bool
+>                                       △   ▲▲▲▲
 > 
-> Got:      int
->           ▲▲▲
-> Expected: bool
->           △△△△
-> Reason: variable use
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△
+> Reason: type annotation

@@ -7,17 +7,13 @@ let bad_annot = (fun x -> x) : int -> bool
 
 > Type mismatch:
 > 6 | let bad_annot = (fun x -> x) : int -> bool
->                               ▲           △△△△
->                               |
->                               got: bool
->                                           |
->                                           expected: bool
+>                                    △△△    ▲▲▲▲
 > 
-> Got:      int
->           ▲▲▲
-> Expected: bool
->           △△△△
-> Reason: variable use
+> Got:      bool
+>           ▲▲▲▲
+> Expected: int
+>           △△△
+> Reason: type annotation
 
 let let_annot : int = 3
 
