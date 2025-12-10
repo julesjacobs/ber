@@ -36,20 +36,22 @@ let js_loc_opt = function
   | Some loc -> Js.some (js_loc loc)
 
 let rec js_type_tree = function
-  | Ber.Frontend.TVarNode { name; loc } ->
+  | Ber.Frontend.TVarNode { name; loc_near; loc_far } ->
     object%js
       val kind = Js.string "var"
       val name = Js.string name
-      val loc = js_loc_opt loc
+      val loc = js_loc_opt loc_near
+      val locFar = js_loc_opt loc_far
       val id = 0
       val args = Js.array [||]
     end
-  | Ber.Frontend.TConNode { name; loc; id; args } ->
+  | Ber.Frontend.TConNode { name; loc_near; loc_far; id; args } ->
     let args = List.map js_type_tree args |> Array.of_list |> Js.array in
     object%js
       val kind = Js.string "con"
       val name = Js.string name
-      val loc = js_loc_opt loc
+      val loc = js_loc_opt loc_near
+      val locFar = js_loc_opt loc_far
       val id = id
       val args = args
     end

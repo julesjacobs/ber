@@ -10,8 +10,8 @@ type tvar =
 
 and typed_loc =
   { loc_far : Location.t
-  ; mutable loc_near : Location.t
-  ; mutable ty : ty
+  ; loc_near : Location.t
+  ; ty : ty
   }
 
 and con_meta =

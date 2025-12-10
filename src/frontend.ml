@@ -10,11 +10,13 @@ type span =
 type type_tree =
   | TVarNode of
       { name : string
-      ; loc : Location.t option
+      ; loc_near : Location.t option
+      ; loc_far : Location.t option
       }
   | TConNode of
       { name : string
-      ; loc : Location.t option
+      ; loc_near : Location.t option
+      ; loc_far : Location.t option
       ; id : int
       ; args : type_tree list
       }
@@ -138,7 +140,7 @@ let make_type_renderer () =
     match prune ty with
     | TVar tv ->
       let name = name_of_tv tv in
-      let tree = TVarNode { name; loc = None } in
+      let tree = TVarNode { name; loc_near = None; loc_far = None } in
       name, [], tree
     | TCon ("->", [ a; b ], meta) ->
       let sa, ma, ta = render 1 a in
@@ -155,13 +157,29 @@ let make_type_renderer () =
           s0, marks
       in
       let marks = add_mark meta.loc meta.id marks in
-      let tree = TConNode { name = "->"; loc = Some meta.loc.loc_near; id = meta.id; args = [ ta; tb ] } in
+      let tree =
+        TConNode
+          { name = "->"
+          ; loc_near = Some meta.loc.loc_near
+          ; loc_far = Some meta.loc.loc_far
+          ; id = meta.id
+          ; args = [ ta; tb ]
+          }
+      in
       s, marks, tree
     | TCon ("*", elems, meta) ->
       (match elems with
        | [] ->
         let s = "unit" in
-        let tree = TConNode { name = "*"; loc = Some meta.loc.loc_near; id = meta.id; args = [] } in
+        let tree =
+          TConNode
+            { name = "*"
+            ; loc_near = Some meta.loc.loc_near
+            ; loc_far = Some meta.loc.loc_far
+            ; id = meta.id
+            ; args = []
+            }
+        in
         let marks = add_mark meta.loc meta.id [] in
         s, marks, tree
        | _ ->
@@ -182,16 +200,32 @@ let make_type_renderer () =
            if need_paren then
              let s = "(" ^ s0 ^ ")" in
              s, shift 1 marks
-           else
-             s0, marks
-         in
-         let marks = add_mark meta.loc meta.id marks in
-         let tree = TConNode { name = "*"; loc = Some meta.loc.loc_near; id = meta.id; args = trees } in
-         s, marks, tree)
+            else
+              s0, marks
+          in
+          let marks = add_mark meta.loc meta.id marks in
+          let tree =
+            TConNode
+              { name = "*"
+              ; loc_near = Some meta.loc.loc_near
+              ; loc_far = Some meta.loc.loc_far
+              ; id = meta.id
+              ; args = trees
+              }
+          in
+          s, marks, tree)
     | TCon (name, [], meta) ->
       let s = name in
       let marks = add_mark meta.loc meta.id [] in
-      let tree = TConNode { name; loc = Some meta.loc.loc_near; id = meta.id; args = [] } in
+      let tree =
+        TConNode
+          { name
+          ; loc_near = Some meta.loc.loc_near
+          ; loc_far = Some meta.loc.loc_far
+          ; id = meta.id
+          ; args = []
+          }
+      in
       s, marks, tree
     | TCon (name, [ arg ], meta) ->
       let sa, ma, ta = render 2 arg in
@@ -207,7 +241,15 @@ let make_type_renderer () =
           s0, marks
       in
       let marks = add_mark meta.loc meta.id marks in
-      let tree = TConNode { name; loc = Some meta.loc.loc_near; id = meta.id; args = [ ta ] } in
+      let tree =
+        TConNode
+          { name
+          ; loc_near = Some meta.loc.loc_near
+          ; loc_far = Some meta.loc.loc_far
+          ; id = meta.id
+          ; args = [ ta ]
+          }
+      in
       s, marks, tree
     | TCon (name, args, meta) ->
       let rendered = List.map (render 0) args in
@@ -233,7 +275,15 @@ let make_type_renderer () =
           s0, marks
       in
       let marks = add_mark meta.loc meta.id marks in
-      let tree = TConNode { name; loc = Some meta.loc.loc_near; id = meta.id; args = trees } in
+      let tree =
+        TConNode
+          { name
+          ; loc_near = Some meta.loc.loc_near
+          ; loc_far = Some meta.loc.loc_far
+          ; id = meta.id
+          ; args = trees
+          }
+      in
       s, marks, tree
   in
   let render_view ty =

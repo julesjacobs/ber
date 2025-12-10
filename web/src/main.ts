@@ -23,6 +23,7 @@ type TypeTree =
       name: string;
       id: number;
       loc?: Span | null;
+      locFar?: Span | null;
       args?: TypeTree[];
     }
   | {
@@ -30,6 +31,7 @@ type TypeTree =
       name: string;
       id: number;
       loc?: Span | null;
+      locFar?: Span | null;
       args?: TypeTree[];
     };
 
@@ -206,7 +208,8 @@ const renderTypeView = (
       classes.push("type-frag-mismatch");
       if (side) classes.push(`type-frag-mismatch-${side}`);
     }
-    const idx = loc ? hoverLocs.push(loc) - 1 : -1;
+    const hoverLoc = node.locFar ?? loc;
+    const idx = hoverLoc ? hoverLocs.push(hoverLoc) - 1 : -1;
     const attrs: string[] = [`class="${classes.join(" ")}"`, `data-type-id="${node.id}"`];
     if (side) attrs.push(`data-type-side="${side}"`);
     if (idx >= 0) attrs.push(`data-loc-idx="${idx}"`);
