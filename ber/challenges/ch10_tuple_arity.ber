@@ -15,11 +15,12 @@ let x, y, z = 1, 2
 >              ▲    ▲   
 > Expected: int * int
 >               △    
+> Reason: tuple pattern
 
 let _ = x
 
 > Unbound variable x
-> 19 | let _ = x
+> 20 | let _ = x
 >              ▲
 >              |
 >              error: 'a

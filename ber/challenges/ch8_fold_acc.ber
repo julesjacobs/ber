@@ -33,6 +33,7 @@ let _ = sum_bool_list xs
 >           ▲▲▲▲
 > Expected: int
 >           △△△
+> Reason: variable use
 
 let add (x : int) (y : int) = x
 
@@ -49,7 +50,7 @@ fold_left add 0 lst
 fold_left 0 add lst
 
 > Type mismatch:
-> 49 | fold_left 0 add lst
+> 50 | fold_left 0 add lst
 >      △△△△△△△△△ ▲        
 >                |
 >                got: int
@@ -60,11 +61,12 @@ fold_left 0 add lst
 >           ▲▲▲
 > Expected: 'a -> 'b -> 'a
 >              △△         
+> Reason: int literal
 
 fold_left 0 add
 
 > Type mismatch:
-> 64 | fold_left 0 add
+> 66 | fold_left 0 add
 >      △△△△△△△△△ ▲    
 >                |
 >                got: int
@@ -75,11 +77,12 @@ fold_left 0 add
 >           ▲▲▲
 > Expected: 'a -> 'b -> 'a
 >              △△         
+> Reason: int literal
 
 fold_left add lst 0
 
 > Type mismatch:
-> 79 | fold_left add lst 0
+> 82 | fold_left add lst 0
 >                △△△ ▲▲▲  
 >                    |
 >                    got: int list
@@ -90,11 +93,12 @@ fold_left add lst 0
 >               ▲▲▲▲
 > Expected: int
 >           △△△
+> Reason: variable use
 
 fold_left add lst
 
 > Type mismatch:
-> 94 | fold_left add lst
+> 98 | fold_left add lst
 >                △△△ ▲▲▲
 >                    |
 >                    got: int list
@@ -105,3 +109,4 @@ fold_left add lst
 >               ▲▲▲▲
 > Expected: int
 >           △△△
+> Reason: variable use

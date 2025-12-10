@@ -13,3 +13,4 @@
 >           ▲▲▲
 > Expected: bool
 >           △△△△
+> Reason: int pattern

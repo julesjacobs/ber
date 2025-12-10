@@ -37,7 +37,7 @@ type type_error =
   }
 
 and type_error_kind =
-  | Type_mismatch of ty * ty
+  | Type_mismatch of ty * ty * string
   | Occurs_check of tvar * ty
   | Message of string
 
@@ -80,10 +80,10 @@ let initial_env =
   ; gen_level = 1
   }
 
-let unify_types loc ~got ~expected =
+let unify_types loc ~got ~expected ~reason =
   try Type_solver.unify got expected; Ok ()
   with
-  | Type_solver.TypeMismatch (a, b) -> Error { loc; kind = Type_mismatch (a, b) }
+  | Type_solver.TypeMismatch (a, b) -> Error { loc; kind = Type_mismatch (a, b, reason) }
   | Type_solver.Occurs (tv, ty) -> Error { loc; kind = Occurs_check (tv, ty) }
   | Type_solver.Compiler_bug msg -> error_msg loc ("Compiler bug: " ^ msg)
 
@@ -140,18 +140,18 @@ let rec infer_pattern env (pat : pattern) expected =
     let* binds = infer_pattern env p expected in
     Ok ((id.node, expected) :: binds)
   | PInt _ ->
-    let* () = unify_types pat.loc ~got:(t_int ~loc:pat.loc ()) ~expected in
+    let* () = unify_types pat.loc ~got:(t_int ~loc:pat.loc ()) ~expected ~reason:"int pattern" in
     Ok []
   | PBool _ ->
-    let* () = unify_types pat.loc ~got:(t_bool ~loc:pat.loc ()) ~expected in
+    let* () = unify_types pat.loc ~got:(t_bool ~loc:pat.loc ()) ~expected ~reason:"bool pattern" in
     Ok []
   | PString _ ->
-    let* () = unify_types pat.loc ~got:(t_string ~loc:pat.loc ()) ~expected in
+    let* () = unify_types pat.loc ~got:(t_string ~loc:pat.loc ()) ~expected ~reason:"string pattern" in
     Ok []
   | PTuple elems ->
     let ts = List.map (fun _ -> fresh_ty env.gen_level) elems in
     let tuple_ty = t_tuple ~loc:pat.loc ts in
-    let* () = unify_types pat.loc ~got:tuple_ty ~expected in
+    let* () = unify_types pat.loc ~got:tuple_ty ~expected ~reason:"tuple pattern" in
     let rec loop acc pats tys =
       match pats, tys with
       | [], [] -> Ok (List.concat (List.rev acc))
@@ -174,7 +174,7 @@ let rec infer_pattern env (pat : pattern) expected =
        if List.length arg_tys <> List.length args then
          error_msg pat.loc "Constructor arity mismatch"
        else (
-         let* () = unify_types pat.loc ~got:res_ty ~expected in
+         let* () = unify_types pat.loc ~got:res_ty ~expected ~reason:"constructor pattern result" in
          let rec loop acc pats tys =
            match pats, tys with
            | [], [] -> Ok (List.concat (List.rev acc))
@@ -188,7 +188,7 @@ let rec infer_pattern env (pat : pattern) expected =
   | PAnnot (p, texpr) ->
     let tyvars = ref [] in
     let* t = ty_of_type_expr env tyvars texpr in
-    let* () = unify_types pat.loc ~got:t ~expected in
+    let* () = unify_types pat.loc ~got:t ~expected ~reason:"annotated pattern" in
     infer_pattern env p t
 
 let rec infer_expr env expr =
@@ -216,7 +216,7 @@ and check_expr (env : env) (expected : ty) (expr : expr) : (unit, type_error) re
     *)
     let arg_tys = List.map (fun _ -> fresh_ty env.gen_level) args in
     let app_ty = List.fold_right (fun arg acc -> t_arrow ~loc:fn_loc arg acc) arg_tys expected in
-    let* () = unify_types fn_loc ~got:fn_ty ~expected:app_ty in
+    let* () = unify_types fn_loc ~got:fn_ty ~expected:app_ty ~reason:"function application" in
     let* _ =
       map_result2
         (fun e t ->
@@ -229,20 +229,20 @@ and check_expr (env : env) (expected : ty) (expr : expr) : (unit, type_error) re
   in
   match expr.node with
   | EInt _ ->
-    let* () = unify_types expr.loc ~got:(t_int ~loc:expr.loc ()) ~expected in
+    let* () = unify_types expr.loc ~got:(t_int ~loc:expr.loc ()) ~expected ~reason:"int literal" in
     Ok ()
   | EBool _ ->
-    let* () = unify_types expr.loc ~got:(t_bool ~loc:expr.loc ()) ~expected in
+    let* () = unify_types expr.loc ~got:(t_bool ~loc:expr.loc ()) ~expected ~reason:"bool literal" in
     Ok ()
   | EString _ ->
-    let* () = unify_types expr.loc ~got:(t_string ~loc:expr.loc ()) ~expected in
+    let* () = unify_types expr.loc ~got:(t_string ~loc:expr.loc ()) ~expected ~reason:"string literal" in
     Ok ()
   | EVar id ->
     (match SMap.find_opt id.node env.vars with
      | None -> error_msg expr.loc ("Unbound variable " ^ id.node)
      | Some s ->
        let t = instantiate ~loc:id.loc env s in
-       let* () = unify_types expr.loc ~got:t ~expected in
+       let* () = unify_types expr.loc ~got:t ~expected ~reason:"variable use" in
        Ok ())
   | EConstr (ctor, args) ->
     (match SMap.find_opt ctor.node env.vars with
@@ -253,7 +253,7 @@ and check_expr (env : env) (expected : ty) (expr : expr) : (unit, type_error) re
   | ETuple elems ->
     let elem_tys = List.map (fun _ -> fresh_ty env.gen_level) elems in
     let tuple_ty = t_tuple ~loc:expr.loc elem_tys in
-    let* () = unify_types expr.loc ~got:tuple_ty ~expected in
+    let* () = unify_types expr.loc ~got:tuple_ty ~expected ~reason:"tuple expression" in
     let* _ =
       map_result2
         (fun e t ->
@@ -288,7 +288,7 @@ and check_expr (env : env) (expected : ty) (expr : expr) : (unit, type_error) re
     let fn_ty =
       List.fold_right (fun arg acc -> t_arrow ~loc:expr.loc arg acc) param_tys result_ty
     in
-    let* () = unify_types expr.loc ~got:fn_ty ~expected in
+    let* () = unify_types expr.loc ~got:fn_ty ~expected ~reason:"lambda expression" in
     let* () = check_expr env'' result_ty fn_body in
     Ok ()
   | EApp (fn, args) ->
@@ -328,7 +328,7 @@ and check_expr (env : env) (expected : ty) (expr : expr) : (unit, type_error) re
     let tyvars = ref [] in
     let* t_expected = ty_of_type_expr env tyvars texpr in
     let* () = check_expr env t_expected e in
-    let* () = unify_types texpr.loc ~got:t_expected ~expected in
+    let* () = unify_types texpr.loc ~got:t_expected ~expected ~reason:"type annotation" in
     Ok ()
 
 and infer_let_bindings env rec_flag bindings =

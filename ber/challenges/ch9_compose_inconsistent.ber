@@ -35,11 +35,12 @@ compose h g
 >           ▲▲▲▲
 > Expected: int
 >           △△△
+> Reason: variable use
 
 compose h g 0
 
 > Type mismatch:
-> 39 | compose h g 0
+> 40 | compose h g 0
 >              △ ▲  
 >                |
 >                got: bool -> bool
@@ -50,11 +51,12 @@ compose h g 0
 >           ▲▲▲▲
 > Expected: int
 >           △△△
+> Reason: variable use
 
 compose h g 0 0
 
 > Type mismatch:
-> 54 | compose h g 0 0
+> 56 | compose h g 0 0
 >      △△△△△△△ ▲      
 >              |
 >              got: int -> int
@@ -65,3 +67,4 @@ compose h g 0 0
 >           ▲▲▲
 > Expected: 'a -> 'b
 >              △△   
+> Reason: variable use

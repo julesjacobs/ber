@@ -18,3 +18,4 @@ let rec bad t =
 >                   ▲▲        
 > Expected: 'a tree
 >              △△△△
+> Reason: variable use

@@ -17,3 +17,4 @@ let _ = negate 1 2
 >           ▲▲▲
 > Expected: 'a -> 'b
 >              △△   
+> Reason: int literal

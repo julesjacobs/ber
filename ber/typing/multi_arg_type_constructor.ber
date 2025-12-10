@@ -33,6 +33,7 @@ let _ = expect_result (Err 123)
 >           ▲▲▲
 > Expected: string
 >           △△△△△△
+> Reason: int literal
 
 type ('leaf, 'node) info_tree = Leaf of 'leaf | Node of 'node * ('leaf, 'node) info_tree * ('leaf, 'node) info_tree
 
@@ -53,7 +54,7 @@ let tree_annot : (int, string) info_tree = Node ("root", Leaf 1, Leaf 2)
 let tree_bad = Node ("root", Leaf 1, Leaf "oops")
 
 > Type mismatch:
-> 53 | let tree_bad = Node ("root", Leaf 1, Leaf "oops")
+> 54 | let tree_bad = Node ("root", Leaf 1, Leaf "oops")
 >                                        △       ▲▲▲▲▲▲ 
 >                                                |
 >                                                got: string
@@ -64,3 +65,4 @@ let tree_bad = Node ("root", Leaf 1, Leaf "oops")
 >           ▲▲▲▲▲▲
 > Expected: int
 >           △△△
+> Reason: string literal

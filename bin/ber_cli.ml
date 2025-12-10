@@ -475,7 +475,7 @@ let format_type_error (err : Type_infer.type_error) =
   in
   let kind_msg =
     match err.kind with
-    | Type_infer.Type_mismatch (got_ty, expected_ty) ->
+    | Type_infer.Type_mismatch (got_ty, expected_ty, reason) ->
       let se, sg, me, mg = diff_mismatch expected_ty got_ty in
       let locs_e, locs_g = mismatch_locs expected_ty got_ty in
       let mk_line prefix s marks ch =
@@ -508,7 +508,8 @@ let format_type_error (err : Type_infer.type_error) =
         mk_line "Got:      " sg mg got_ch
         @ mk_line "Expected: " se me expected_ch
       in
-      "Type mismatch:\n" ^ loc_block ^ "\n" ^ String.concat "\n" lines
+      let reason_line = if reason = "" then "" else "\nReason: " ^ reason in
+      "Type mismatch:\n" ^ loc_block ^ "\n" ^ String.concat "\n" lines ^ reason_line
     | Type_infer.Occurs_check (tv, ty) ->
       let inf = mk_con "∞" [] in
       let ty_infinite =

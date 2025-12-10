@@ -25,3 +25,4 @@ and odd n =
 >           ▲▲▲
 > Expected: bool
 >           △△△△
+> Reason: int literal

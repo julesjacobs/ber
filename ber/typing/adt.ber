@@ -17,11 +17,12 @@ let make_node = Node ()
 >           ▲▲▲▲
 > Expected: tree * tree
 >                △     
+> Reason: tuple expression
 
 let wrong_ctor_arity = Node 1
 
 > Type mismatch:
-> 21 | let wrong_ctor_arity = Node 1
+> 22 | let wrong_ctor_arity = Node 1
 >                             △△△△ ▲
 >                                  |
 >                                  got: int
@@ -32,11 +33,12 @@ let wrong_ctor_arity = Node 1
 >           ▲▲▲
 > Expected: tree * tree
 >                △     
+> Reason: int literal
 
 let unknown_ctor = Foo 1
 
 > Unknown constructor Foo
-> 36 | let unknown_ctor = Foo 1
+> 38 | let unknown_ctor = Foo 1
 >                         ▲▲▲▲▲
 >                         |
 >                         error: 'a

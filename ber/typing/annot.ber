@@ -17,6 +17,7 @@ let bad_annot = (fun x -> x) : int -> bool
 >           ▲▲▲
 > Expected: bool
 >           △△△△
+> Reason: variable use
 
 let let_annot : int = 3
 

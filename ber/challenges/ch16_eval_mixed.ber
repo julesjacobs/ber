@@ -35,3 +35,4 @@ let rec eval e =
 >           ▲▲▲▲
 > Expected: int
 >           △△△
+> Reason: variable use

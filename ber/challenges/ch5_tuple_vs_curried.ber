@@ -19,3 +19,4 @@ let _ = add_pair 1 2
 >           ▲▲▲
 > Expected: 'b -> 'a * 'c
 >                    △   
+> Reason: int literal

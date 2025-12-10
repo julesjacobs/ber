@@ -22,3 +22,4 @@ let trees =
 >              ▲▲▲▲
 > Expected: int
 >           △△△
+> Reason: function application

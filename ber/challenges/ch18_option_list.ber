@@ -20,3 +20,4 @@ let bad_options =
 >           ▲▲▲▲
 > Expected: int
 >           △△△
+> Reason: bool literal

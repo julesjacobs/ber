@@ -18,11 +18,12 @@ let bad_app = 3 4
 >           ▲▲▲
 > Expected: 'a -> 'b
 >              △△   
+> Reason: function application
 
 let ascr_mismatch = 1 : bool
 
 > Type mismatch:
-> 22 | let ascr_mismatch = 1 : bool
+> 23 | let ascr_mismatch = 1 : bool
 >                          ▲   △△△△
 >                          |
 >                          got: int
@@ -33,16 +34,17 @@ let ascr_mismatch = 1 : bool
 >           ▲▲▲
 > Expected: bool
 >           △△△△
+> Reason: int literal
 
 let match_mismatch = match Some 1 with | Some x -> x
 | None -> true
 
 > Type mismatch:
-> 37 | let match_mismatch = match Some 1 with | Some x -> x
+> 39 | let match_mismatch = match Some 1 with | Some x -> x
 >                                                         △
 >                                                         |
 >                                                         expected: int
-> 38 | | None -> true
+> 40 | | None -> true
 >                ▲▲▲▲
 >                |
 >                got: bool
@@ -51,12 +53,13 @@ let match_mismatch = match Some 1 with | Some x -> x
 >           ▲▲▲▲
 > Expected: int
 >           △△△
+> Reason: bool literal
 
 let guard_non_bool2 = match Some 1 with | Some x when x -> x
 | None -> 0
 
 > Type mismatch:
-> 55 | let guard_non_bool2 = match Some 1 with | Some x when x -> x
+> 58 | let guard_non_bool2 = match Some 1 with | Some x when x -> x
 >                                                            △     
 >                                                            ▲     
 >                                                            |
@@ -68,12 +71,13 @@ let guard_non_bool2 = match Some 1 with | Some x when x -> x
 >           ▲▲▲
 > Expected: bool
 >           △△△△
+> Reason: variable use
 
 let ctor_unknown_pat = match None with | Foo x -> x
 | _ -> 0
 
 > Unknown constructor Foo
-> 72 | let ctor_unknown_pat = match None with | Foo x -> x
+> 76 | let ctor_unknown_pat = match None with | Foo x -> x
 >                                               ▲▲▲▲▲     
 >                                               |
 >                                               error: 'a option

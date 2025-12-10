@@ -20,3 +20,4 @@ let rec g x =
 >              ▲▲▲▲
 > Expected: int
 >           △△△
+> Reason: function application

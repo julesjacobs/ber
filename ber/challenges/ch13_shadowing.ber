@@ -25,3 +25,4 @@ let _ = use_int x
 >           ▲▲▲▲
 > Expected: int
 >           △△△
+> Reason: variable use

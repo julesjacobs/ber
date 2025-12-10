@@ -31,3 +31,4 @@ let capture_list x =
 >           ▲▲▲▲
 > Expected: int
 >           △△△
+> Reason: bool literal
