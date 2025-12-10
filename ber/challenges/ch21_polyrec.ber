@@ -18,4 +18,4 @@ let rec g x =
 >           ▲▲▲
 > Expected: int list
 >               △△△△
-> Reason: let rec rhs
+> Reason: Let rec rhs has different type

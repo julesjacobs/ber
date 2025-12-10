@@ -21,4 +21,4 @@ let _ = use_int x
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: function application
+> Reason: Function argument mismatch

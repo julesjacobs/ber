@@ -18,4 +18,4 @@ let f b =
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: match branch
+> Reason: Match branches have different types

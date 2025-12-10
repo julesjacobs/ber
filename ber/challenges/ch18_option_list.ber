@@ -16,4 +16,4 @@ let bad_options =
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: function application
+> Reason: Constructor argument mismatch

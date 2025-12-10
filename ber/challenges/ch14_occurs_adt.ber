@@ -17,4 +17,4 @@ let rec bad t =
 >                   ▲▲        
 > Expected: 'a tree
 >              △△△△
-> Reason: let rec rhs
+> Reason: Let rec rhs has different type

@@ -21,7 +21,7 @@ let bad_fs =
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: function application
+> Reason: Constructor argument mismatch
 
 let bad_fs =
   Cons ((fun (x : int) -> (x,x)), Cons (bool_not, Nil))
@@ -34,7 +34,7 @@ let bad_fs =
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: function application
+> Reason: Constructor argument mismatch
 
 let bad_fs =
   Cons ((fun x -> (x,x)), Cons (bool_not, Nil))
@@ -47,7 +47,7 @@ let bad_fs =
 >           ▲▲▲▲
 > Expected: bool * bool
 >                △     
-> Reason: function application
+> Reason: Constructor argument mismatch
 
 Cons(1, Cons((fun x -> x), Nil))
 
@@ -59,7 +59,7 @@ Cons(1, Cons((fun x -> x), Nil))
 >              ▲▲   
 > Expected: int
 >           △△△
-> Reason: function application
+> Reason: Constructor argument mismatch
 
 let bool_not2 b =
   match b with
@@ -80,7 +80,7 @@ let bad_fs =
 >           ▲▲▲
 > Expected: bool
 >           △△△△
-> Reason: function application
+> Reason: Constructor argument mismatch
 
 let bool_not3 b =
   match b with
@@ -97,4 +97,4 @@ let bool_not3 b =
 >           ▲▲▲▲
 > Expected: bool
 >           △△△△
-> Reason: match branch
+> Reason: Match branches have different types

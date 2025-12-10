@@ -25,4 +25,4 @@ let add1_to_length xs =
 >                   ▲▲    
 > Expected: int
 >           △△△
-> Reason: function application
+> Reason: Function argument mismatch

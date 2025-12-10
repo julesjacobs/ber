@@ -60,6 +60,7 @@ type ExampleMeta = {
 type Detail = {
   kind: "type_mismatch" | "occurs";
   heading?: string | null;
+  reason?: string | null;
   got?: TypeView | null;
   expected?: TypeView | null;
   marksGot?: Mark[] | null;
@@ -417,10 +418,15 @@ const renderOutput = (result: BerResult, headingInfo?: ParsedHeading) => {
   if (!ok || detail) {
     if (detail && detail.kind === "type_mismatch") {
       const parsedHeading = headingInfo ?? parseHeading(detail.heading);
+      const reasonText = escapeHtml(detail.reason || "Type mismatch");
       const headingLabel =
         parsedHeading.rangeText !== null
           ? `${parsedHeading.fileLabel ? `${escapeHtml(parsedHeading.fileLabel)}:` : ""}<span class="type-location">${escapeHtml(parsedHeading.rangeText)}</span>`
           : escapeHtml(detail.heading || "");
+      const headingHtml =
+        headingLabel || detail.heading
+          ? `${reasonText} at ${headingLabel || escapeHtml(detail.heading || "unknown location")}`
+          : reasonText;
       const hoverLocs: Span[] = [];
       const mismatchGotIds = new Set<number>(detail.mismatchGotIds || []);
       const mismatchExpectedIds = new Set<number>(detail.mismatchExpectedIds || []);
@@ -429,7 +435,7 @@ const renderOutput = (result: BerResult, headingInfo?: ParsedHeading) => {
       const exprLeft = escapeHtml(detail.exprLeft?.expr ?? "<unknown>");
       const exprRight = escapeHtml(detail.exprRight?.expr ?? "<unknown>");
       output.innerHTML = `
-        <div class="type-heading">Type mismatch at ${headingLabel || "unknown location"}</div>
+        <div class="type-heading">${headingHtml}</div>
         <div class="type-row compact">
           <code class="expr-snippet got">${exprLeft}</code>
           <span class="type-sep">:</span>

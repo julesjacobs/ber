@@ -24,4 +24,4 @@ let rec length_or_and xs =
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: match branch
+> Reason: Match branches have different types

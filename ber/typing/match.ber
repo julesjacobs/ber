@@ -20,7 +20,7 @@ let guard_non_bool = match None with | None when 1 -> true
 >           ▲▲▲
 > Expected: bool
 >           △△△△
-> Reason: guard
+> Reason: Match guard is not a bool
 
 let tuple_match = fun t -> match t with
 | a, b -> a

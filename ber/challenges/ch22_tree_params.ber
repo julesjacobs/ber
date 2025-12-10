@@ -18,4 +18,4 @@ let trees =
 >               ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: function application
+> Reason: Constructor argument mismatch

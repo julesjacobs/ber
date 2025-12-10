@@ -13,4 +13,4 @@ let mixed_list = Cons (1, Cons (2, Cons (true, Nil)))
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: function application
+> Reason: Constructor argument mismatch

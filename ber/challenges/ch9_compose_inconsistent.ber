@@ -31,7 +31,7 @@ compose h g
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: function application
+> Reason: Function argument mismatch
 
 compose h g 0
 
@@ -43,7 +43,7 @@ compose h g 0
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: function application
+> Reason: Function argument mismatch
 
 compose h g 0 0
 
@@ -55,4 +55,4 @@ compose h g 0 0
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: function application
+> Reason: Function argument mismatch

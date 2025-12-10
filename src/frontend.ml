@@ -44,6 +44,7 @@ type check_result =
 
 and mismatch_detail =
   { heading : string
+  ; reason : string
   ; got : type_view
   ; expected : type_view
   ; marks_got : (int * int) list
@@ -314,7 +315,7 @@ let spans_for_error (err : Type_infer.type_error) =
     if spans = [] then [ { loc = err.loc; label = Some "error"; ty = ty_for_loc err.loc } ] else spans
   | _ -> [ { loc = err.loc; label = Some "error"; ty = ty_for_loc err.loc } ]
 
-let mismatch_detail heading expected_ty got_ty ~source ~expected_locs ~got_locs =
+let mismatch_detail heading expected_ty got_ty ~source ~expected_locs ~got_locs ~reason =
   let render_view, _ = make_type_renderer () in
   let rec find_typed_loc id ty =
     match prune ty with
@@ -388,6 +389,7 @@ let mismatch_detail heading expected_ty got_ty ~source ~expected_locs ~got_locs 
   let marks_expected = [ 0, String.length expected_view.text ] in
   let marks_got = [ 0, String.length got_view.text ] in
   { heading
+  ; reason
   ; got = got_view
   ; expected = expected_view
   ; marks_got
@@ -418,9 +420,9 @@ let typecheck_string ?(filename = "repl") source =
            let spans = spans_for_error err in
            let detail =
              match err.kind with
-             | Type_infer.Type_mismatch (got, expected, _) ->
+             | Type_infer.Type_mismatch (got, expected, reason) ->
                let locs_e, locs_g = mismatch_locs expected got in
-               Some (Mismatch (mismatch_detail (format_location err.loc) expected got ~source ~expected_locs:locs_e ~got_locs:locs_g))
+               Some (Mismatch (mismatch_detail (format_location err.loc) expected got ~source ~expected_locs:locs_e ~got_locs:locs_g ~reason))
              | Type_infer.Occurs_check (tv, ty) ->
                let inf = mk_con default_loc "∞" [] in
                let ty_infinite =

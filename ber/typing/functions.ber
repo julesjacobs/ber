@@ -25,4 +25,4 @@ let bad_annot = fun (x : int) -> x : bool
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: type annotation
+> Reason: Type annotation mismatch

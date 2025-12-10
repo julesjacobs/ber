@@ -11,7 +11,7 @@ let x, y, z = 1, 2
 >              ▲    ▲   
 > Expected: int * int
 >               △    
-> Reason: let pattern
+> Reason: Let pattern type mismatch
 
 let _ = x
 

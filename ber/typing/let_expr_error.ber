@@ -9,4 +9,4 @@
 >           ▲▲▲
 > Expected: bool
 >           △△△△
-> Reason: let pattern
+> Reason: Let pattern type mismatch

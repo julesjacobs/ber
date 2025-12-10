@@ -190,7 +190,7 @@ let rec infer_pattern env (pat : pattern) =
     let* () = unify_types pat.loc ~got:pat_ty ~expected:t ~reason:"annotated pattern" in
     Ok (t, binds)
 
-let infer_application env call_loc fn_loc fn_ty arg_tys =
+let infer_application env ~reason call_loc fn_loc fn_ty arg_tys =
   let result_ty = fresh_ty env.gen_level in
   let app_ty =
     let fn_ty' = fresh_ty env.gen_level in
@@ -199,7 +199,7 @@ let infer_application env call_loc fn_loc fn_ty arg_tys =
     unify fn_ty' ty;
     ty
   in
-  let* () = unify_types call_loc ~got:app_ty ~expected:fn_ty ~reason:"Function argument mismatch" in
+  let* () = unify_types call_loc ~got:app_ty ~expected:fn_ty ~reason in
   Ok result_ty
 
 let rec infer_expr (env : env) (expr : expr) : (ty, type_error) result =
@@ -244,14 +244,14 @@ let rec infer_expr (env : env) (expr : expr) : (ty, type_error) result =
   | EApp (fn, args) ->
     let* fn_ty = infer_expr env fn in
     let* arg_tys = map_result (fun arg -> infer_expr env arg) args in
-    infer_application env expr.loc fn.loc fn_ty arg_tys
+    infer_application env ~reason:"Function argument mismatch" expr.loc fn.loc fn_ty arg_tys
   | EConstr (ctor, args) ->
     (match SMap.find_opt ctor.node env.vars with
      | None -> error_msg expr.loc ("Unknown constructor " ^ ctor.node)
      | Some scheme ->
        let ctor_ty = instantiate ~loc:ctor.loc env scheme in
        let* arg_tys = map_result (fun arg -> infer_expr env arg) args in
-       infer_application env expr.loc ctor.loc ctor_ty arg_tys)
+       infer_application env ~reason:"Constructor argument mismatch" expr.loc ctor.loc ctor_ty arg_tys)
   | ELet { rec_flag; bindings; in_expr } ->
     let* env_after, _infos = infer_let_bindings env rec_flag bindings in
     infer_expr env_after in_expr
@@ -264,7 +264,7 @@ let rec infer_expr (env : env) (expr : expr) : (ty, type_error) result =
         | [] -> Ok ()
         | c :: rest ->
           let* pat_ty, binds = infer_pattern env_case_level c.node.pattern in
-          let* () = unify_types expr.loc ~got:pat_ty ~expected:scrut_ty ~reason:"Pattern does not match scrutinee" in
+          let* () = unify_types expr.loc ~got:pat_ty ~expected:scrut_ty ~reason:"Pattern type mismatch" in
           let env_with_binds =
             List.fold_left
               (fun e (name, ty) -> { e with vars = SMap.add name (Forall ([], ty)) e.vars })

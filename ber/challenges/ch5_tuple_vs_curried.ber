@@ -15,4 +15,4 @@ let _ = add_pair 1 2
 >           ▲▲▲
 > Expected: 'a * 'b
 >              △   
-> Reason: function application
+> Reason: Function argument mismatch

@@ -14,7 +14,7 @@ let bad_app = 3 4
 >               ▲▲   
 > Expected: int
 >           △△△
-> Reason: function application
+> Reason: Function argument mismatch
 
 let ascr_mismatch = 1 : bool
 
@@ -26,7 +26,7 @@ let ascr_mismatch = 1 : bool
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: type annotation
+> Reason: Type annotation mismatch
 
 let match_mismatch = match Some 1 with | Some x -> x
 | None -> true
@@ -41,7 +41,7 @@ let match_mismatch = match Some 1 with | Some x -> x
 >           ▲▲▲▲
 > Expected: int
 >           △△△
-> Reason: match branch
+> Reason: Match branches have different types
 
 let guard_non_bool2 = match Some 1 with | Some x when x -> x
 | None -> 0
@@ -55,7 +55,7 @@ let guard_non_bool2 = match Some 1 with | Some x when x -> x
 >           ▲▲▲
 > Expected: bool
 >           △△△△
-> Reason: guard
+> Reason: Match guard is not a bool
 
 let ctor_unknown_pat = match None with | Foo x -> x
 | _ -> 0

@@ -13,4 +13,4 @@ let _ = negate 1 2
 >               ▲▲   
 > Expected: int
 >           △△△
-> Reason: function application
+> Reason: Function argument mismatch

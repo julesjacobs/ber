@@ -95,6 +95,7 @@ let wrap_result (res : Ber.Frontend.check_result) =
         (object%js
           val kind = Js.string "type_mismatch"
           val heading = Js.some (Js.string d.heading)
+          val reason = Js.some (Js.string d.reason)
           val got = Js.some (js_type_view d.got)
           val expected = Js.some (js_type_view d.expected)
           val marksGot = Js.null
@@ -119,6 +120,7 @@ let wrap_result (res : Ber.Frontend.check_result) =
           val exprLeft = Js.null
           val exprRight = Js.null
           val occursTy = Js.some (Js.string ty_s.ty)
+          val reason = Js.null
         end)
   in
   object%js
