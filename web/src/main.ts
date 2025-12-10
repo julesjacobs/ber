@@ -304,12 +304,19 @@ const attachHoverHandlers = (container: HTMLElement, hoverLocs: Span[]) => {
 const attachExprHoverHandlers = (container: HTMLElement, spans: Span[]) => {
   const byLabel = (label: string) => spans.filter((s) => s.label === label);
   const bindHover = (selector: string, label: string) => {
-    const el = container.querySelector<HTMLElement>(selector);
+    const el = container.querySelector<HTMLElement>(`${selector} .expr-snippet-inner`);
     if (!el) return;
     const hoverSpans = byLabel(label).map((s) => ({ ...s }));
-    if (!hoverSpans.length) return;
-    el.addEventListener("mouseenter", () => applyHoverHighlights(hoverSpans));
-    el.addEventListener("mouseleave", () => applyHoverHighlights([]));
+    const onEnter = () => {
+      el.classList.add("expr-snippet-hovered");
+      applyHoverHighlights(hoverSpans);
+    };
+    const onLeave = () => {
+      el.classList.remove("expr-snippet-hovered");
+      applyHoverHighlights([]);
+    };
+    el.addEventListener("mouseenter", onEnter);
+    el.addEventListener("mouseleave", onLeave);
   };
   bindHover(".expr-snippet.got", "got");
   bindHover(".expr-snippet.expected", "expected");
@@ -491,12 +498,12 @@ const renderOutput = (result: BerResult, headingInfo?: ParsedHeading) => {
         <div class="type-heading">${headingHtml}</div>
         <div class="type-rows">
           <div class="type-row compact">
-            <code class="expr-snippet got">${exprLeft}</code>
+            <code class="expr-snippet got"><span class="expr-snippet-inner">${exprLeft}</span></code>
             <span class="type-sep">:</span>
             ${typeLeft}
           </div>
           <div class="type-row compact">
-            <code class="expr-snippet expected">${exprRight}</code>
+            <code class="expr-snippet expected"><span class="expr-snippet-inner">${exprRight}</span></code>
             <span class="type-sep">:</span>
             ${typeRight}
           </div>
