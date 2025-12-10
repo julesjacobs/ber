@@ -296,6 +296,22 @@ const clearMismatchArrow = () => {
   if (existing) existing.remove();
 };
 
+const alignTypeMismatchColumns = () => {
+  requestAnimationFrame(() => {
+    const rowsContainer = output.querySelector<HTMLElement>(".type-rows");
+    if (!rowsContainer) return;
+    const exprs = Array.from(rowsContainer.querySelectorAll<HTMLElement>(".expr-snippet"));
+    if (!exprs.length) return;
+    let maxWidth = 0;
+    exprs.forEach((el) => {
+      const { width } = el.getBoundingClientRect();
+      if (width > maxWidth) maxWidth = width;
+    });
+    if (!Number.isFinite(maxWidth) || maxWidth <= 0) return;
+    rowsContainer.style.setProperty("--expr-col-width", `${Math.ceil(maxWidth)}px`);
+  });
+};
+
 const renderMismatchArrow = (detail: Detail | null | undefined) => {
   clearMismatchArrow();
   if (!detail || detail.kind !== "type_mismatch") return;
@@ -351,14 +367,27 @@ const renderMismatchArrow = (detail: Detail | null | undefined) => {
         3 * ((p1.y - p0.y) * inv * inv + 2 * (p2.y - p1.y) * inv * t + (p3.y - p2.y) * t * t);
       return { x: dx, y: dy };
     };
-    const labelT = 0.5;
+    const labelT = 0.76;
     const labelPos = pointOnCurve(labelT);
     const tangent = tangentAt(labelT);
     const tangentLen = Math.hypot(tangent.x, tangent.y) || 1;
-    const rightNormal = { x: tangent.y / tangentLen, y: -tangent.x / tangentLen };
-    const labelOffset = 16;
-    const labelX = labelPos.x + rightNormal.x * labelOffset;
-    const labelY = labelPos.y + rightNormal.y * labelOffset;
+    const tangentDir = { x: tangent.x / tangentLen, y: tangent.y / tangentLen };
+    const normals = [
+      { x: tangent.y / tangentLen, y: -tangent.x / tangentLen },
+      { x: -tangent.y / tangentLen, y: tangent.x / tangentLen },
+    ];
+    const labelOffset = 12;
+    const labelForward = 10;
+    // Pick the side that keeps the label closest to the end dot.
+    let bestLabel = { x: labelPos.x, y: labelPos.y, dist: Number.POSITIVE_INFINITY };
+    for (const normal of normals) {
+      const candidateX = labelPos.x + normal.x * labelOffset + tangentDir.x * labelForward;
+      const candidateY = labelPos.y + normal.y * labelOffset + tangentDir.y * labelForward;
+      const dist = Math.hypot(candidateX - endX, candidateY - endY);
+      if (dist < bestLabel.dist) bestLabel = { x: candidateX, y: candidateY, dist };
+    }
+    const labelX = bestLabel.x;
+    const labelY = bestLabel.y;
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.classList.add("type-arrow-layer");
     svg.setAttribute("viewBox", `0 0 ${containerRect.width} ${containerRect.height}`);
@@ -436,17 +465,20 @@ const renderOutput = (result: BerResult, headingInfo?: ParsedHeading) => {
       const exprRight = escapeHtml(detail.exprRight?.expr ?? "<unknown>");
       output.innerHTML = `
         <div class="type-heading">${headingHtml}</div>
-        <div class="type-row compact">
-          <code class="expr-snippet got">${exprLeft}</code>
-          <span class="type-sep">:</span>
-          ${typeLeft}
-        </div>
-        <div class="type-row compact">
-          <code class="expr-snippet expected">${exprRight}</code>
-          <span class="type-sep">:</span>
-          ${typeRight}
+        <div class="type-rows">
+          <div class="type-row compact">
+            <code class="expr-snippet got">${exprLeft}</code>
+            <span class="type-sep">:</span>
+            ${typeLeft}
+          </div>
+          <div class="type-row compact">
+            <code class="expr-snippet expected">${exprRight}</code>
+            <span class="type-sep">:</span>
+            ${typeRight}
+          </div>
         </div>
       `;
+      alignTypeMismatchColumns();
       attachHoverHandlers(output, hoverLocs);
       renderMismatchArrow(detail);
       lastResult = result;
@@ -485,6 +517,7 @@ const renderOutput = (result: BerResult, headingInfo?: ParsedHeading) => {
 };
 
 const redrawMismatchArrow = () => {
+  alignTypeMismatchColumns();
   if (lastResult?.detail?.kind === "type_mismatch") {
     renderMismatchArrow(lastResult.detail);
   } else {

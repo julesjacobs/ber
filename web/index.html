@@ -187,6 +187,11 @@
       margin-bottom: 8px;
       font-weight: 600;
     }
+    .type-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 60px;
+    }
     .type-location {
       color: var(--text);
       padding: 2px 6px;
@@ -199,15 +204,27 @@
       display: flex;
       align-items: baseline;
       gap: 10px;
-      margin: 4px 0;
+      margin: 0;
       font-family: "JetBrains Mono", "Fira Code", monospace;
     }
+    .type-row.compact { margin: 0; }
     .type-label {
       min-width: 90px;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       font-size: 12px;
+    }
+    .expr-snippet {
+      display: inline-block;
+      width: var(--expr-col-width, auto);
+      text-align: right;
+      white-space: pre;
+    }
+    .type-sep {
+      display: inline-block;
+      width: 12px;
+      text-align: center;
     }
     .type-text {
       display: inline-block;

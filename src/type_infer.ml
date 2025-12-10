@@ -324,7 +324,7 @@ and infer_let_bindings env rec_flag bindings =
             let tyvars = ref [] in
             let* ann_ty = ty_of_type_expr env tyvars texpr in
             let* inferred = infer_expr env_level b.node.rhs in
-            let* () = unify_types b.node.rhs.loc ~got:inferred ~expected:ann_ty ~reason:"Let annotation mismatch" in
+            let* () = unify_types b.loc ~got:inferred ~expected:ann_ty ~reason:"Let annotation mismatch" in
             Ok (ann_ty, p, inferred)
           | _ ->
             let* inferred = infer_expr env_level b.node.rhs in
