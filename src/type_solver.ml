@@ -10,8 +10,13 @@ type tvar =
   ; mutable level : int
   }
 
+and typed_loc =
+  { loc : Location.t
+  ; mutable ty : ty
+  }
+
 and con_meta =
-  { loc : Location.t option
+  { loc : typed_loc option
   ; id : int
   }
 
@@ -63,31 +68,56 @@ module Loc_table = struct
 
   let reset () = H.reset table
 
-  let track (loc : Location.t) (ty : ty) =
-    if loc.file <> "" then H.replace table loc ty
+  let track (typed_loc : typed_loc) =
+    if typed_loc.loc.file <> "" then H.replace table typed_loc.loc typed_loc
 
   let find (loc : Location.t) = H.find_opt table loc
 end
 
 let reset_tracked_locs = Loc_table.reset
-let track_loc_type = Loc_table.track
-let type_of_loc = Loc_table.find
+let track_typed_loc = Loc_table.track
+let track_loc_type loc ty =
+  let tl = { loc; ty } in
+  track_typed_loc tl;
+  tl
+let type_of_loc loc =
+  match Loc_table.find loc with
+  | None -> None
+  | Some tl -> Some tl.ty
 
-let mk_con ?loc name args =
-  let loc = match loc with None -> Some default_loc | Some _ as l -> l in
-  let meta = { loc; id = fresh_con_id () } in
-  let ty = TCon (name, args, meta) in
-  (match loc with
-   | None -> ()
-   | Some loc -> track_loc_type loc ty);
+let typed_loc_of_loc = Loc_table.find
+
+let mk_con ?loc ?typed_loc name args =
+  let id = fresh_con_id () in
+  let existing_tl =
+    match typed_loc, loc with
+    | Some tl, _ -> Some tl
+    | None, Some l -> typed_loc_of_loc l
+    | _ -> None
+  in
+  let rec ty = TCon (name, args, meta)
+  and meta =
+    let loc_rec =
+      match existing_tl, loc with
+      | Some tl, _ -> Some tl
+      | None, Some l -> Some { loc = l; ty }
+      | _ -> None
+    in
+    { loc = loc_rec; id }
+  in
+  (match meta.loc with
+   | Some tl ->
+     track_typed_loc tl;
+     ()
+   | None -> ());
   ty
 
-let t_int ?loc () = mk_con ?loc "int" []
-let t_bool ?loc () = mk_con ?loc "bool" []
-let t_string ?loc () = mk_con ?loc "string" []
+let t_int ?loc ?typed_loc () = mk_con ?loc ?typed_loc "int" []
+let t_bool ?loc ?typed_loc () = mk_con ?loc ?typed_loc "bool" []
+let t_string ?loc ?typed_loc () = mk_con ?loc ?typed_loc "string" []
 
-let t_arrow ?loc a b = mk_con ?loc "->" [ a; b ]
-let t_tuple ?loc ts = mk_con ?loc "*" ts
+let t_arrow ?loc ?typed_loc a b = mk_con ?loc ?typed_loc "->" [ a; b ]
+let t_tuple ?loc ?typed_loc ts = mk_con ?loc ?typed_loc "*" ts
 
 let rec prune = function
   | TVar ({ instance = Some ty; _ } as tv) ->
@@ -170,7 +200,7 @@ let instantiate ?loc ~level (Forall (vars, ty)) =
     | TCon (n, args, meta) ->
       let use_loc =
         match loc with
-        | None -> meta.loc
+        | None -> Option.map (fun tl -> tl.loc) meta.loc
         | some -> some
       in
       mk_con ?loc:use_loc n (List.map aux args)

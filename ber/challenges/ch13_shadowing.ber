@@ -17,7 +17,7 @@ let _ = use_int x
 > 14 | let _ = use_int x
 >              △△△△△△△ ▲
 >                      |
->                      got: bool
+>                      got: int
 >              |
 >              expected: int -> int
 > 

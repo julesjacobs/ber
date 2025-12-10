@@ -29,7 +29,7 @@ let rec eval e =
 > 20 |   | Bool b -> b
 >                    ▲
 >                    |
->                    got: bool
+>                    got: int
 > 
 > Got:      bool
 >           ▲▲▲▲

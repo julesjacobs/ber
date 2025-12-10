@@ -5,4 +5,4 @@ let self_apply f = f f
 > 2 | let self_apply f = f f
 >                          ▲
 >                          |
->                          error: 'b -> 'a
+>                          error: 'a

@@ -9,7 +9,7 @@ let mixed_list = Cons (1, Cons (2, Cons (true, Nil)))
 > 6 | let mixed_list = Cons (1, Cons (2, Cons (true, Nil)))
 >                            △                 ▲▲▲▲        
 >                                              |
->                                              got: bool
+>                                              got: int
 >                            |
 >                            expected: int
 > 

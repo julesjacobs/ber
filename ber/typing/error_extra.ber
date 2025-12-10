@@ -10,9 +10,9 @@ let bad_app = 3 4
 >                   △  
 >                   ▲  
 >                   |
->                   got: 'b -> 'a
+>                   got: int
 >                   |
->                   expected: 'b -> 'a
+>                   expected: int
 > 
 > Got:      int
 >           ▲▲▲
@@ -26,7 +26,7 @@ let ascr_mismatch = 1 : bool
 > 23 | let ascr_mismatch = 1 : bool
 >                          ▲   △△△△
 >                          |
->                          got: int
+>                          got: bool
 >                              |
 >                              expected: bool
 > 
@@ -47,7 +47,7 @@ let match_mismatch = match Some 1 with | Some x -> x
 > 40 | | None -> true
 >                ▲▲▲▲
 >                |
->                got: bool
+>                got: int
 > 
 > Got:      bool
 >           ▲▲▲▲
@@ -63,9 +63,9 @@ let guard_non_bool2 = match Some 1 with | Some x when x -> x
 >                                                            △     
 >                                                            ▲     
 >                                                            |
->                                                            got: int
+>                                                            got: bool
 >                                                            |
->                                                            expected: int
+>                                                            expected: bool
 > 
 > Got:      int
 >           ▲▲▲

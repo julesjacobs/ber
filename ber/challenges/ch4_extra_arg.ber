@@ -9,7 +9,7 @@ let _ = negate 1 2
 > 6 | let _ = negate 1 2
 >             △△△△△△ ▲  
 >                    |
->                    got: int
+>                    got: 'b -> 'a
 >             |
 >             expected: ('b -> 'a) -> 'b -> 'a
 > 

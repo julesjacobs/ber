@@ -21,7 +21,7 @@ let bad_annot = fun (x : int) -> x : bool
 > 18 | let bad_annot = fun (x : int) -> x : bool
 >                                       ▲   △△△△
 >                                       |
->                                       got: int
+>                                       got: bool
 >                                           |
 >                                           expected: bool
 > 

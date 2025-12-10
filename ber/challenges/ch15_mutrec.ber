@@ -19,7 +19,7 @@ and odd n =
 > 8 |   | 0 -> 0
 >              ▲
 >              |
->              got: int
+>              got: bool
 > 
 > Got:      int
 >           ▲▲▲

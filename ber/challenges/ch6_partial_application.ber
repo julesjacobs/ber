@@ -21,7 +21,7 @@ let add1_to_length xs =
 > 18 |   add 1 length
 >        △△△   ▲▲▲▲▲▲
 >              |
->              got: 'a list -> int
+>              got: int
 >        |
 >        expected: int -> int -> int
 > 

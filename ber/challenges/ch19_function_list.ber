@@ -17,7 +17,7 @@ let bad_fs =
 > 14 |   Cons ((fun (x : int) -> x), Cons (bool_not, Nil))
 >                        △△△               ▲▲▲▲▲▲▲▲       
 >                                          |
->                                          got: bool -> bool
+>                                          got: int -> int
 >                        |
 >                        expected: int
 > 
@@ -34,7 +34,7 @@ let bad_fs =
 > 31 |   Cons ((fun (x : int) -> (x,x)), Cons (bool_not, Nil))
 >                        △△△                   ▲▲▲▲▲▲▲▲       
 >                                              |
->                                              got: bool -> bool
+>                                              got: int -> int * int
 >                        |
 >                        expected: int
 > 
@@ -51,7 +51,7 @@ let bad_fs =
 > 48 |   Cons ((fun x -> (x,x)), Cons (bool_not, Nil))
 >                         △△△          ▲▲▲▲▲▲▲▲       
 >                                      |
->                                      got: bool -> bool
+>                                      got: bool -> bool * bool
 >                         |
 >                         expected: bool * bool
 > 
@@ -67,7 +67,7 @@ Cons(1, Cons((fun x -> x), Nil))
 > 64 | Cons(1, Cons((fun x -> x), Nil))
 >           △        ▲▲▲▲▲▲▲▲▲▲        
 >                    |
->                    got: 'b -> 'a
+>                    got: int
 >           |
 >           expected: int
 > 
@@ -92,9 +92,9 @@ let bad_fs =
 >                                    △△△△△△△△△       
 >                                    ▲▲▲▲▲▲▲▲▲       
 >                                    |
->                                    got: bool -> int
+>                                    got: bool -> bool
 >                                    |
->                                    expected: bool -> int
+>                                    expected: bool -> bool
 > 
 > Got:      int
 >           ▲▲▲
@@ -115,7 +115,7 @@ let bool_not3 b =
 > 108 |   | false -> ()
 >                    ▲▲
 >                    |
->                    got: unit
+>                    got: bool
 > 
 > Got:      unit
 >           ▲▲▲▲

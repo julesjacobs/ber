@@ -132,9 +132,9 @@ let make_type_renderer () =
       Hashtbl.add names tv.id n;
       n
   in
-  let add_mark loc id acc =
-    match loc with
-    | Some loc when not (is_dummy_loc loc) -> { loc; id } :: acc
+  let add_mark (loc_opt : typed_loc option) id acc =
+    match loc_opt with
+    | Some (tl : typed_loc) when not (is_dummy_loc tl.loc) -> { loc = tl.loc; id } :: acc
     | _ -> acc
   in
   let rec shift (_delta : int) (parts : type_mark list) = parts
@@ -159,13 +159,13 @@ let make_type_renderer () =
           s0, marks
       in
       let marks = add_mark meta.loc meta.id marks in
-      let tree = TConNode { name = "->"; loc = meta.loc; id = meta.id; args = [ ta; tb ] } in
+      let tree = TConNode { name = "->"; loc = Option.map (fun (tl : typed_loc) -> tl.loc) meta.loc; id = meta.id; args = [ ta; tb ] } in
       s, marks, tree
     | TCon ("*", elems, meta) ->
       (match elems with
        | [] ->
          let s = "unit" in
-         let tree = TConNode { name = "*"; loc = meta.loc; id = meta.id; args = [] } in
+         let tree = TConNode { name = "*"; loc = Option.map (fun (tl : typed_loc) -> tl.loc) meta.loc; id = meta.id; args = [] } in
          let marks = add_mark meta.loc meta.id [] in
          s, marks, tree
        | _ ->
@@ -190,12 +190,12 @@ let make_type_renderer () =
              s0, marks
          in
          let marks = add_mark meta.loc meta.id marks in
-         let tree = TConNode { name = "*"; loc = meta.loc; id = meta.id; args = trees } in
+         let tree = TConNode { name = "*"; loc = Option.map (fun (tl : typed_loc) -> tl.loc) meta.loc; id = meta.id; args = trees } in
          s, marks, tree)
     | TCon (name, [], meta) ->
       let s = name in
       let marks = add_mark meta.loc meta.id [] in
-      let tree = TConNode { name; loc = meta.loc; id = meta.id; args = [] } in
+      let tree = TConNode { name; loc = Option.map (fun (tl : typed_loc) -> tl.loc) meta.loc; id = meta.id; args = [] } in
       s, marks, tree
     | TCon (name, [ arg ], meta) ->
       let sa, ma, ta = render 2 arg in
@@ -211,7 +211,7 @@ let make_type_renderer () =
           s0, marks
       in
       let marks = add_mark meta.loc meta.id marks in
-      let tree = TConNode { name; loc = meta.loc; id = meta.id; args = [ ta ] } in
+      let tree = TConNode { name; loc = Option.map (fun (tl : typed_loc) -> tl.loc) meta.loc; id = meta.id; args = [ ta ] } in
       s, marks, tree
     | TCon (name, args, meta) ->
       let rendered = List.map (render 0) args in
@@ -237,7 +237,7 @@ let make_type_renderer () =
           s0, marks
       in
       let marks = add_mark meta.loc meta.id marks in
-      let tree = TConNode { name; loc = meta.loc; id = meta.id; args = trees } in
+      let tree = TConNode { name; loc = Option.map (fun (tl : typed_loc) -> tl.loc) meta.loc; id = meta.id; args = trees } in
       s, marks, tree
   in
   let render_view ty =
@@ -255,7 +255,7 @@ let mismatch_locs expected got =
     match prune ty with
     | TCon (_, _, meta) ->
       (match meta.loc with
-       | Some loc when not (is_dummy_loc loc) -> [ loc ]
+       | Some tl when not (is_dummy_loc tl.loc) -> [ tl.loc ]
        | _ -> [])
     | _ -> []
   in

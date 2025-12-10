@@ -27,7 +27,7 @@ compose h g
 > 24 | compose h g
 >              △ ▲
 >                |
->                got: bool -> bool
+>                got: bool -> int
 >              |
 >              expected: int -> int
 > 
@@ -43,7 +43,7 @@ compose h g 0
 > 40 | compose h g 0
 >              △ ▲  
 >                |
->                got: bool -> bool
+>                got: bool -> int
 >              |
 >              expected: int -> int
 > 
@@ -59,7 +59,7 @@ compose h g 0 0
 > 56 | compose h g 0 0
 >      △△△△△△△ ▲      
 >              |
->              got: int -> int
+>              got: int -> 'b -> 'a
 >      |
 >      expected: (int -> 'b -> 'a) -> ('c -> int) -> 'c -> 'b -> 'a
 > 

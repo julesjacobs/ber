@@ -22,7 +22,7 @@ let rec length_or_and xs =
 > 12 |     | false -> x
 >                     ▲
 >                     |
->                     got: bool
+>                     got: int
 > 
 > Got:      bool
 >           ▲▲▲▲

@@ -12,7 +12,7 @@ let bad_options =
 > 9 |   Cons (Some 1, Cons (None, Cons (Some true, Nil)))
 >                  △                         ▲▲▲▲        
 >                                            |
->                                            got: bool
+>                                            got: int
 >                  |
 >                  expected: int
 > 

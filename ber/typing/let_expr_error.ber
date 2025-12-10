@@ -5,7 +5,7 @@
 > 2 | (let 1 = true in 0)
 >          ▲   △△△△      
 >          |
->          got: int
+>          got: bool
 >              |
 >              expected: bool
 > 

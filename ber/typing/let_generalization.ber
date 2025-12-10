@@ -23,7 +23,7 @@ let capture_list x =
 > 20 |   (prepend 1, prepend true)
 >                    △△△△△△△ ▲▲▲▲ 
 >                            |
->                            got: bool
+>                            got: int
 >                    |
 >                    expected: int -> int list
 > 

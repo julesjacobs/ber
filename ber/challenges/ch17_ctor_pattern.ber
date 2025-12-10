@@ -16,4 +16,4 @@ let rec size t =
 > 12 |   | Leaf -> 1
 >          ▲▲▲▲     
 >          |
->          error: 'a -> 'a tree
+>          error: 'a

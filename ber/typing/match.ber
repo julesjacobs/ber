@@ -16,9 +16,9 @@ let guard_non_bool = match None with | None when 1 -> true
 >                                                       △        
 >                                                       ▲        
 >                                                       |
->                                                       got: int
+>                                                       got: bool
 >                                                       |
->                                                       expected: int
+>                                                       expected: bool
 > 
 > Got:      int
 >           ▲▲▲

@@ -12,7 +12,7 @@ let rec g x =
 > 9 |   | _ -> g (Cons (x, Nil))
 >              △  ▲▲▲▲          
 >                 |
->                 got: 'a * 'a list -> int
+>                 got: 'a list
 >              |
 >              expected: int -> 'a list
 > 

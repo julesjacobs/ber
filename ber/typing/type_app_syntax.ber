@@ -49,7 +49,7 @@ let bad_pair_arg : (int, bool) pair = Pair ("oops", 2)
 > 46 | let bad_pair_arg : (int, bool) pair = Pair ("oops", 2)
 >                          △△△                     ▲▲▲▲▲▲    
 >                                                  |
->                                                  got: string
+>                                                  got: int
 >                          |
 >                          expected: int
 > 
@@ -65,7 +65,7 @@ let bad_wrap : (int, bool) wrap = Wrap (Box (Pair (true, "ok")))
 > 62 | let bad_wrap : (int, bool) wrap = Wrap (Box (Pair (true, "ok")))
 >                      △△△                                ▲▲▲▲         
 >                                                         |
->                                                         got: bool
+>                                                         got: int
 >                      |
 >                      expected: int
 > 

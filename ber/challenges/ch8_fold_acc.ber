@@ -25,7 +25,7 @@ let _ = sum_bool_list xs
 > 22 | let _ = sum_bool_list xs
 >              △△△△△△△△△△△△△ ▲▲
 >                            |
->                            got: bool list
+>                            got: int list
 >              |
 >              expected: int list -> int
 > 
@@ -53,7 +53,7 @@ fold_left 0 add lst
 > 50 | fold_left 0 add lst
 >      △△△△△△△△△ ▲        
 >                |
->                got: int
+>                got: 'a -> 'b -> 'a
 >      |
 >      expected: ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
 > 
@@ -69,7 +69,7 @@ fold_left 0 add
 > 66 | fold_left 0 add
 >      △△△△△△△△△ ▲    
 >                |
->                got: int
+>                got: 'a -> 'b -> 'a
 >      |
 >      expected: ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
 > 
@@ -85,7 +85,7 @@ fold_left add lst 0
 > 82 | fold_left add lst 0
 >                △△△ ▲▲▲  
 >                    |
->                    got: int list
+>                    got: int
 >                |
 >                expected: int -> int -> int
 > 
@@ -101,7 +101,7 @@ fold_left add lst
 > 98 | fold_left add lst
 >                △△△ ▲▲▲
 >                    |
->                    got: int list
+>                    got: int
 >                |
 >                expected: int -> int -> int
 > 

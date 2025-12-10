@@ -9,7 +9,7 @@ let bad_annot = (fun x -> x) : int -> bool
 > 6 | let bad_annot = (fun x -> x) : int -> bool
 >                               ▲           △△△△
 >                               |
->                               got: int
+>                               got: bool
 >                                           |
 >                                           expected: bool
 > 

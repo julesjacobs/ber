@@ -9,9 +9,9 @@ let make_node = Node ()
 > 6 | let make_node = Node ()
 >                     △△△△ ▲▲
 >                          |
->                          got: unit
+>                          got: tree * tree
 >                     |
->                     expected: tree * tree -> tree
+>                     expected: tree
 > 
 > Got:      unit
 >           ▲▲▲▲
@@ -25,9 +25,9 @@ let wrong_ctor_arity = Node 1
 > 22 | let wrong_ctor_arity = Node 1
 >                             △△△△ ▲
 >                                  |
->                                  got: int
+>                                  got: tree * tree
 >                             |
->                             expected: tree * tree -> tree
+>                             expected: tree
 > 
 > Got:      int
 >           ▲▲▲

@@ -16,7 +16,7 @@ let f b =
 > 7 |     | false -> false
 >                    ▲▲▲▲▲
 >                    |
->                    got: bool
+>                    got: int
 > 
 > Got:      bool
 >           ▲▲▲▲
