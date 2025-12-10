@@ -298,6 +298,20 @@ const attachHoverHandlers = (container: HTMLElement, hoverLocs: Span[]) => {
   });
 };
 
+const attachExprHoverHandlers = (container: HTMLElement, spans: Span[]) => {
+  const byLabel = (label: string) => spans.filter((s) => s.label === label);
+  const bindHover = (selector: string, label: string) => {
+    const el = container.querySelector<HTMLElement>(selector);
+    if (!el) return;
+    const hoverSpans = byLabel(label).map((s) => ({ ...s }));
+    if (!hoverSpans.length) return;
+    el.addEventListener("mouseenter", () => applyHoverHighlights(hoverSpans));
+    el.addEventListener("mouseleave", () => applyHoverHighlights([]));
+  };
+  bindHover(".expr-snippet.got", "got");
+  bindHover(".expr-snippet.expected", "expected");
+};
+
 const clearMismatchArrow = () => {
   const existing = output.querySelector(".type-arrow-layer");
   if (existing) existing.remove();
@@ -451,6 +465,7 @@ const renderOutput = (result: BerResult, headingInfo?: ParsedHeading) => {
       `;
       alignTypeMismatchColumns();
       attachHoverHandlers(output, hoverLocs);
+      attachExprHoverHandlers(output, result.spans ?? []);
       renderMismatchArrow(detail);
       lastResult = result;
       renderDebug();
