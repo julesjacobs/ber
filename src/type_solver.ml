@@ -8,10 +8,14 @@ type tvar =
   ; mutable level : int
   }
 
-and typed_loc =
-  { loc_far : Location.t
-  ; loc_near : Location.t
+and typed_loc_single =
+  { loc : Location.t
   ; ty : ty
+  }
+
+and typed_loc =
+  { loc_near : typed_loc_single
+  ; loc_far : typed_loc_single
   }
 
 and con_meta =
@@ -43,18 +47,19 @@ let fresh_ty level = TVar (fresh_tvar level)
 
 let reset_tracked_locs () = ()
 let track_typed_loc (_ : typed_loc) = ()
-let track_loc_type loc ty = { loc_far = loc; loc_near = loc; ty }
 
 let mk_con_typed_loc ~loc_far ~loc_near name args =
   let id = fresh_con_id () in
   let rec ty = TCon (name, args, { loc = typed_loc; id })
-  and typed_loc = { loc_far; loc_near; ty } in
+  and typed_loc = { loc_near = loc_near; loc_far = loc_far } in
   ty
 
 let mk_con loc name args =
   let id = fresh_con_id () in
   let rec ty = TCon (name, args, { loc = typed_loc; id })
-  and typed_loc = { loc_far = loc; loc_near = loc; ty } in
+  and loc_near = { loc; ty }
+  and loc_far = { loc; ty }
+  and typed_loc = { loc_near; loc_far } in
   ty
 
 let t_int ~loc () = mk_con loc "int" []
@@ -132,7 +137,7 @@ let generalize ~level ty =
   in
   Forall (vars, ty)
 
-let instantiate ~typed_loc ~level (Forall (vars, ty)) =
+let instantiate ~overwrite ~typed_loc ~level (Forall (vars, ty)) =
   let subst =
     List.fold_left
       (fun m tv -> IMap.add tv.id (fresh_ty level) m)
@@ -145,7 +150,12 @@ let instantiate ~typed_loc ~level (Forall (vars, ty)) =
        | Some t -> t
        | None -> ty)
     | TCon (n, args, meta) ->
-      mk_con_typed_loc ~loc_far:meta.loc.loc_far ~loc_near:typed_loc.loc_near n (List.map aux args)
+      let loc_far = if overwrite then typed_loc.loc_far else meta.loc.loc_far in
+      mk_con_typed_loc
+        ~loc_far
+        ~loc_near:typed_loc.loc_near
+        n
+        (List.map aux args)
   in
   aux ty
 

@@ -133,7 +133,7 @@ let make_type_renderer () =
       n
   in
   let add_mark (loc : typed_loc) id acc =
-    if is_dummy_loc loc.loc_near then acc else { loc = loc.loc_near; id } :: acc
+    if is_dummy_loc loc.loc_near.loc then acc else { loc = loc.loc_near.loc; id } :: acc
   in
   let rec shift (_delta : int) (parts : type_mark list) = parts
   and render (prec : int) (ty : ty) : string * type_mark list * type_tree =
@@ -160,8 +160,8 @@ let make_type_renderer () =
       let tree =
         TConNode
           { name = "->"
-          ; loc_near = Some meta.loc.loc_near
-          ; loc_far = Some meta.loc.loc_far
+          ; loc_near = Some meta.loc.loc_near.loc
+          ; loc_far = Some meta.loc.loc_far.loc
           ; id = meta.id
           ; args = [ ta; tb ]
           }
@@ -174,8 +174,8 @@ let make_type_renderer () =
         let tree =
           TConNode
             { name = "*"
-            ; loc_near = Some meta.loc.loc_near
-            ; loc_far = Some meta.loc.loc_far
+            ; loc_near = Some meta.loc.loc_near.loc
+            ; loc_far = Some meta.loc.loc_far.loc
             ; id = meta.id
             ; args = []
             }
@@ -207,8 +207,8 @@ let make_type_renderer () =
           let tree =
             TConNode
               { name = "*"
-              ; loc_near = Some meta.loc.loc_near
-              ; loc_far = Some meta.loc.loc_far
+              ; loc_near = Some meta.loc.loc_near.loc
+              ; loc_far = Some meta.loc.loc_far.loc
               ; id = meta.id
               ; args = trees
               }
@@ -220,8 +220,8 @@ let make_type_renderer () =
       let tree =
         TConNode
           { name
-          ; loc_near = Some meta.loc.loc_near
-          ; loc_far = Some meta.loc.loc_far
+          ; loc_near = Some meta.loc.loc_near.loc
+          ; loc_far = Some meta.loc.loc_far.loc
           ; id = meta.id
           ; args = []
           }
@@ -244,8 +244,8 @@ let make_type_renderer () =
       let tree =
         TConNode
           { name
-          ; loc_near = Some meta.loc.loc_near
-          ; loc_far = Some meta.loc.loc_far
+          ; loc_near = Some meta.loc.loc_near.loc
+          ; loc_far = Some meta.loc.loc_far.loc
           ; id = meta.id
           ; args = [ ta ]
           }
@@ -278,8 +278,8 @@ let make_type_renderer () =
       let tree =
         TConNode
           { name
-          ; loc_near = Some meta.loc.loc_near
-          ; loc_far = Some meta.loc.loc_far
+          ; loc_near = Some meta.loc.loc_near.loc
+          ; loc_far = Some meta.loc.loc_far.loc
           ; id = meta.id
           ; args = trees
           }
@@ -300,7 +300,7 @@ let mismatch_locs expected got =
   let head_loc ty =
     match prune ty with
     | TCon (_, _, meta) ->
-      if is_dummy_loc meta.loc.loc_near then [] else [ meta.loc.loc_near ]
+      if is_dummy_loc meta.loc.loc_near.loc then [] else [ meta.loc.loc_near.loc ]
     | _ -> []
   in
   let rec go a b =
@@ -388,7 +388,7 @@ let mismatch_detail heading expected_ty got_ty ~source ~expected_locs ~got_locs 
       (match find_typed_loc id ty with
        | Some tl ->
          let view, _ = make_type_renderer () in
-         Some (view tl.ty)
+         Some (view tl.loc_near.ty)
        | None -> None)
     | [] -> None
   in

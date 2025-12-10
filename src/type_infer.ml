@@ -70,10 +70,10 @@ type toplevel_info =
   | InfoType of Location.t
 
 let generalize env ty = Type_solver.generalize ~level:env.gen_level ty
-let instantiate ~loc env sch = 
+let instantiate ~overwrite ~loc env sch = 
   let t = fresh_ty env.gen_level in
-  let typed_loc = track_loc_type loc t in
-  let t' = Type_solver.instantiate ~typed_loc ~level:env.gen_level sch in
+  let typed_loc = { loc_near = { loc; ty = t }; loc_far = { loc; ty = t } } in
+  let t' = Type_solver.instantiate ~overwrite ~typed_loc ~level:env.gen_level sch in
   unify t t'; (* Can never fail because t is fresh *)
   t'
 
@@ -131,9 +131,7 @@ let rec ty_of_type_expr env (tyvars : (string * tvar) list ref) (te : type_expr)
       Ok (t_tuple ~loc:te.loc elems')
   in
   match res with
-  | Ok ty ->
-    let _ = track_loc_type te.loc ty in
-    Ok ty
+  | Ok ty -> Ok ty
   | Error _ as e -> e
 
 let rec infer_pattern env (pat : pattern) =
@@ -165,7 +163,7 @@ let rec infer_pattern env (pat : pattern) =
   | PConstr (ctor, args) ->
     (match SMap.find_opt ctor.node env.vars with
      | Some scheme ->
-       let ctor_ty = instantiate ~loc:ctor.loc env scheme in
+       let ctor_ty = instantiate ~overwrite:true ~loc:ctor.loc env scheme in
        let rec collect ty acc =
          match prune ty with
          | TCon ("->", [ a; b ], _) -> collect b (a :: acc)
@@ -206,10 +204,19 @@ let infer_application env function_or_constructor call_loc fn_loc fn_ty arg_tys 
   let arg_tys_fresh = List.map (fun _ -> fresh_ty env.gen_level) arg_tys in
   let app_ty =
     let fn_ty' = fresh_ty env.gen_level in
-    let typed_loc = { loc_far = fn_loc; loc_near = fn_loc; ty = fn_ty' } in
+    let typed_loc =
+      let near = { loc = fn_loc; ty = fn_ty' } in
+      let far = { loc = fn_loc; ty = fn_ty' } in
+      { loc_near = near; loc_far = far }
+    in
     let ty =
       List.fold_right
-        (fun arg acc -> t_arrow_typed_loc ~loc_far:typed_loc.loc_far ~loc_near:typed_loc.loc_near arg acc)
+        (fun arg acc ->
+           t_arrow_typed_loc
+             ~loc_far:typed_loc.loc_far
+             ~loc_near:typed_loc.loc_near
+             arg
+             acc)
         arg_tys_fresh
         result_ty
     in
@@ -238,7 +245,7 @@ let rec infer_expr (env : env) (expr : expr) : (ty, type_error) result =
     (match SMap.find_opt id.node env.vars with
      | None -> error_msg expr.loc ("Unbound variable " ^ id.node)
      | Some s ->
-       let t = instantiate ~loc:id.loc env s in
+       let t = instantiate ~overwrite:false ~loc:id.loc env s in
        Ok t)
   | ETuple elems ->
     let* elem_tys = map_result (infer_expr env) elems in
@@ -273,7 +280,7 @@ let rec infer_expr (env : env) (expr : expr) : (ty, type_error) result =
     (match SMap.find_opt ctor.node env.vars with
      | None -> error_msg expr.loc ("Unknown constructor " ^ ctor.node)
      | Some scheme ->
-       let ctor_ty = instantiate ~loc:ctor.loc env scheme in
+       let ctor_ty = instantiate ~overwrite:true ~loc:ctor.loc env scheme in
        let* arg_tys = map_result (fun arg -> infer_expr env arg) args in
        infer_application env `Constructor expr.loc ctor.loc ctor_ty arg_tys)
   | ELet { rec_flag; bindings; in_expr } ->
